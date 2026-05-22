@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Bike Insight · Pulse design tokens ─────────────────────── */
+:root {
+  /* Palette */
+  --bi-bg:          #F4F4EF;   /* warm off-white page background */
+  --bi-card:        #FFFFFF;   /* card surface */
+  --bi-ink:         #0E0E10;   /* primary text, buttons */
+  --bi-muted:       #6B6B72;   /* secondary text, labels */
+  --bi-line:        rgba(14,14,16,0.08);  /* borders, dividers */
+  --bi-soft-line:   rgba(14,14,16,0.04); /* internal card dividers */
+
+  /* Accent — electric lime */
+  --bi-accent:      #C7FF3F;
+  --bi-accent-ink:  #0E0E10;
+
+  /* Status */
+  --bi-ok:          #0E8F5A;   /* green — component OK */
+  --bi-warn:        #D08415;   /* amber — to watch */
+  --bi-bad:         #C8362E;   /* red — to replace */
+
+  /* Typography */
+  --bi-font-ui:     "Geist", -apple-system, system-ui, sans-serif;
+  --bi-font-mono:   "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ── Base reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bi-bg);
+  color: var(--bi-ink);
+  font-family: var(--bi-font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Utility classes ────────────────────────────────────────── */
+.bi-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--bi-muted);
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 50%  { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ── Shadcn/Tailwind radius token ───────────────────────────── */
+@theme inline {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+}
