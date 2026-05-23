@@ -68,7 +68,8 @@ function LoginForm() {
       setLoading(false);
     } else {
       const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
-      router.push(redirectTo);
+      // Hard reload pour que le middleware lise les cookies de session
+      window.location.href = redirectTo;
     }
   };
 

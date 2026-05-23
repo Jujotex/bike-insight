@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server'
 const PROTECTED_ROUTES = ['/dashboard', '/bikes', '/components', '/analysis', '/sync']
 const AUTH_ROUTES = ['/login', '/signup']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   let response = NextResponse.next({ request })
 

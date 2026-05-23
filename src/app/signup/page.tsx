@@ -86,7 +86,7 @@ export default function SignupPage() {
     }
 
     // Inscription directe (confirmation email désactivée)
-    router.push("/connect/strava");
+    window.location.href = "/connect/strava";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
