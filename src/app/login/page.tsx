@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -49,7 +49,8 @@ function AppleIcon() {
   );
 }
 
-export default function LoginPage() {
+// Composant isolé pour useSearchParams (requis par Next.js dans un Suspense)
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -76,11 +77,7 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell
-      eyebrow="Connexion"
-      headline={<>Bon retour.</>}
-      sub="Reprends le suivi de ton matériel là où tu t'étais arrêté."
-    >
+    <>
       <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>
         Connexion
       </div>
@@ -94,26 +91,11 @@ export default function LoginPage() {
       <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 14 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Email</div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="ton@email.com"
-            autoFocus
-            style={inputStyle}
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={handleKeyDown} placeholder="ton@email.com" autoFocus style={inputStyle} />
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Mot de passe</div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="••••••••••"
-            style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }}
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={handleKeyDown} placeholder="••••••••••" style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }} />
         </div>
       </div>
 
@@ -129,11 +111,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <button
-        onClick={handleLogin}
-        disabled={loading}
-        style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
-      >
+      <button onClick={handleLogin} disabled={loading} style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
         {loading ? "Connexion…" : "Se connecter"}
       </button>
 
@@ -158,6 +136,20 @@ export default function LoginPage() {
           Créer un compte
         </Link>
       </div>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <AuthShell
+      eyebrow="Connexion"
+      headline={<>Bon retour.</>}
+      sub="Reprends le suivi de ton matériel là où tu t'étais arrêté."
+    >
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }
