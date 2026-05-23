@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/bi/app-shell";
+import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, ProgressBar } from "@/components/bi/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -92,7 +93,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell nav={<SideNavLoader />}>
       <div style={{ padding: "24px 36px 40px" }}>
 
         {/* Top bar */}
