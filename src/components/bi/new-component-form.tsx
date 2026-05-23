@@ -103,12 +103,12 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     : null;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
+    <div className="bi-grid-form">
       {/* Form */}
       <BiCard pad={28}>
         {/* Type */}
         <BiLabel style={{ marginBottom: 12 }}>Type de composant</BiLabel>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 24 }}>
+        <div className="bi-grid-4" style={{ gap: 8, marginBottom: 24 }}>
           {COMPONENT_TYPES.map((t) => (
             <button
               key={t.name}
@@ -132,7 +132,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
         </div>
 
         {/* Bike + Brand */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
+        <div className="bi-grid-2" style={{ marginBottom: 18 }}>
           <div>
             <BiLabel style={{ marginBottom: 8 }}>Vélo</BiLabel>
             <select
@@ -158,7 +158,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
         </div>
 
         {/* Price + Date + Installed km */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 24 }}>
+        <div className="bi-grid-3" style={{ marginBottom: 24 }}>
           <div>
             <BiLabel style={{ marginBottom: 8 }}>Prix d&apos;achat (€)</BiLabel>
             <input

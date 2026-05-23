@@ -68,7 +68,7 @@ export default async function ComponentDetailPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 28px 40px", maxWidth: 1100 }}>
+      <div className="bi-page" style={{ maxWidth: 1100 }}>
         <PageHead
           title={`${comp.name as string}`}
           breadcrumb={["Composants", comp.name as string]}
@@ -80,7 +80,7 @@ export default async function ComponentDetailPage({
           }
         />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14, marginBottom: 14 }}>
+        <div className="bi-grid-split" style={{ marginBottom: 14 }}>
           {/* Hero dark card */}
           <div style={{
             background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32,
@@ -196,3 +196,4 @@ export default async function ComponentDetailPage({
     </AppShell>
   );
 }
+                                                                                                                                                                                                     

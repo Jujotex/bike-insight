@@ -89,7 +89,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 36px 40px" }}>
+      <div className="bi-page">
 
         {/* Top bar */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 18 }}>
+        <div className="bi-grid-4" style={{ marginBottom: 18 }}>
           <BiCard pad={20}>
             <BiLabel>Coût total composants</BiLabel>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Main grid 1.4fr 1fr */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14, marginBottom: 18 }}>
+        <div className="bi-grid-split" style={{ marginBottom: 18 }}>
 
           {/* Components table */}
           <BiCard pad={0}>
@@ -328,7 +328,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Activity + cost split */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14 }}>
+        <div className="bi-grid-split-lg">
 
           {/* Activity chart */}
           <BiCard pad={22}>

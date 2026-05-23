@@ -29,7 +29,7 @@ export default async function SyncPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 28px 40px", maxWidth: 1100 }}>
+      <div className="bi-page" style={{ maxWidth: 1100 }}>
         <PageHead
           title="Strava"
           sub="Statut de la connexion, dernière synchronisation et activités importées"
@@ -69,7 +69,7 @@ export default async function SyncPage() {
         </BiCard>
 
         {/* Permissions + bikes */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+        <div className="bi-grid-2" style={{ marginBottom: 14 }}>
           <BiCard pad={24}>
             <BiLabel style={{ marginBottom: 14 }}>Permissions Strava actives</BiLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -149,15 +149,4 @@ export default async function SyncPage() {
                   <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
                     {a.moving_time_s ? formatDuration(a.moving_time_s) : "—"}
                   </Mono>
-                  <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
-                    {a.elevation_m ? `${Math.round(a.elevation_m)} m` : "—"}
-                  </Mono>
-                </div>
-              ))}
-            </>
-          )}
-        </BiCard>
-      </div>
-    </AppShell>
-  );
-}
+                  <Mono style={{

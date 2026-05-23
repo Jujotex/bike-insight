@@ -93,7 +93,7 @@ export default async function BikeDetailPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 36px 40px" }}>
+      <div className="bi-page">
 
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--bi-muted)", marginBottom: 10 }}>
@@ -145,7 +145,7 @@ export default async function BikeDetailPage({
         </div>
 
         {/* Main grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14 }}>
+        <div className="bi-grid-split-lg">
 
           {/* Components table */}
           <BiCard pad={0}>
@@ -218,56 +218,4 @@ export default async function BikeDetailPage({
               </div>
               <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
                 {activityChart.map((h, i) => (
-                  <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
-                ))}
-              </div>
-            </BiCard>
-
-            {/* Analyse */}
-            <BiCard pad={22}>
-              <BiLabel>Analyse</BiLabel>
-              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
-                {mostCritical ? (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Composant critique</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: 999, background: STATUS_COLORS[mostCritical.status] ?? "var(--bi-muted)", flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>
-                        {mostCritical.name} · {mostCritical.wear_pct !== null ? `${Math.round(mostCritical.wear_pct as number)} % d'usure` : "à vérifier"}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>État général</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Tous les composants OK</div>
-                  </div>
-                )}
-
-                {topCostEntry && totalComponentCost > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Poste le plus coûteux</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>
-                      {CATEGORY_LABELS[topCostEntry[0]] ?? topCostEntry[0]} · <Mono>{topCostEntry[1]} €</Mono> · {Math.round((topCostEntry[1] / totalComponentCost) * 100)} %
-                    </div>
-                  </div>
-                )}
-
-                {components.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 8, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Répartition coûts</div>
-                    <div style={{ height: 6, borderRadius: 999, overflow: "hidden", display: "flex", gap: 2 }}>
-                      {(Object.entries(costByCategory) as [string, number][]).filter(([, v]) => v > 0).map(([cat, val]) => (
-                        <div key={cat} style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </BiCard>
-          </div>
-        </div>
-      </div>
-    </AppShell>
-  );
-}
+                  <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.ro

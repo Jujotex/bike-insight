@@ -61,6 +61,43 @@ body {
   51%, 100% { opacity: 0; }
 }
 
+/* ── Responsive layout helpers ─────────────────────────────── */
+
+/* Page padding */
+.bi-page { padding: 24px 36px 40px; }
+
+/* Grilles */
+.bi-grid-4   { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }
+.bi-grid-3   { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+.bi-grid-2   { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
+.bi-grid-split     { display: grid; gap: 14px; grid-template-columns: 1.4fr 1fr; }
+.bi-grid-split-lg  { display: grid; gap: 14px; grid-template-columns: 1.6fr 1fr; }
+.bi-grid-form      { display: grid; gap: 20px; grid-template-columns: 1.6fr 1fr; }
+
+/* Composants conditionnels */
+.bi-desktop { display: block; }
+.bi-mobile  { display: none; }
+
+@media (max-width: 768px) {
+  .bi-page { padding: 16px 16px 100px; }
+
+  .bi-grid-4        { grid-template-columns: repeat(2, 1fr); }
+  .bi-grid-3        { grid-template-columns: repeat(2, 1fr); }
+  .bi-grid-2        { grid-template-columns: repeat(2, 1fr); }
+  .bi-grid-split    { grid-template-columns: 1fr; }
+  .bi-grid-split-lg { grid-template-columns: 1fr; }
+  .bi-grid-form     { grid-template-columns: 1fr; }
+
+  .bi-desktop { display: none !important; }
+  .bi-mobile  { display: block !important; }
+
+  /* Tables → scroll horizontal */
+  .bi-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Textes trop grands sur mobile */
+  .bi-hero-num { font-size: 28px !important; }
+}
+
 /* ── Shadcn/Tailwind radius token ───────────────────────────── */
 @theme inline {
   --radius-sm: 6px;

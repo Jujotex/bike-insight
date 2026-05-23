@@ -72,7 +72,7 @@ export default async function BikesPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 28px 40px", maxWidth: 1100 }}>
+      <div className="bi-page" style={{ maxWidth: 1100 }}>
         <PageHead
           title="Mes vélos"
           sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} importé${bikeList.length !== 1 ? "s" : ""} depuis Strava · ${totalKm.toLocaleString("fr-FR")} km cumulés`}
@@ -80,7 +80,7 @@ export default async function BikesPage() {
         />
 
         {/* Summary strip */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }}>
+        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }}>
           {[
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
@@ -145,84 +145,4 @@ export default async function BikesPage() {
                         <line x1="36" y1="48" x2="22" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
                         {/* Spokes front */}
                         <line x1="88" y1="36" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="74" y1="48" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="102" y1="48" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        {/* Chainring */}
-                        <circle cx="50" cy="48" r="7" stroke={palette.accent} strokeWidth="1.5" opacity="0.7"/>
-                        <circle cx="50" cy="48" r="2" fill={palette.accent} opacity="0.7"/>
-                      </svg>
-                      {b.strava_gear_id && (
-                        <span style={{ position: "absolute", top: 12, left: 12, fontSize: 9.5, padding: "4px 9px", background: "#FC4C02", color: "#fff", borderRadius: 999, fontWeight: 700, letterSpacing: 0.5 }}>STRAVA</span>
-                      )}
-                      {/* km badge */}
-                      <span style={{ position: "absolute", bottom: 12, right: 12, fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, fontWeight: 600, color: palette.accent, background: "rgba(0,0,0,0.35)", padding: "3px 8px", borderRadius: 6 }}>
-                        {(b.total_km ?? 0).toLocaleString("fr")} km
-                      </span>
-                    </div>
-
-                    <div style={{ padding: 18 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                        {b.brand ? `${b.brand}${b.model ? ` · ${b.model}` : ""}` : (b.model ?? "Vélo")}
-                      </div>
-
-                      <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <div>
-                          <BiLabel>Kilométrage total</BiLabel>
-                          <div style={{ marginTop: 4 }}>
-                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{(b.total_km ?? 0).toLocaleString("fr")}</Mono>
-                            <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> km</span>
-                          </div>
-                        </div>
-                        <div>
-                          <BiLabel>Sorties · 12 m</BiLabel>
-                          <div style={{ marginTop: 4 }}>
-                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{stats.rides}</Mono>
-                            <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> sorties</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        {b.most_critical_component ? (
-                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "var(--bi-bad)" }}>
-                            <Dot color="var(--bi-bad)" size={6} /> {b.most_critical_component}
-                          </span>
-                        ) : (
-                          <StatusPill kind="ok" label="Tout OK" />
-                        )}
-                        <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>
-                          {(b.component_count as number) ?? 0} composant{((b.component_count as number) ?? 0) !== 1 ? "s" : ""}
-                        </Mono>
-                      </div>
-
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
-                          Dernière sortie : {formatLastRide(stats.lastDate)}
-                        </span>
-                        <span style={{ fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                          Détail <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-                        </span>
-                      </div>
-                    </div>
-                  </BiCard>
-                </Link>
-              );
-            })}
-
-            {/* Add bike slot */}
-            <div style={{ borderRadius: 18, border: "1px dashed var(--bi-line)", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 10, minHeight: 320 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Vélo non Strava ?</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45 }}>
-                Lance une synchronisation pour importer les vélos depuis Strava.
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </AppShell>
-  );
-}
+                        <line x1="74" y1="48" x2="88" y
