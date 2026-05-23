@@ -8,6 +8,18 @@
 ## [Unreleased]
 
 ### Added
+- Phase 4a — Dashboard avec données réelles : `src/lib/data.ts` (`getDashboardData`, `getBikeData`)
+- Dashboard page rewritten as async Server Component, reads `bike_stats` + `component_stats` views
+- KPIs réels : coût total composants, coût/km, km 12 mois, nombre de sorties, usure moyenne, alertes critiques
+- Graphique activité 30j dynamique avec max normalisé et labels de dates réels
+- Répartition coût par catégorie dynamique depuis `costByCategory`
+- Carte "Action prioritaire" basée sur `mostCritical` composant réel
+- Insights générés dynamiquement depuis les données (composants critiques, usure, budget)
+- `AppShell` devient async Server Component : fetch vélos réels pour la SideNav
+- `SideNav` : accepte props `bikes`, `userInitials`, `userName`, `bikeCount` — indicateur rouge si composant critique
+- Vélos cliquables dans la SideNav (lien vers `/bikes/[id]`)
+
+### Added (Phase 3)
 - Moteur usure : fonction SQL `recalculate_component_km` (km_used = bike.total_km - installed_km)
 - Trigger automatique statut ok/warn/bad à chaque recalcul
 - Vue `component_stats` : wear_pct, cost_per_km, km_remaining par composant

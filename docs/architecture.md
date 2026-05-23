@@ -105,10 +105,18 @@ Dépendance : `@supabase/ssr` (package Supabase officiel pour Next.js SSR)
 | 1 | Schéma Supabase, RLS, auth middleware | ✅ Terminé |
 | 2 | Strava OAuth réel, import activités | ✅ Terminé |
 | 3 | Moteur usure & coûts | ✅ Terminé |
-| 4 | Pages web avec données réelles | 🔜 À faire |
+| 4a | Dashboard + SideNav avec données réelles | ✅ Terminé |
+| 4b | Bikes detail, composants, analyse avec données réelles | 🔜 À faire |
 | 5 | Polish web | 🔜 À faire |
 | 6 | Mobile | 🔜 À faire |
 | 7 | Déploiement final | 🔜 À faire |
+
+## Data fetching
+
+- `src/lib/data.ts` — fonctions server-side (`getDashboardData`, `getBikeData`) qui lisent les vues `bike_stats` et `component_stats`
+- `AppShell` est un **async Server Component** qui fetch les vélos pour la SideNav et les passe en props
+- `SideNav` reste `"use client"` (besoin de `usePathname`) mais accepte des props sérialisables (`SideNavBike[]`, `userName`, etc.)
+- Pages du dashboard et bikes : **async Server Components** qui appellent directement les fonctions de `data.ts`
 
 ## Décisions techniques importantes
 

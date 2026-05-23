@@ -3,14 +3,21 @@ import { BottomNav } from "./bottom-nav";
 
 interface AppShellProps {
   children: React.ReactNode;
+  /** Passer <SideNavLoader /> depuis un Server Component pour avoir les vraies données.
+   *  Les pages "use client" peuvent omettre cette prop (SideNav statique en fallback). */
+  nav?: React.ReactNode;
 }
 
 /**
  * Wraps main app pages with the appropriate nav:
  * - Desktop: SideNav (left rail) + scrollable main area
  * - Mobile: BottomNav footer (via CSS visibility)
+ *
+ * IMPORTANT: AppShell n'importe pas de code server-only pour rester
+ * compatible avec les pages "use client". Passer nav={<SideNavLoader />}
+ * depuis les Server Component pages pour avoir la liste des vélos réelle.
  */
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, nav }: AppShellProps) {
   return (
     <div
       style={{
@@ -22,7 +29,7 @@ export function AppShell({ children }: AppShellProps) {
     >
       {/* Desktop side nav */}
       <div className="hidden md:flex">
-        <SideNav />
+        {nav ?? <SideNav />}
       </div>
 
       {/* Main content */}
@@ -34,9 +41,7 @@ export function AppShell({ children }: AppShellProps) {
           overflow: "hidden",
         }}
       >
-        <main
-          style={{ flex: 1, overflow: "auto" }}
-        >
+        <main style={{ flex: 1, overflow: "auto" }}>
           {children}
         </main>
 
