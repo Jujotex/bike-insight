@@ -50,8 +50,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${appUrl}/connect/strava?error=db_error`)
   }
 
-  if (athlete.bikes && athlete.bikes.length > 0) {
-    const bikesData = athlete.bikes.map((bike: { id: string; name: string; distance: number }) => ({
+  // Fetch athlete complet pour avoir les vélos (plus fiable que athlete.bikes du token exchange)
+  let allBikes: Array<{ id: string; name: string; distance: number }> = []
+
+  try {
+    const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    })
+    if (athleteRes.ok) {
+      const fullAthlete = await athleteRes.json()
+      allBikes = fullAthlete.bikes ?? []
+    }
+  } catch {
+    // Fallback sur les vélos du token exchange si l'appel échoue
+    allBikes = athlete?.bikes ?? []
+  }
+
+  if (allBikes.length > 0) {
+    const bikesData = allBikes.map((bike) => ({
       user_id: user.id,
       strava_gear_id: bike.id,
       name: bike.name,
