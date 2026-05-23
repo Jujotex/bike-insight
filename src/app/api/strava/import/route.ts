@@ -97,5 +97,8 @@ export async function POST() {
       .eq('id', bikeId)
   }
 
+  // Recalcule km_used sur tous les composants actifs (déclenche le trigger statut ok/warn/bad)
+  await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
+
   return NextResponse.json({ imported: totalImported, pages: page - 1 })
 }
