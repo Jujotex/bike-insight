@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+export interface SideNavBike {
+  id: string;
+  name: string;
+  is_active: boolean;
+  most_critical_component: string | null;
+}
+
 const NAV_ITEMS = [
   {
     id: "dashboard",
@@ -36,13 +43,14 @@ const NAV_ITEMS = [
   },
 ];
 
-const MY_BIKES = [
-  { name: "Canyon Aeroad", active: true },
-  { name: "Specialized Tarmac", active: false },
-  { name: "Cube Reaction", active: false },
-];
+interface SideNavProps {
+  bikes?: SideNavBike[];
+  userInitials?: string;
+  userName?: string;
+  bikeCount?: number;
+}
 
-export function SideNav() {
+export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateur", bikeCount }: SideNavProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) =>
@@ -173,32 +181,42 @@ export function SideNav() {
             gap: 4,
           }}
         >
-          {MY_BIKES.map((b) => (
-            <div
-              key={b.name}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 0",
-                fontSize: 12.5,
-                color: b.active ? "var(--bi-ink)" : "var(--bi-muted)",
-                fontWeight: b.active ? 500 : 400,
-              }}
-            >
-              <span
+          {bikes.length === 0 ? (
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", padding: "6px 0" }}>Aucun vélo connecté</div>
+          ) : (
+            bikes.map((b) => (
+              <Link
+                key={b.id}
+                href={`/bikes/${b.id}`}
                 style={{
-                  display: "inline-block",
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: b.active ? "var(--bi-accent)" : "var(--bi-muted)",
-                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "6px 0",
+                  fontSize: 12.5,
+                  color: b.is_active ? "var(--bi-ink)" : "var(--bi-muted)",
+                  fontWeight: b.is_active ? 500 : 400,
+                  textDecoration: "none",
                 }}
-              />
-              {b.name}
-            </div>
-          ))}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: b.most_critical_component
+                      ? "var(--bi-bad)"
+                      : b.is_active
+                      ? "var(--bi-accent)"
+                      : "var(--bi-muted)",
+                    flexShrink: 0,
+                  }}
+                />
+                {b.name}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
@@ -228,12 +246,12 @@ export function SideNav() {
             flexShrink: 0,
           }}
         >
-          LM
+          {userInitials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 500 }}>Léo Martin</div>
+          <div style={{ fontSize: 12.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
           <div style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>
-            Pro · 2 vélos actifs
+            {bikeCount !== undefined ? `${bikeCount} vélo${bikeCount !== 1 ? "s" : ""} actif${bikeCount !== 1 ? "s" : ""}` : ""}
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/bi/auth-shell";
 import { Mono } from "@/components/bi/ui";
 
@@ -50,13 +51,13 @@ function StepIntro({ onNext }: { onNext: () => void }) {
       </div>
 
       <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
-        <button
-          onClick={onNext}
-          style={{ background: "#FC4C02", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+        <a
+          href="/api/strava/auth"
+          style={{ background: "#FC4C02", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, textDecoration: "none" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3" /></svg>
           Se connecter avec Strava
-        </button>
+        </a>
         <button style={{ background: "transparent", color: "var(--bi-muted)", border: "none", padding: "8px 0", fontSize: 12.5, fontFamily: "inherit", cursor: "pointer" }}>
           Continuer sans Strava
         </button>
@@ -287,10 +288,37 @@ function StepSuccess() {
 }
 
 // ── Router ─────────────────────────────────────────────────────
-export default function StravaConnectPage() {
+function StravaConnectRouter() {
+  const searchParams = useSearchParams();
+  const success = searchParams.get("success");
+  const error = searchParams.get("error");
   const [step, setStep] = useState<Step>("intro");
-  const stepIndex = STEP_ORDER.indexOf(step);
 
+  // Retour du callback Strava avec succès
+  if (success === "true") return <StepSuccess />;
+
+  // Retour avec erreur
+  if (error) {
+    const errorMessages: Record<string, string> = {
+      access_denied: "Tu as refusé l'accès à Strava. Tu peux réessayer quand tu veux.",
+      token_exchange: "Erreur lors de la connexion à Strava. Réessaie.",
+      db_error: "Erreur lors de la sauvegarde. Contacte le support.",
+    };
+    return (
+      <AuthShell step={2} total={3} eyebrow="Erreur" headline={<>Connexion<br />échouée.</>} sub="">
+        <div style={{ padding: "20px", borderRadius: 14, background: "rgba(200,54,46,0.06)", border: "1px solid rgba(200,54,46,0.15)", marginTop: 24 }}>
+          <div style={{ fontSize: 14, color: "var(--bi-bad)", fontWeight: 600, marginBottom: 8 }}>Erreur de connexion</div>
+          <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>{errorMessages[error] ?? "Une erreur est survenue."}</div>
+        </div>
+        <a href="/api/strava/auth" style={{ marginTop: 20, display: "block", width: "100%", background: "#FC4C02", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", textAlign: "center", textDecoration: "none" }}>
+          Réessayer
+        </a>
+      </AuthShell>
+    );
+  }
+
+  // Flow mock (intro → auth → importing) pour la démo
+  const stepIndex = STEP_ORDER.indexOf(step);
   const next = () => {
     const nextStep = STEP_ORDER[stepIndex + 1];
     if (nextStep) setStep(nextStep);
@@ -300,4 +328,12 @@ export default function StravaConnectPage() {
   if (step === "auth") return <StepAuth onNext={next} />;
   if (step === "importing") return <StepImporting onNext={next} />;
   return <StepSuccess />;
+}
+
+export default function StravaConnectPage() {
+  return (
+    <Suspense fallback={null}>
+      <StravaConnectRouter />
+    </Suspense>
+  );
 }

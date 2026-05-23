@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AuthShell } from "@/components/bi/auth-shell";
 
@@ -19,6 +19,16 @@ const inputStyle: React.CSSProperties = {
   outline: "none",
   boxSizing: "border-box",
 };
+
+const ERROR_MESSAGES: Record<string, string> = {
+  "Invalid login credentials": "Email ou mot de passe incorrect.",
+  "Email not confirmed": "Confirme ton email avant de te connecter.",
+  "Too many requests": "Trop de tentatives. Réessaie dans quelques minutes.",
+};
+
+function translateError(msg: string): string {
+  return ERROR_MESSAGES[msg] ?? msg;
+}
 
 function GoogleIcon() {
   return (
@@ -39,32 +49,36 @@ function AppleIcon() {
   );
 }
 
-export default function LoginPage() {
+// Composant isolé pour useSearchParams (requis par Next.js dans un Suspense)
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async () => {
+    if (!email || !password) { setError("Remplis tous les champs."); return; }
     setLoading(true);
     setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError(error.message);
+      setError(translateError(error.message));
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+      // Hard reload pour que le middleware lise les cookies de session
+      window.location.href = redirectTo;
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleLogin();
+  };
+
   return (
-    <AuthShell
-      eyebrow="Connexion"
-      headline={<>Bon retour,<br />Léo.</>}
-      sub="14 nouvelles sorties Strava t'attendent depuis ta dernière visite. Ta chaîne approche de la fin de vie."
-    >
-      {/* Right panel content */}
+    <>
       <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>
         Connexion
       </div>
@@ -78,28 +92,18 @@ export default function LoginPage() {
       <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 14 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Email</div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ton@email.com"
-            style={inputStyle}
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={handleKeyDown} placeholder="ton@email.com" autoFocus style={inputStyle} />
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Mot de passe</div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••••"
-            style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }}
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={handleKeyDown} placeholder="••••••••••" style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }} />
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12, fontSize: 12, color: "var(--bi-muted)", textDecoration: "underline", cursor: "pointer" }}>
-        Mot de passe oublié ?
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+        <Link href="/forgot-password" style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "underline" }}>
+          Mot de passe oublié ?
+        </Link>
       </div>
 
       {error && (
@@ -108,11 +112,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <button
-        onClick={handleLogin}
-        disabled={loading}
-        style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
-      >
+      <button onClick={handleLogin} disabled={loading} style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
         {loading ? "Connexion…" : "Se connecter"}
       </button>
 
@@ -137,6 +137,20 @@ export default function LoginPage() {
           Créer un compte
         </Link>
       </div>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <AuthShell
+      eyebrow="Connexion"
+      headline={<>Bon retour.</>}
+      sub="Reprends le suivi de ton matériel là où tu t'étais arrêté."
+    >
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }
