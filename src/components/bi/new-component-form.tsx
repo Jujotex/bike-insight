@@ -89,9 +89,8 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
       return;
     }
 
-    // Recalculate wear after adding component
-    await fetch("/api/strava/import", { method: "POST" })
-      .catch(() => {}); // non-blocking
+    // Recalcul immédiat de l'usure (plus rapide que l'import complet)
+    await supabase.rpc("recalculate_component_km", { p_user_id: user.id }).catch(() => {});
 
     router.push("/components");
     router.refresh();
