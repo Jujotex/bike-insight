@@ -8,6 +8,8 @@
 ## [Unreleased]
 
 ### Added
+- Formulaire login fonctionnel : signInWithPassword, messages d'erreur en français, touche Entrée, redirection post-login
+- Formulaire signup fonctionnel : signUp, gestion confirmation email (écran dédié), messages d'erreur en français, touche Entrée
 - Schéma SQL Supabase complet : tables `profiles`, `bikes`, `components`, `activities`, `maintenance_logs`
 - Enums `component_status` (ok/warn/bad/archived) et `component_category`
 - Triggers automatiques : statut composant (ok/warn/bad), updated_at, création profil à l'inscription

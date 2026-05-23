@@ -20,6 +20,17 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "User already registered": "Un compte existe déjà avec cet email.",
+  "Password should be at least 6 characters": "Le mot de passe doit faire au moins 6 caractères.",
+  "Unable to validate email address: invalid format": "Adresse email invalide.",
+  "Too many requests": "Trop de tentatives. Réessaie dans quelques minutes.",
+};
+
+function translateError(msg: string): string {
+  return ERROR_MESSAGES[msg] ?? msg;
+}
+
 function GoogleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18">
@@ -44,19 +55,82 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
 
   const handleSignup = async () => {
+    if (!email || !password) { setError("Remplis tous les champs."); return; }
+    if (password.length < 6) { setError("Le mot de passe doit faire au moins 6 caractères."); return; }
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signUp({ email, password });
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/connect/strava`,
+      },
+    });
+
     if (error) {
-      setError(error.message);
+      setError(translateError(error.message));
       setLoading(false);
-    } else {
-      router.push("/connect/strava");
+      return;
     }
+
+    // Si Supabase nécessite une confirmation email
+    if (data.user && !data.session) {
+      setEmailSent(true);
+      setLoading(false);
+      return;
+    }
+
+    // Inscription directe (confirmation email désactivée)
+    router.push("/connect/strava");
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSignup();
+  };
+
+  if (emailSent) {
+    return (
+      <AuthShell
+        step={1}
+        total={3}
+        eyebrow="Inscription"
+        headline={<>Vérifie<br />ton email.</>}
+        sub="Un lien de confirmation t'a été envoyé. Clique dessus pour activer ton compte et continuer."
+      >
+        <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>
+          Étape 1 · 3
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>
+          Email envoyé
+        </div>
+        <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
+          On a envoyé un lien à <strong style={{ color: "var(--bi-ink)" }}>{email}</strong>.<br />
+          Clique dessus pour activer ton compte.
+        </div>
+
+        <div style={{ marginTop: 28, padding: "20px", borderRadius: 14, background: "rgba(14,143,90,0.06)", border: "1px solid rgba(14,143,90,0.15)", textAlign: "center" }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>📬</div>
+          <div style={{ fontSize: 13.5, color: "var(--bi-ok)", fontWeight: 600 }}>Email de confirmation envoyé</div>
+          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 6 }}>Vérifie aussi tes spams si tu ne le vois pas.</div>
+        </div>
+
+        <div style={{ marginTop: 24, fontSize: 12.5, color: "var(--bi-muted)", textAlign: "center" }}>
+          Mauvaise adresse ?{" "}
+          <button
+            onClick={() => setEmailSent(false)}
+            style={{ background: "none", border: "none", color: "var(--bi-ink)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", borderBottom: "1px solid var(--bi-ink)", padding: 0 }}
+          >
+            Recommencer
+          </button>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell
@@ -83,6 +157,7 @@ export default function SignupPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="ton@email.com"
             style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }}
             autoFocus
@@ -94,12 +169,10 @@ export default function SignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Au moins 8 caractères"
+            onKeyDown={handleKeyDown}
+            placeholder="Au moins 6 caractères"
             style={inputStyle}
           />
-          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 6 }}>
-            Un chiffre, une majuscule, un caractère spécial
-          </div>
         </div>
       </div>
 
@@ -114,8 +187,8 @@ export default function SignupPage() {
         disabled={loading}
         style={{ marginTop: 22, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
       >
-        Créer mon compte
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+        {loading ? "Création…" : "Créer mon compte"}
+        {!loading && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>}
       </button>
 
       <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
