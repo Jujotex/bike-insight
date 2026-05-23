@@ -8,6 +8,10 @@
 ## [Unreleased]
 
 ### Added
+- OAuth Strava réel : route `/api/strava/auth` (redirect) + `/api/strava/callback` (échange tokens, création vélos)
+- Tokens Strava stockés dans `profiles` (access_token, refresh_token, expires_at, athlete_id)
+- Vélos Strava auto-créés dans `bikes` à la connexion (upsert sur strava_gear_id)
+- Gestion des erreurs OAuth (access_denied, token_exchange, db_error) avec écran dédié
 - Formulaire login fonctionnel : signInWithPassword, messages d'erreur en français, touche Entrée, redirection post-login
 - Formulaire signup fonctionnel : signUp, gestion confirmation email (écran dédié), messages d'erreur en français, touche Entrée
 - Schéma SQL Supabase complet : tables `profiles`, `bikes`, `components`, `activities`, `maintenance_logs`
