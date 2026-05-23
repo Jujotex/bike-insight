@@ -17,13 +17,13 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, options as Record<string, unknown>)
           )
         },
       },
@@ -35,14 +35,12 @@ export async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
   const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route))
 
-  // Non authentifié → redirige vers /login
   if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Déjà authentifié → redirige vers /dashboard
   if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
