@@ -107,7 +107,7 @@ Dépendance : `@supabase/ssr` (package Supabase officiel pour Next.js SSR)
 | 3 | Moteur usure & coûts | ✅ Terminé |
 | 4a | Dashboard + SideNav avec données réelles | ✅ Terminé |
 | 4b | Bikes detail, composants, analyse avec données réelles | ✅ Terminé |
-| 5 | Polish web | 🔜 À faire |
+| 5 | Polish web — formulaires fonctionnels, pages restantes | 🔄 En cours |
 | 6 | Mobile | 🔜 À faire |
 | 7 | Déploiement final | 🔜 À faire |
 

@@ -1,138 +1,197 @@
 import { AppShell } from "@/components/bi/app-shell";
+import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
+import { ArchiveButton } from "@/components/bi/archive-button";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
 
-const HISTORY = [
-  { label: "Installation", date: "14 sept. 2024", km: "0 km", status: "ok" as const },
-  { label: "Vérification visuelle", date: "12 fév. 2025", km: "1 240 km", status: "ok" as const },
-  { label: "Mesure usure (jauge)", date: "14 avr. 2025", km: "2 100 km", status: "warn" as const },
-  { label: "Alerte 90 %", date: "08 mai 2025", km: "2 580 km", status: "bad" as const },
-];
-const STATUS_COLORS = { ok: "var(--bi-muted)", warn: "var(--bi-warn)", bad: "var(--bi-bad)" };
+const STATUS_COLORS: Record<string, string> = {
+  ok: "var(--bi-ok)",
+  warn: "var(--bi-warn)",
+  bad: "var(--bi-bad)",
+  archived: "var(--bi-muted)",
+};
 
-export default function ComponentDetailPage() {
+const STATUS_LABELS: Record<string, string> = {
+  ok: "En bon état",
+  warn: "À surveiller",
+  bad: "À remplacer",
+  archived: "Archivé",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  transmission: "Transmission",
+  freinage: "Freinage",
+  suspension: "Suspension",
+  roues: "Roues",
+  cockpit: "Cockpit",
+  eclairage: "Éclairage",
+  autre: "Autre",
+};
+
+export default async function ComponentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: comp } = await supabase
+    .from("component_stats")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!comp) redirect("/components");
+
+  const { data: bike } = await supabase
+    .from("bikes")
+    .select("name")
+    .eq("id", comp.bike_id)
+    .single();
+
+  const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
+  const statusColor = STATUS_COLORS[comp.status as string] ?? "var(--bi-muted)";
+  const statusLabel = STATUS_LABELS[comp.status as string] ?? comp.status;
+  const kmUsed = Math.round((comp.km_used as number) ?? 0);
+  const kmMax = Math.round((comp.km_max as number) ?? 0);
+  const kmRemaining = Math.max(0, kmMax - kmUsed);
+  const installedDate = comp.installed_at
+    ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : "—";
+
+  const costPerKm = (comp.cost_per_km as number | null);
+
   return (
-    <AppShell>
+    <AppShell nav={<SideNavLoader />}>
       <div style={{ padding: "24px 28px 40px", maxWidth: 1100 }}>
         <PageHead
-          title="Chaîne · Shimano Ultegra"
-          breadcrumb={["Mes vélos", "Canyon Aeroad", "Chaîne"]}
-          sub="CN-HG701 · installée le 14 sept. 2024"
+          title={`${comp.name as string}`}
+          breadcrumb={["Composants", comp.name as string]}
+          sub={`${CATEGORY_LABELS[comp.category as string] ?? comp.category} · installé le ${installedDate}`}
           actions={
             <div style={{ display: "flex", gap: 8 }}>
-              <button style={{ padding: "9px 14px", background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 500, fontFamily: "inherit", cursor: "pointer" }}>Modifier</button>
-              <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>Marquer remplacé</button>
+              <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
             </div>
           }
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14, marginBottom: 14 }}>
           {/* Hero dark card */}
-          <div style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
+          <div style={{
+            background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32,
+            position: "relative", overflow: "hidden",
+            borderLeft: `4px solid ${statusColor}`
+          }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-bad)", letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                  <Dot color="var(--bi-bad)" size={6} /> À remplacer
+                <div style={{ fontSize: 11, fontWeight: 600, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                  <Dot color={statusColor} size={6} /> {statusLabel}
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>Composant #03 sur Canyon Aeroad</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+                  {bike?.name ?? "Vélo inconnu"}
+                </div>
               </div>
-              <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>ID 8a73f1</Mono>
+              <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+                {(comp.category as string) ? CATEGORY_LABELS[comp.category as string] ?? comp.category : "—"}
+              </Mono>
             </div>
 
             <div style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
-              <Mono style={{ fontSize: 100, fontWeight: 400, letterSpacing: -4, lineHeight: 1 }}>94</Mono>
-              <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>
+              <Mono style={{ fontSize: 100, fontWeight: 400, letterSpacing: -4, lineHeight: 1 }}>
+                {kmMax > 0 ? wearPct : "—"}
+              </Mono>
+              {kmMax > 0 && <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>}
               <div style={{ flex: 1 }} />
-              <div style={{ textAlign: "right" }}>
-                <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>2 840 / 3 000</Mono>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>km · ~160 km restants</span>
-              </div>
+              {kmMax > 0 && (
+                <div style={{ textAlign: "right" }}>
+                  <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>
+                    {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")}
+                  </Mono>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                    km · ~{kmRemaining.toLocaleString("fr")} km restants
+                  </span>
+                </div>
+              )}
             </div>
 
-            <div style={{ marginTop: 22, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-              <div style={{ width: "94%", height: "100%", background: "var(--bi-bad)", borderRadius: 999 }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10.5, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains-mono)" }}>
-              <span>0 km</span><span>1 000</span><span>2 000</span><span>3 000 km</span>
-            </div>
+            {kmMax > 0 && (
+              <>
+                <div style={{ marginTop: 22, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                  <div style={{ width: `${wearPct}%`, height: "100%", background: statusColor, borderRadius: 999, transition: "width 0.5s" }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10.5, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                  <span>0 km</span>
+                  <span>{Math.round(kmMax / 3).toLocaleString("fr")}</span>
+                  <span>{Math.round(kmMax * 2 / 3).toLocaleString("fr")}</span>
+                  <span>{kmMax.toLocaleString("fr")} km</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {/* Recommendation */}
-            <div style={{ padding: 22, border: "1.5px solid var(--bi-bad)", borderRadius: 16, background: "rgba(200,54,46,0.04)" }}>
+            {/* Status card */}
+            <div style={{
+              padding: 22,
+              border: `1.5px solid ${statusColor}`,
+              borderRadius: 16,
+              background: (comp.status as string) === "bad" ? "rgba(200,54,46,0.04)" :
+                (comp.status as string) === "warn" ? "rgba(208,132,21,0.04)" : "rgba(14,143,90,0.04)"
+            }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-bad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4M12 17h.01M3 12a9 9 0 1018 0 9 9 0 00-18 0z" /></svg>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--bi-bad)", letterSpacing: "0.07em", textTransform: "uppercase" }}>Recommandation</span>
+                <Dot color={statusColor} size={7} />
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                  {statusLabel}
+                </span>
               </div>
-              <div style={{ fontSize: 15.5, fontWeight: 500, lineHeight: 1.45 }}>Remplacer maintenant.</div>
-              <div style={{ fontSize: 12.5, color: "var(--bi-muted)", marginTop: 6, lineHeight: 1.5 }}>
-                Continuer dégrade ta cassette (<Mono>85 €</Mono>) et tes plateaux (<Mono>140 €</Mono>). Coût évité estimé : <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>180 €</Mono>.
+              <div style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.45 }}>
+                {(comp.status as string) === "bad" && "Composant à remplacer maintenant."}
+                {(comp.status as string) === "warn" && "Surveille ce composant — il approche de sa limite."}
+                {(comp.status as string) === "ok" && "Ce composant est en bon état."}
+                {(comp.status as string) === "archived" && "Ce composant a été archivé."}
               </div>
             </div>
 
             {/* Stats grid */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
-              {[["Prix d'achat", "38 €"], ["Coût / km", "0,013 €"], ["Intensité", "Élevée"], ["Vie restante", "~ 5 j"]].map(([k, v]) => (
+              {[
+                ["Prix d'achat", comp.purchase_price !== null ? `${comp.purchase_price} €` : "—"],
+                ["Coût / km", costPerKm !== null ? `${(costPerKm as number).toFixed(3)} €` : "—"],
+                ["Km parcourus", `${kmUsed.toLocaleString("fr")} km`],
+                ["Km restants", kmMax > 0 ? `~${kmRemaining.toLocaleString("fr")} km` : "—"],
+              ].map(([k, v]) => (
                 <div key={String(k)} style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
                   <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
-                  <Mono style={{ display: "block", fontSize: 16, fontWeight: 500, marginTop: 4 }}>{v}</Mono>
+                  <Mono style={{ display: "block", fontSize: 16, fontWeight: 500, marginTop: 4 }}>{v as string}</Mono>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Wear chart + history */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14 }}>
-          <BiCard pad={24}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation basée sur tes activités Strava</div>
-              </div>
-              <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>% d&apos;usure</Mono>
-            </div>
-            <div style={{ position: "relative", height: 200 }}>
-              <svg viewBox="0 0 600 200" style={{ width: "100%", height: "100%" }} preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="comp-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#C8362E" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#C8362E" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <line x1="0" y1="20" x2="600" y2="20" stroke="rgba(14,14,16,0.08)" strokeDasharray="3 3" />
-                <line x1="0" y1="110" x2="600" y2="110" stroke="rgba(14,14,16,0.08)" strokeDasharray="3 3" />
-                <line x1="0" y1="180" x2="600" y2="180" stroke="rgba(14,14,16,0.08)" strokeDasharray="3 3" />
-                <path d="M0,180 L75,165 L150,140 L225,115 L300,95 L375,75 L450,50 L525,30 L600,18 L600,200 L0,200 Z" fill="url(#comp-grad)" />
-                <path d="M0,180 L75,165 L150,140 L225,115 L300,95 L375,75 L450,50 L525,30 L600,18" stroke="#C8362E" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                <rect x="0" y="0" width="600" height="20" fill="#C8362E" opacity="0.07" />
-                <text x="595" y="14" textAnchor="end" fontSize="10" fill="#C8362E" fontWeight="600">SEUIL 100%</text>
-                <circle cx="525" cy="30" r="5" fill="#C8362E" />
-                <circle cx="525" cy="30" r="10" fill="none" stroke="#C8362E" strokeWidth="1.5" opacity="0.3" />
-              </svg>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-              <span>14 sept.</span><span>Nov</span><span>Jan</span><span>Mars</span><span>Mai</span><span>Aujourd&apos;hui</span>
-            </div>
-          </BiCard>
-
-          <BiCard pad={0}>
-            <div style={{ padding: "22px 22px 12px" }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>4 événements depuis l&apos;installation</div>
-            </div>
-            {HISTORY.map((h, i) => (
-              <div key={h.label} style={{ padding: "14px 22px", borderTop: i > 0 ? "1px solid var(--bi-line)" : "none", display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 999, background: STATUS_COLORS[h.status], flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 500 }}>{h.label}</div>
-                  <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{h.date}</div>
-                </div>
-                <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{h.km}</Mono>
+        {/* Notes / info */}
+        <BiCard pad={24}>
+          <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+            {[
+              ["Vélo", bike?.name ?? "—"],
+              ["Catégorie", CATEGORY_LABELS[comp.category as string] ?? (comp.category as string)],
+              ["Installé le", installedDate],
+              ["Km vélo à l'install.", comp.installed_km !== null ? `${Math.round(comp.installed_km as number).toLocaleString("fr")} km` : "—"],
+            ].map(([k, v]) => (
+              <div key={String(k)}>
+                <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
+                <div style={{ fontSize: 13.5, fontWeight: 500, marginTop: 6 }}>{v as string}</div>
               </div>
             ))}
-          </BiCard>
-        </div>
+          </div>
+        </BiCard>
       </div>
     </AppShell>
   );
