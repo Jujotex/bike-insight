@@ -8,6 +8,14 @@
 ## [Unreleased]
 
 ### Added
+- Phase 5 — Polish web
+- `/components/new` : formulaire fonctionnel câblé sur Supabase (sélecteur de vélos réels, catégorie auto, durée de vie par type, enregistrement + recalcul usure)
+- `NewComponentForm` : client component séparé, props `bikes` passées depuis Server Component
+- `ArchiveButton` : client component pour archiver/réactiver un composant
+- `/components/[id]` : page détail composant avec vraies données (usure, km, statut, infos)
+- `/bikes` : page liste vélos avec vraies données (km, sorties 12m, alertes, dernière sortie)
+- Migration SQL `20260523000004` : ajout de `installed_km` dans la vue `component_stats`
+- `SideNavLoader` câblé sur toutes les pages manquantes (bikes, components/new, components/[id])
 - Page sync avec données réelles : vélos détectés, activités importées, statut connexion Strava
 - `getSyncData()` dans `data.ts` : récupère bikes, activités récentes (10 dernières) et profil utilisateur
 - `SyncButton` câblé sur la page sync — appelle `POST /api/strava/import`, affiche le compteur importé, recharge la page
