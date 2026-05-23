@@ -52,7 +52,7 @@ export default async function DashboardPage() {
   const maxActivity = Math.max(...activityChart, 1);
 
   // Cost distribution entries (exclude 0-cost categories)
-  const distEntries = Object.entries(costByCategory)
+  const distEntries = (Object.entries(costByCategory) as [string, number][])
     .filter(([, v]) => v > 0)
     .sort(([, a], [, b]) => b - a);
 
