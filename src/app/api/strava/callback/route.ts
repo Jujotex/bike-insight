@@ -60,11 +60,17 @@ export async function GET(request: NextRequest) {
     if (athleteRes.ok) {
       const fullAthlete = await athleteRes.json()
       allBikes = fullAthlete.bikes ?? []
+      console.log('[Strava callback] bikes depuis /athlete:', JSON.stringify(allBikes))
+    } else {
+      console.log('[Strava callback] /athlete failed:', athleteRes.status)
     }
-  } catch {
-    // Fallback sur les vélos du token exchange si l'appel échoue
+  } catch (e) {
+    console.log('[Strava callback] /athlete error:', e)
     allBikes = athlete?.bikes ?? []
   }
+
+  console.log('[Strava callback] token exchange athlete.bikes:', JSON.stringify(athlete?.bikes))
+  console.log('[Strava callback] total bikes à créer:', allBikes.length)
 
   if (allBikes.length > 0) {
     const bikesData = allBikes.map((bike) => ({
@@ -75,9 +81,15 @@ export async function GET(request: NextRequest) {
       is_active: true,
     }))
 
-    await supabase
+    const { error: bikesError } = await supabase
       .from('bikes')
       .upsert(bikesData, { onConflict: 'strava_gear_id', ignoreDuplicates: false })
+
+    if (bikesError) {
+      console.log('[Strava callback] upsert bikes error:', JSON.stringify(bikesError))
+    } else {
+      console.log('[Strava callback] bikes créés avec succès:', bikesData.length)
+    }
   }
 
   // Déclenche l'import des activités en arrière-plan
