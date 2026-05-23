@@ -161,6 +161,32 @@ export async function getAnalysisData() {
   }
 }
 
+// ── Sync page data ─────────────────────────────────────────────
+
+export async function getSyncData() {
+  const supabase = await createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const [{ data: bikes }, { data: activities }, { data: profile }] = await Promise.all([
+    supabase.from('bike_stats').select('id, name, total_km, strava_gear_id').eq('user_id', user.id).eq('is_active', true).order('total_km', { ascending: false }),
+    supabase.from('activities').select('name, bike_id, started_at, distance_km, moving_time_s, elevation_m').eq('user_id', user.id).order('started_at', { ascending: false }).limit(10),
+    supabase.from('profiles').select('full_name, strava_athlete_id').eq('id', user.id).single(),
+  ])
+
+  const bikeNames = new Map((bikes ?? []).map(b => [b.id, b.name]))
+
+  return {
+    user,
+    profile: profile ?? null,
+    bikes: bikes ?? [],
+    activities: (activities ?? []).map(a => ({
+      ...a,
+      bikeName: a.bike_id ? (bikeNames.get(a.bike_id) ?? '—') : '—',
+    })),
+  }
+}
+
 // ── Bike detail data ───────────────────────────────────────────
 
 export async function getBikeData(bikeId: string) {

@@ -8,6 +8,9 @@
 ## [Unreleased]
 
 ### Added
+- Page sync avec données réelles : vélos détectés, activités importées, statut connexion Strava
+- `getSyncData()` dans `data.ts` : récupère bikes, activités récentes (10 dernières) et profil utilisateur
+- `SyncButton` câblé sur la page sync — appelle `POST /api/strava/import`, affiche le compteur importé, recharge la page
 - Phase 4b — Pages restantes avec données réelles
 - `data.ts` : `getComponentsData()` et `getAnalysisData()` (requêtes parallèles via Promise.all)
 - `/bikes/[id]` : stats héros réelles, tableau composants, graphique 30j, analyse intelligente dynamique
