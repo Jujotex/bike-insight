@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -8,33 +7,17 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
-  // Strava a refusé l'autorisation
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/connect/strava?error=access_denied`)
   }
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
+  const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
+
   if (!user) {
     return NextResponse.redirect(`${appUrl}/login`)
   }
 
-  // Échange du code contre les tokens Strava
   const tokenRes = await fetch('https://www.strava.com/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -53,7 +36,6 @@ export async function GET(request: NextRequest) {
   const tokenData = await tokenRes.json()
   const { access_token, refresh_token, expires_at, athlete } = tokenData
 
-  // Stockage des tokens dans le profil
   const { error: updateError } = await supabase
     .from('profiles')
     .update({
@@ -68,13 +50,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${appUrl}/connect/strava?error=db_error`)
   }
 
-  // Création/mise à jour des vélos Strava dans la DB
   if (athlete.bikes && athlete.bikes.length > 0) {
-    const bikesData = athlete.bikes.map((bike: {
-      id: string
-      name: string
-      distance: number
-    }) => ({
+    const bikesData = athlete.bikes.map((bike: { id: string; name: string; distance: number }) => ({
       user_id: user.id,
       strava_gear_id: bike.id,
       name: bike.name,
