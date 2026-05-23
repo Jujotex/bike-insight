@@ -81,20 +81,26 @@ export async function POST() {
     totalImported = allActivities.length
   }
 
-  // Recalcule total_km pour chaque vélo depuis les activités importées
-  for (const [, bikeId] of bikeMap) {
-    const { data: kmData } = await supabase
-      .from('activities')
-      .select('distance_km')
-      .eq('bike_id', bikeId)
-      .eq('user_id', user.id)
-
-    const totalKm = kmData?.reduce((sum, a) => sum + (a.distance_km ?? 0), 0) ?? 0
-
-    await supabase
-      .from('bikes')
-      .update({ total_km: Math.round(totalKm) })
-      .eq('id', bikeId)
+  // Met à jour total_km depuis Strava (kilométrage de vie total, pas juste les 90j importés)
+  try {
+    const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (athleteRes.ok) {
+      const athlete = await athleteRes.json()
+      const gears: Array<{ id: string; distance: number }> = athlete.bikes ?? []
+      for (const gear of gears) {
+        const bikeId = bikeMap.get(gear.id)
+        if (bikeId) {
+          await supabase
+            .from('bikes')
+            .update({ total_km: Math.round(gear.distance / 1000) })
+            .eq('id', bikeId)
+        }
+      }
+    }
+  } catch {
+    // Fail silently — total_km sera mis à jour au prochain import
   }
 
   // Recalcule km_used sur tous les composants actifs (déclenche le trigger statut ok/warn/bad)
