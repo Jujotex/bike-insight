@@ -8,6 +8,14 @@
 ## [Unreleased]
 
 ### Added
+- Phase 4b — Pages restantes avec données réelles
+- `data.ts` : `getComponentsData()` et `getAnalysisData()` (requêtes parallèles via Promise.all)
+- `/bikes/[id]` : stats héros réelles, tableau composants, graphique 30j, analyse intelligente dynamique
+- `/components` : liste tous les composants actifs multi-vélos, badges alertes bad/warn, empty state
+- `/analysis` : KPIs agrégés tous vélos, répartition coût par catégorie, insights calculés dynamiquement
+- Fix callback Strava : fetch `/api/v3/athlete` dédié pour récupérer les vélos (plus fiable)
+
+### Added (Phase 4a)
 - Phase 4a — Dashboard avec données réelles : `src/lib/data.ts` (`getDashboardData`, `getBikeData`)
 - Dashboard page rewritten as async Server Component, reads `bike_stats` + `component_stats` views
 - KPIs réels : coût total composants, coût/km, km 12 mois, nombre de sorties, usure moyenne, alertes critiques
