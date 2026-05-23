@@ -8,6 +8,10 @@
 ## [Unreleased]
 
 ### Added
+- Moteur usure : fonction SQL `recalculate_component_km` (km_used = bike.total_km - installed_km)
+- Trigger automatique statut ok/warn/bad à chaque recalcul
+- Vue `component_stats` : wear_pct, cost_per_km, km_remaining par composant
+- Vue `bike_stats` : coût total, coût/km, composant le plus critique par vélo
 - Import activités Strava : route `/api/strava/import` (90 derniers jours, paginé, upsert sur strava_id)
 - Recalcul automatique `total_km` des vélos après chaque import
 - Helper `getValidStravaToken` : refresh automatique du token Strava si expiré

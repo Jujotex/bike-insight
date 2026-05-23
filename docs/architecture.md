@@ -104,7 +104,7 @@ Dépendance : `@supabase/ssr` (package Supabase officiel pour Next.js SSR)
 | 0 | UI complète 13 écrans, données statiques | ✅ Terminé |
 | 1 | Schéma Supabase, RLS, auth middleware | ✅ Terminé |
 | 2 | Strava OAuth réel, import activités | ✅ Terminé |
-| 3 | Moteur usure & coûts | 🔜 À faire |
+| 3 | Moteur usure & coûts | ✅ Terminé |
 | 4 | Pages web avec données réelles | 🔜 À faire |
 | 5 | Polish web | 🔜 À faire |
 | 6 | Mobile | 🔜 À faire |
