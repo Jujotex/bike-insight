@@ -90,7 +90,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     }
 
     // Recalcul immédiat de l'usure (plus rapide que l'import complet)
-    await supabase.rpc("recalculate_component_km", { p_user_id: user.id }).catch(() => {});
+    try { await supabase.rpc("recalculate_component_km", { p_user_id: user.id }); } catch { /* ignore */ }
 
     router.push("/components");
     router.refresh();
