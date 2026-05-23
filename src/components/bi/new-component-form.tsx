@@ -68,7 +68,11 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     setSaving(true);
     setError(null);
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Non authentifié"); setSaving(false); return; }
+
     const { error: err } = await supabase.from("components").insert({
+      user_id: user.id,
       bike_id: bikeId,
       name: selectedType.name + (brand ? ` · ${brand}` : ""),
       brand: brand || null,
