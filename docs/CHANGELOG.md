@@ -8,6 +8,10 @@
 ## [Unreleased]
 
 ### Added
+- Import activités Strava : route `/api/strava/import` (90 derniers jours, paginé, upsert sur strava_id)
+- Recalcul automatique `total_km` des vélos après chaque import
+- Helper `getValidStravaToken` : refresh automatique du token Strava si expiré
+- Import déclenché automatiquement après la connexion OAuth Strava (non-bloquant)
 - OAuth Strava réel : route `/api/strava/auth` (redirect) + `/api/strava/callback` (échange tokens, création vélos)
 - Tokens Strava stockés dans `profiles` (access_token, refresh_token, expires_at, athlete_id)
 - Vélos Strava auto-créés dans `bikes` à la connexion (upsert sur strava_gear_id)

@@ -64,5 +64,11 @@ export async function GET(request: NextRequest) {
       .upsert(bikesData, { onConflict: 'strava_gear_id', ignoreDuplicates: false })
   }
 
+  // Déclenche l'import des activités en arrière-plan
+  fetch(`${appUrl}/api/strava/import`, {
+    method: 'POST',
+    headers: { Cookie: request.headers.get('cookie') ?? '' },
+  }).catch(() => {}) // non-bloquant
+
   return NextResponse.redirect(`${appUrl}/connect/strava?success=true`)
 }
