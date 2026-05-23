@@ -39,12 +39,13 @@ export async function getDashboardData() {
     .gte('started_at', thirtyDaysAgo.toISOString())
     .order('started_at', { ascending: true })
 
-  // Activités 12 mois pour les KPIs
+  // Activités 12 mois pour les KPIs et le graphique
   const { data: yearActivities } = await supabase
     .from('activities')
-    .select('distance_km')
+    .select('started_at, distance_km')
     .eq('user_id', user.id)
     .gte('started_at', twelveMonthsAgo.toISOString())
+    .order('started_at', { ascending: true })
 
   const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
   const totalRides12m = yearActivities?.length ?? 0
@@ -95,6 +96,7 @@ export async function getDashboardData() {
     costByCategory,
     mostCritical,
     recentActivities: recentActivities ?? [],
+    yearActivities: (yearActivities ?? []).map(a => ({ started_at: a.started_at as string, distance_km: a.distance_km ?? 0 })),
   }
 }
 

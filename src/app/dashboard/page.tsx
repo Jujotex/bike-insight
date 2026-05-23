@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, ProgressBar } from "@/components/bi/ui";
+import { ActivityChart } from "@/components/bi/activity-chart";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDashboardData } from "@/lib/data";
@@ -43,13 +44,7 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
   if (!data) redirect("/login");
 
-  const { primaryBike, components, activityChart, kpis, costByCategory, mostCritical } = data;
-
-  // Activity stats (30 days)
-  const totalKm30d = activityChart.reduce((s, v) => s + v, 0);
-  const totalRides30d = activityChart.filter((v) => v > 0).length;
-  const avgKm30d = totalRides30d > 0 ? Math.round(totalKm30d / totalRides30d) : 0;
-  const maxActivity = Math.max(...activityChart, 1);
+  const { primaryBike, components, kpis, costByCategory, mostCritical, yearActivities } = data;
 
   // Cost distribution entries (exclude 0-cost categories)
   const distEntries = (Object.entries(costByCategory) as [string, number][])
@@ -337,45 +332,7 @@ export default async function DashboardPage() {
 
           {/* Activity chart */}
           <BiCard pad={22}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>Activité · 30 derniers jours</div>
-                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
-                  {formatNumber(totalKm30d)} km · {totalRides30d} sortie{totalRides30d !== 1 ? "s" : ""} · moyenne {avgKm30d} km
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 999, background: "var(--bi-ink)", color: "var(--bi-bg)", fontWeight: 600 }}>30 j</span>
-                <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 999, border: "1px solid var(--bi-line)", color: "var(--bi-muted)" }}>90 j</span>
-                <span style={{ fontSize: 11, padding: "4px 10px", borderRadius: 999, border: "1px solid var(--bi-line)", color: "var(--bi-muted)" }}>12 m</span>
-              </div>
-            </div>
-            <div style={{ marginTop: 18, height: 80, display: "flex", alignItems: "flex-end", gap: 4 }}>
-              {activityChart.map((h, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1,
-                    height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`,
-                    background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)",
-                    borderRadius: 2,
-                    minHeight: 2,
-                  }}
-                />
-              ))}
-            </div>
-            <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-              {/* Date labels: J-30, J-20, J-10, Today */}
-              {[-29, -20, -10, 0].map((offset) => {
-                const d = new Date(now);
-                d.setDate(d.getDate() + offset);
-                return (
-                  <span key={offset}>
-                    {d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                  </span>
-                );
-              })}
-            </div>
+            <ActivityChart activities={yearActivities} />
           </BiCard>
 
           {/* Cost distribution */}
