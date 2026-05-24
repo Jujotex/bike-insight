@@ -7,6 +7,18 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Phase 8 : Historique de maintenance
+
+### Added
+- `ReplaceButton` : lors du remplacement, insère automatiquement une ligne dans `maintenance_logs` (action="Remplacement", km_at_action, cost, performed_at)
+- Page détail vélo `/bikes/[id]` : section **Historique de maintenance** — timeline des remplacements avec icône, nom du composant, catégorie, date, km vélo au moment de l'action, coût
+- Migration SQL `20260524000001_bike_stats_total_cost.sql` : recalcul de la vue `bike_stats` pour inclure les composants archivés dans le coût total (historique réel du vélo)
+
+### Fixed
+- `bike_stats` view : le coût total d'un vélo excluait les composants archivés — corrigé, le coût affiché reflète désormais l'intégralité des composants installés historiquement
+
+---
+
 ## [Unreleased] — Phase 7 : Édition et remplacement de composants
 
 ### Added
