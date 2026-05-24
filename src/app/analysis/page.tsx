@@ -106,7 +106,7 @@ export default async function AnalysisPage() {
         </div>
 
         {/* Hero KPIs */}
-        <div style={{ display: "grid", className="bi-grid-4", gap: 14, marginBottom: 14 }}>
+        <div className="bi-grid-4" style={{ marginBottom: 14 }}>
           <BiCard pad={22}>
             <BiLabel>Coût total composants</BiLabel>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>

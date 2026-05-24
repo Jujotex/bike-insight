@@ -80,7 +80,7 @@ export default async function BikesPage() {
         />
 
         {/* Summary strip */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }}>
+        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }}>
           {[
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
