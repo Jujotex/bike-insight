@@ -10,9 +10,17 @@ interface Props {
   componentName: string;
   componentCategory: string;
   currentBikeKm: number;
+  componentPrice?: number | null;
 }
 
-export function ReplaceButton({ componentId, bikeId, componentName, componentCategory, currentBikeKm }: Props) {
+export function ReplaceButton({
+  componentId,
+  bikeId,
+  componentName,
+  componentCategory,
+  currentBikeKm,
+  componentPrice,
+}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState(false);
@@ -20,18 +28,34 @@ export function ReplaceButton({ componentId, bikeId, componentName, componentCat
   async function handleReplace() {
     setLoading(true);
 
-    const { error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+
+    // 1. Archiver le composant
+    const { error: archiveErr } = await supabase
       .from("components")
       .update({ status: "archived", is_active: false })
       .eq("id", componentId);
 
-    if (error) { setLoading(false); return; }
+    if (archiveErr) { setLoading(false); return; }
 
+    // 2. Insérer un log de maintenance
+    await supabase.from("maintenance_logs").insert({
+      component_id: componentId,
+      user_id:      user.id,
+      action:       "Remplacement",
+      km_at_action: currentBikeKm,
+      cost:         componentPrice ?? null,
+      performed_at: new Date().toISOString().slice(0, 10),
+    });
+
+    // 3. Recalculer l'usure
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
+    // 4. Rediriger vers le formulaire pré-rempli
     const params = new URLSearchParams({
       bike_id:      bikeId,
-      type:         componentName,
+      type:         componentName.split(" · ")[0],
       category:     componentCategory,
       installed_km: String(Math.round(currentBikeKm)),
     });
@@ -63,20 +87,7 @@ export function ReplaceButton({ componentId, bikeId, componentName, componentCat
   return (
     <button
       onClick={() => setConfirm(true)}
-      style={{
-        padding: "9px 16px",
-        background: "transparent",
-        border: "1px solid var(--bi-line)",
-        borderRadius: 10,
-        fontSize: 12.5,
-        fontWeight: 600,
-        fontFamily: "inherit",
-        cursor: "pointer",
-        color: "var(--bi-ink)",
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-      }}
+      style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>

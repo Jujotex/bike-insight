@@ -90,6 +90,7 @@ export default async function ComponentDetailPage({
                   componentName={(comp.name as string).split(" · ")[0]}
                   componentCategory={comp.category as string}
                   currentBikeKm={bike?.total_km ?? 0}
+                  componentPrice={comp.purchase_price as number | null}
                 />
               )}
               <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />

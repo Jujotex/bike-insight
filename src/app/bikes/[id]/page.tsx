@@ -46,6 +46,21 @@ export default async function BikeDetailPage({
 
   const { bike, components, activities } = data;
 
+  // Fetch maintenance history for this bike
+  const { createSupabaseServerClient } = await import("@/lib/supabase-server");
+  const supabase = await createSupabaseServerClient();
+  const { data: maintenanceLogs } = await supabase
+    .from("maintenance_logs")
+    .select("id, action, km_at_action, cost, performed_at, notes, component_id, components(name, category)")
+    .eq("components.bike_id", id)
+    .not("component_id", "is", null)
+    .order("performed_at", { ascending: false })
+    .limit(20);
+
+  const logs = (maintenanceLogs ?? []).filter(
+    (l) => l.components !== null
+  );
+
   // Stats 12 mois
   const now = new Date();
   const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
@@ -267,6 +282,52 @@ export default async function BikeDetailPage({
             </BiCard>
           </div>
         </div>
+      {/* ── Historique de maintenance ───────────────────── */}
+      {logs.length > 0 && (
+        <BiCard pad={0} style={{ marginTop: 14 }}>
+          <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Historique de maintenance</div>
+            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+              {logs.length} opération{logs.length > 1 ? "s" : ""} enregistrée{logs.length > 1 ? "s" : ""}
+            </div>
+          </div>
+          {logs.map((log, i) => {
+            const compRaw = log.components as { name: string; category: string } | { name: string; category: string }[] | null;
+            const comp = Array.isArray(compRaw) ? compRaw[0] ?? null : compRaw;
+            const date = new Date(log.performed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+            return (
+              <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 22px", borderBottom: i < logs.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
+                {/* Icône action */}
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                  </svg>
+                </div>
+                {/* Détails */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>
+                    {log.action} — {comp?.name ?? "Composant"}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+                    {date}
+                    {log.km_at_action !== null && ` · ${Math.round(log.km_at_action).toLocaleString("fr")} km vélo`}
+                  </div>
+                  {log.notes && (
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, fontStyle: "italic" }}>{log.notes}</div>
+                  )}
+                </div>
+                {/* Coût */}
+                {log.cost !== null && (
+                  <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
+                    {log.cost} €
+                  </Mono>
+                )}
+              </div>
+            );
+          })}
+        </BiCard>
+      )}
       </div>
     </AppShell>
   );

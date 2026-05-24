@@ -92,6 +92,19 @@ Toutes les pages sont implémentées avec des **données statiques**. Aucune req
 
 - `supabase/migrations/20260523000001_initial_schema.sql` — schéma complet
 - `supabase/migrations/20260523000002_rls_policies.sql` — politiques RLS
+- `supabase/migrations/20260524000001_bike_stats_total_cost.sql` — vue `bike_stats` recalculée pour inclure les composants archivés dans le coût total
+
+### Logique maintenance_logs
+
+Chaque remplacement de composant via `ReplaceButton` insère automatiquement une ligne dans `maintenance_logs` :
+- `component_id` — composant remplacé
+- `user_id` — utilisateur
+- `action` — "Remplacement"
+- `km_at_action` — km totaux du vélo au moment du remplacement
+- `cost` — prix d'achat du composant remplacé
+- `performed_at` — date du jour
+
+La page détail vélo (`/bikes/[id]`) affiche un historique de ces entrées, filtré sur les composants du vélo courant.
 
 ## Middleware auth
 
@@ -113,9 +126,11 @@ Dépendance : `@supabase/ssr` (package Supabase officiel pour Next.js SSR)
 | 3 | Moteur usure & coûts | ✅ Terminé |
 | 4a | Dashboard + SideNav avec données réelles | ✅ Terminé |
 | 4b | Bikes detail, composants, analyse avec données réelles | ✅ Terminé |
-| 5 | Polish web — formulaires fonctionnels, pages restantes | 🔄 En cours |
-| 6 | Mobile | 🔜 À faire |
-| 7 | Déploiement final | 🔜 À faire |
+| 5 | Polish web — formulaires fonctionnels, pages restantes | ✅ Terminé |
+| 6 | Édition/remplacement composants + historique maintenance | ✅ Terminé |
+| 7 | Mobile responsive | ✅ Terminé |
+| 8 | PWA (manifest, icons, service worker) | 🔜 À faire |
+| 9 | Déploiement final | 🔜 À faire |
 
 ## Data fetching
 
