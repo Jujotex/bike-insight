@@ -7,6 +7,22 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Phase 7 : Édition et remplacement de composants
+
+### Added
+- `EditComponentForm` : formulaire client pré-rempli pour modifier un composant existant (brand, prix, date install, km install, km_max)
+- Page `/components/[id]/edit` : page d'édition server-side qui fetch les données et passe au formulaire
+- `ReplaceButton` : bouton client avec confirmation — archive le composant actuel et redirige vers le formulaire de création pré-rempli (même type, même vélo, km actuels du vélo)
+- `NewComponentForm` : support des query params `?bike_id`, `?type`, `?category`, `?installed_km` pour pré-remplissage depuis le flow de remplacement
+- Page `/components/new` : wrappé dans `<Suspense>` requis par `useSearchParams`
+- Page détail composant : ajout boutons **Modifier** (lien vers edit) et **Remplacer** (ReplaceButton) dans le PageHead
+
+### Changed
+- Page `/components/[id]` : fetch `total_km` du vélo en plus du `name` pour alimenter le ReplaceButton
+
+---
+
+
 ### Added
 - Phase 5 — Polish web
 - `/components/new` : formulaire fonctionnel câblé sur Supabase (sélecteur de vélos réels, catégorie auto, durée de vie par type, enregistrement + recalcul usure)
