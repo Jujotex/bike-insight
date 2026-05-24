@@ -83,7 +83,7 @@ body {
 
   .bi-grid-4        { grid-template-columns: repeat(2, 1fr); }
   .bi-grid-3        { grid-template-columns: repeat(2, 1fr); }
-  .bi-grid-2        { grid-template-columns: repeat(2, 1fr); }
+  .bi-grid-2        { grid-template-columns: 1fr; }
   .bi-grid-split    { grid-template-columns: 1fr; }
   .bi-grid-split-lg { grid-template-columns: 1fr; }
   .bi-grid-form     { grid-template-columns: 1fr; }
