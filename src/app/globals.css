@@ -129,3 +129,7 @@ body {
   .bi-hero-card { grid-template-columns: 1fr; gap: 16px; }
   .bi-hero-card-count { display: flex; align-items: center; justify-content: space-between; }
 }
+
+/* ── Clickable table rows ───────────────────────────────────── */
+.bi-component-row { transition: background 0.1s; }
+.bi-component-row:hover { background: var(--bi-bg) !important; }
