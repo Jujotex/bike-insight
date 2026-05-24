@@ -3,6 +3,7 @@ import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
 import { ArchiveButton } from "@/components/bi/archive-button";
 import { ReplaceButton } from "@/components/bi/replace-button";
+import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
@@ -56,6 +57,15 @@ export default async function ComponentDetailPage({
     .eq("id", comp.bike_id)
     .single();
 
+  const { data: maintenanceLogs } = await supabase
+    .from("maintenance_logs")
+    .select("id, action, km_at_action, cost, performed_at, notes")
+    .eq("component_id", id)
+    .order("performed_at", { ascending: false })
+    .limit(20);
+
+  const logs = maintenanceLogs ?? [];
+
   const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
   const statusColor = STATUS_COLORS[comp.status as string] ?? "var(--bi-muted)";
   const statusLabel = STATUS_LABELS[comp.status as string] ?? comp.status;
@@ -94,6 +104,7 @@ export default async function ComponentDetailPage({
                 />
               )}
               <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
+              <DeleteButton componentId={id} componentName={comp.name as string} bikeId={comp.bike_id as string} />
             </div>
           }
         />
@@ -210,6 +221,46 @@ export default async function ComponentDetailPage({
             ))}
           </div>
         </BiCard>
+
+        {/* Historique de maintenance */}
+        {logs.length > 0 && (
+          <BiCard pad={0}>
+            <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Historique de maintenance</div>
+              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+                {logs.length} opération{logs.length > 1 ? "s" : ""} enregistrée{logs.length > 1 ? "s" : ""}
+              </div>
+            </div>
+            {logs.map((log, i) => {
+              const date = new Date(log.performed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+              return (
+                <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 22px", borderBottom: i < logs.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+                      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>{log.action}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+                      {date}
+                      {log.km_at_action !== null && ` · ${Math.round(log.km_at_action).toLocaleString("fr")} km vélo`}
+                    </div>
+                    {log.notes && (
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, fontStyle: "italic" }}>{log.notes}</div>
+                    )}
+                  </div>
+                  {log.cost !== null && (
+                    <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
+                      {log.cost} €
+                    </Mono>
+                  )}
+                </div>
+              );
+            })}
+          </BiCard>
+        )}
       </div>
     </AppShell>
   );
