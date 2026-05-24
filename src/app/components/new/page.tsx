@@ -4,6 +4,7 @@ import { PageHead } from "@/components/bi/ui";
 import { NewComponentForm } from "@/components/bi/new-component-form";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export default async function NewComponentPage() {
   const supabase = await createSupabaseServerClient();
@@ -19,13 +20,15 @@ export default async function NewComponentPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div style={{ padding: "24px 28px 40px", maxWidth: 900 }}>
+      <div className="bi-page" style={{ maxWidth: 900 }}>
         <PageHead
           title="Déclarer un composant"
           breadcrumb={["Composants", "Nouveau"]}
           sub="L'usure sera calculée automatiquement à partir de tes sorties Strava."
         />
-        <NewComponentForm bikes={bikes ?? []} />
+        <Suspense fallback={null}>
+          <NewComponentForm bikes={bikes ?? []} />
+        </Suspense>
       </div>
     </AppShell>
   );
