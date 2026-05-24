@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Phase 9 : Suppression de composant
+
+### Added
+- `DeleteButton` : bouton client avec étape de confirmation — supprime définitivement un composant (tous statuts)
+- Page détail composant : bouton **Supprimer** ajouté dans les actions du PageHead
+- Migration SQL `20260524000002_maintenance_logs_set_null.sql` : `component_id` dans `maintenance_logs` passe de `NOT NULL / ON DELETE CASCADE` à nullable `ON DELETE SET NULL` — les logs sont conservés même après suppression du composant
+
+---
+
 ## [Unreleased] — Phase 8 : Historique de maintenance
 
 ### Added

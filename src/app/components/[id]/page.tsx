@@ -3,6 +3,7 @@ import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
 import { ArchiveButton } from "@/components/bi/archive-button";
 import { ReplaceButton } from "@/components/bi/replace-button";
+import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
@@ -94,6 +95,7 @@ export default async function ComponentDetailPage({
                 />
               )}
               <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
+              <DeleteButton componentId={id} componentName={comp.name as string} bikeId={comp.bike_id as string} />
             </div>
           }
         />
