@@ -114,12 +114,19 @@ export async function getComponentsData() {
     .eq('is_active', true)
     .order('wear_pct', { ascending: false })
 
+  const { data: archivedComponents } = await supabase
+    .from('component_stats')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('is_active', false)
+    .order('updated_at', { ascending: false })
+
   const { data: bikes } = await supabase
     .from('bike_stats')
     .select('id, name')
     .eq('user_id', user.id)
 
-  return { components: components ?? [], bikes: bikes ?? [] }
+  return { components: components ?? [], archivedComponents: archivedComponents ?? [], bikes: bikes ?? [] }
 }
 
 // ── Analysis data ──────────────────────────────────────────────

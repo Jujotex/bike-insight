@@ -17,11 +17,21 @@ const STATUS_LABELS: Record<string, string> = {
   bad: "Remplacer",
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  transmission: "Transmission",
+  freinage: "Freinage",
+  suspension: "Suspension",
+  roues: "Roues",
+  cockpit: "Cockpit",
+  eclairage: "Éclairage",
+  autre: "Autre",
+};
+
 export default async function ComponentsPage() {
   const data = await getComponentsData();
   if (!data) redirect("/login");
 
-  const { components, bikes } = data;
+  const { components, archivedComponents, bikes } = data;
 
   const bikeNames = Object.fromEntries(
     bikes.map((b: { id: string; name: string }) => [b.id, b.name])
@@ -150,6 +160,66 @@ export default async function ComponentsPage() {
                 );
               })}
             </div>
+            {/* Archivés */}
+            {archivedComponents.length > 0 && (
+              <BiCard pad={0} style={{ marginTop: 14 }}>
+                <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Composants remplacés</div>
+                  <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+                    {archivedComponents.length} composant{archivedComponents.length > 1 ? "s" : ""} archivé{archivedComponents.length > 1 ? "s" : ""}
+                  </div>
+                </div>
+                <div className="bi-desktop-block">
+                  <div style={{ display: "grid", gridTemplateColumns: "40px 1.5fr 1fr 1fr 80px 80px", padding: "8px 22px", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
+                    <span></span>
+                    <span>Composant</span>
+                    <span>Vélo</span>
+                    <span>Catégorie</span>
+                    <span style={{ textAlign: "right" }}>Km</span>
+                    <span style={{ textAlign: "right" }}>Coût</span>
+                  </div>
+                  {archivedComponents.map((c) => {
+                    const bikeName = bikeNames[c.bike_id as string] ?? c.bike_name ?? "—";
+                    return (
+                      <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row" style={{ textDecoration: "none", color: "inherit", display: "grid", gridTemplateColumns: "40px 1.5fr 1fr 1fr 80px 80px", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: "1px solid var(--bi-line)", opacity: 0.7 }}>
+                        <Dot color="var(--bi-muted)" size={8} />
+                        <div>
+                          <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.name as string}</div>
+                          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{(c.brand as string) ?? "—"}</div>
+                        </div>
+                        <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{bikeName}</span>
+                        <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{CATEGORY_LABELS[c.category as string] ?? (c.category as string)}</span>
+                        <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
+                          {Math.round((c.km_used as number) ?? 0).toLocaleString("fr")}
+                        </Mono>
+                        <Mono style={{ fontSize: 12.5, fontWeight: 500, textAlign: "right" }}>
+                          {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
+                        </Mono>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <div className="bi-mobile-flex" style={{ flexDirection: "column" }}>
+                  {archivedComponents.map((c) => {
+                    const bikeName = bikeNames[c.bike_id as string] ?? c.bike_name ?? "—";
+                    return (
+                      <Link key={c.id} href={`/components/${c.id}`} style={{ textDecoration: "none", opacity: 0.75 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderBottom: "1px solid var(--bi-line)" }}>
+                          <Dot color="var(--bi-muted)" size={8} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name as string}</div>
+                            <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{bikeName} · {CATEGORY_LABELS[c.category as string] ?? (c.category as string)}</div>
+                          </div>
+                          <Mono style={{ fontSize: 12.5, fontWeight: 500, flexShrink: 0 }}>
+                            {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
+                          </Mono>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </BiCard>
+            )}
           </>
         )}
       </div>
