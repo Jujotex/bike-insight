@@ -106,7 +106,7 @@ export default async function AnalysisPage() {
         </div>
 
         {/* Hero KPIs */}
-        <div className="bi-grid-4" style={{ marginBottom: 14 }}>
+        <div style={{ display: "grid", className="bi-grid-4", gap: 14, marginBottom: 14 }}>
           <BiCard pad={22}>
             <BiLabel>Coût total composants</BiLabel>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
@@ -202,4 +202,12 @@ export default async function AnalysisPage() {
             <div key={i} style={{ display: "grid", gridTemplateColumns: "40px 1fr 1.4fr 1fr", padding: "16px 22px", gap: 16, alignItems: "center", borderBottom: "1px solid var(--bi-line)" }}>
               <Dot color={ins.color} size={8} />
               <span style={{ fontSize: 11, color: "var(--bi-muted)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{ins.cat}</span>
-              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{
+              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{ins.text}</span>
+              <span style={{ fontSize: 12, color: ins.color, fontWeight: 500 }}>{ins.impact}</span>
+            </div>
+          ))}
+        </BiCard>
+      </div>
+    </AppShell>
+  );
+}
