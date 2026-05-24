@@ -307,7 +307,14 @@ export default async function BikeDetailPage({
                 {/* Détails */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-                    {log.action} — {comp?.name ?? "Composant"}
+                    {log.action} —{" "}
+                    {log.component_id ? (
+                      <Link href={`/components/${log.component_id}`} style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "var(--bi-line)" }}>
+                        {comp?.name ?? "Composant"}
+                      </Link>
+                    ) : (
+                      comp?.name ?? "Composant supprimé"
+                    )}
                   </div>
                   <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
                     {date}
