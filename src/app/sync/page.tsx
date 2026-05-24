@@ -42,7 +42,7 @@ export default async function SyncPage() {
 
         {/* Connection hero */}
         <BiCard pad={28} style={{ marginBottom: 14, borderLeft: `4px solid ${stravaConnected ? "var(--bi-ok)" : "var(--bi-bad)"}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 32 }}>
+          <div className="bi-hero-card">
             <div style={{ width: 56, height: 56, borderRadius: 16, background: "#FC4C02", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>St</span>
             </div>
@@ -61,7 +61,7 @@ export default async function SyncPage() {
                 }
               </div>
             </div>
-            <div>
+            <div className="bi-hero-card-count">
               <BiLabel>Activités importées</BiLabel>
               <Mono style={{ display: "block", fontSize: 22, fontWeight: 600, marginTop: 6 }}>{activities.length > 0 ? `${activities.length}+` : "0"}</Mono>
             </div>
@@ -127,6 +127,7 @@ export default async function SyncPage() {
             </div>
           ) : (
             <>
+              <div className="bi-table-scroll"><div style={{ minWidth: 600 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 0.7fr 0.6fr 0.5fr", padding: "8px 22px", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
                 <span>Activité</span><span>Vélo</span><span>Date</span><span style={{ textAlign: "right" }}>Distance</span><span style={{ textAlign: "right" }}>Durée</span><span style={{ textAlign: "right" }}>D+</span>
               </div>
@@ -154,6 +155,7 @@ export default async function SyncPage() {
                   </Mono>
                 </div>
               ))}
+            </div></div>
             </>
           )}
         </BiCard>

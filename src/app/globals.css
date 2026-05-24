@@ -98,6 +98,15 @@ body {
   .bi-hero-num { font-size: 28px !important; }
 }
 
+
+/* ── Show/hide helpers ──────────────────────────────────────── */
+.bi-desktop-block { display: block !important; }
+.bi-mobile-flex   { display: none  !important; }
+
+@media (max-width: 768px) {
+  .bi-desktop-block { display: none  !important; }
+  .bi-mobile-flex   { display: flex  !important; }
+}
 /* ── Shadcn/Tailwind radius token ───────────────────────────── */
 @theme inline {
   --radius-sm: 6px;
@@ -105,4 +114,12 @@ body {
   --radius-lg: 10px;
   --radius-xl: 14px;
   --radius-2xl: 18px;
+}
+
+/* ── Hero card mobile stack ─────────────────────────────────── */
+.bi-hero-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 32px; }
+
+@media (max-width: 768px) {
+  .bi-hero-card { grid-template-columns: 1fr; gap: 16px; }
+  .bi-hero-card-count { display: flex; align-items: center; justify-content: space-between; }
 }
