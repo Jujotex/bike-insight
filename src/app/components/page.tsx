@@ -96,28 +96,26 @@ export default async function ComponentsPage() {
                     const color = STATUS_COLORS[c.status] ?? "var(--bi-muted)";
                     const wearPct = (c.wear_pct as number) ?? 0;
                     return (
-                      <Link key={c.id} href={`/components/${c.id}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "40px 1.5fr 1fr 1fr 140px 80px 80px", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: "1px solid var(--bi-line)" }}>
-                          <Dot color={color} size={8} />
-                          <div>
-                            <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.name}</div>
-                            <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? "—"}</div>
-                          </div>
-                          <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{bikeNames[c.bike_id as string] ?? c.bike_name ?? "—"}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color, fontWeight: 600 }}>
-                            <span>{STATUS_LABELS[c.status] ?? c.status}</span>
-                            {c.wear_pct !== null && (
-                              <Mono style={{ fontSize: 11, fontWeight: 400, color: "var(--bi-muted)" }}>· {Math.round(wearPct)} %</Mono>
-                            )}
-                          </div>
-                          <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={4} />
-                          <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
-                            {(c.km_used as number ?? 0).toLocaleString("fr-FR")}
-                          </Mono>
-                          <Mono style={{ fontSize: 12.5, fontWeight: 500, textAlign: "right" }}>
-                            {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                          </Mono>
+                      <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row" style={{ textDecoration: "none", color: "inherit", display: "grid", gridTemplateColumns: "40px 1.5fr 1fr 1fr 140px 80px 80px", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: "1px solid var(--bi-line)" }}>
+                        <Dot color={color} size={8} />
+                        <div>
+                          <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? "—"}</div>
                         </div>
+                        <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{bikeNames[c.bike_id as string] ?? c.bike_name ?? "—"}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color, fontWeight: 600 }}>
+                          <span>{STATUS_LABELS[c.status] ?? c.status}</span>
+                          {c.wear_pct !== null && (
+                            <Mono style={{ fontSize: 11, fontWeight: 400, color: "var(--bi-muted)" }}>· {Math.round(wearPct)} %</Mono>
+                          )}
+                        </div>
+                        <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={4} />
+                        <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
+                          {(c.km_used as number ?? 0).toLocaleString("fr-FR")}
+                        </Mono>
+                        <Mono style={{ fontSize: 12.5, fontWeight: 500, textAlign: "right" }}>
+                          {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
+                        </Mono>
                       </Link>
                     );
                   })}
