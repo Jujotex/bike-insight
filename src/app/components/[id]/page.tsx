@@ -2,6 +2,8 @@ import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
 import { ArchiveButton } from "@/components/bi/archive-button";
+import { ReplaceButton } from "@/components/bi/replace-button";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 
@@ -50,7 +52,7 @@ export default async function ComponentDetailPage({
 
   const { data: bike } = await supabase
     .from("bikes")
-    .select("name")
+    .select("name, total_km")
     .eq("id", comp.bike_id)
     .single();
 
@@ -74,7 +76,22 @@ export default async function ComponentDetailPage({
           breadcrumb={["Composants", comp.name as string]}
           sub={`${CATEGORY_LABELS[comp.category as string] ?? comp.category} · installé le ${installedDate}`}
           actions={
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Link href={`/components/${id}/edit`}>
+                <button style={{ padding: "9px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Modifier
+                </button>
+              </Link>
+              {(comp.status as string) !== "archived" && (
+                <ReplaceButton
+                  componentId={id}
+                  bikeId={comp.bike_id as string}
+                  componentName={(comp.name as string).split(" · ")[0]}
+                  componentCategory={comp.category as string}
+                  currentBikeKm={bike?.total_km ?? 0}
+                />
+              )}
               <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
             </div>
           }

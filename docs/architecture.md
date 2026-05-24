@@ -42,6 +42,7 @@ src/
     dashboard/           — tableau de bord principal
     bikes/[id]/          — détail d'un vélo
     components/          — gestion des composants (pièces)
+    components/[id]/edit/ — édition d'un composant existant
     analysis/            — page insights
     connect/strava/      — flow OAuth Strava (4 écrans)
     sync/                — page synchronisation
@@ -54,6 +55,11 @@ src/
       ui.tsx             — primitives (Mono, etc.)
       app-shell.tsx      — shell app connectée
       bottom-nav.tsx     — nav mobile
+      activity-chart.tsx — graphique activité interactif (30j/90j/12m)
+      archive-button.tsx — archiver/réactiver un composant
+      replace-button.tsx — remplacer un composant (archive + redirect)
+      edit-component-form.tsx — formulaire d'édition composant
+      new-component-form.tsx  — formulaire de création (supporte query params)
     ui/                  — composants shadcn
 docs/
   architecture.md        — ce fichier

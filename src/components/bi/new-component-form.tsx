@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
 
@@ -38,17 +39,24 @@ const inputStyle: React.CSSProperties = {
 
 export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState(COMPONENT_TYPES[0]);
-  const [bikeId, setBikeId] = useState(bikes[0]?.id ?? "");
+  const searchParams = useSearchParams();
+  const defaultBikeId    = searchParams.get("bike_id") ?? bikes[0]?.id ?? "";
+  const defaultType      = searchParams.get("type") ?? "";
+  const defaultInstalledKm = searchParams.get("installed_km") ?? "";
+  const initType = defaultType
+    ? (COMPONENT_TYPES.find(t => t.name === defaultType) ?? COMPONENT_TYPES[0])
+    : COMPONENT_TYPES[0];
+  const [selectedType, setSelectedType] = useState(initType);
+  const [bikeId, setBikeId] = useState(defaultBikeId);
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("");
   const [installedAt, setInstalledAt] = useState(
     new Date().toISOString().slice(0, 10)
   );
   const [installedKm, setInstalledKm] = useState(
-    String(bikes[0]?.total_km ?? 0)
+    defaultInstalledKm || String(bikes.find(b => b.id === defaultBikeId)?.total_km ?? bikes[0]?.total_km ?? 0)
   );
-  const [kmMax, setKmMax] = useState(String(selectedType.defaultKm));
+  const [kmMax, setKmMax] = useState(String(initType.defaultKm));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
