@@ -107,6 +107,12 @@ body {
   .bi-desktop-block { display: none  !important; }
   .bi-mobile-flex   { display: flex  !important; }
 }
+
+/* ── PageHead responsive ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .bi-pagehead-title { font-size: 26px !important; }
+  .bi-pagehead-row > *:last-child { flex-shrink: 0; }
+}
 /* ── Shadcn/Tailwind radius token ───────────────────────────── */
 @theme inline {
   --radius-sm: 6px;

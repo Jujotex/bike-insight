@@ -255,15 +255,18 @@ export function PageHead({
         </div>
       )}
       <div
+        className="bi-pagehead-row"
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          gap: 24,
+          gap: 12,
+          flexWrap: "wrap",
         }}
       >
         <div>
           <div
+            className="bi-pagehead-title"
             style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1 }}
           >
             {title}
