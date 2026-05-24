@@ -191,7 +191,7 @@ export default async function BikeDetailPage({
                   ? new Date(c.installed_at as string).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
                   : "—";
                 return (
-                  <div key={c.id} style={{ padding: "14px 22px", display: "grid", gridTemplateColumns: "1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr", gap: 14, alignItems: "center", borderBottom: "1px solid var(--bi-line)" }}>
+                  <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row" style={{ textDecoration: "none", color: "inherit", display: "grid", gridTemplateColumns: "1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr", gap: 14, alignItems: "center", padding: "14px 22px", borderBottom: "1px solid var(--bi-line)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div>
@@ -215,7 +215,7 @@ export default async function BikeDetailPage({
                     <Mono style={{ fontSize: 11, color: "var(--bi-muted)", textAlign: "right" }}>
                       {costPerKmVal !== null ? costPerKmVal.toFixed(3) : "—"}
                     </Mono>
-                  </div>
+                  </Link>
                 );
               })
             )}
