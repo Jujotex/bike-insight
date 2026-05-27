@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Raison de remplacement
+
+### Added
+- Colonne `reason` sur `maintenance_logs` (valeurs : `usure`, `crevaison`, `casse`, `anticipé`) — migration `20260524000003_maintenance_logs_reason.sql`
+- `ReplaceButton` : flow en 2 étapes — choix de la raison (modal avec radio-pills colorés) puis confirmation — la raison est enregistrée dans `maintenance_logs`
+
+---
+
 ## [Unreleased] — Phase 9 : Suppression de composant
 
 ### Added
