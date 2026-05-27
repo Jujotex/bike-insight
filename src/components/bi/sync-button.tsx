@@ -2,27 +2,56 @@
 
 import { useState } from "react";
 
-export function SyncButton() {
+interface Props {
+  stravaConnected: boolean;
+}
+
+export function SyncButton({ stravaConnected }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [result, setResult] = useState<{ imported: number } | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function handleSync() {
     setStatus("loading");
     setResult(null);
+    setErrorMsg(null);
     try {
       const res = await fetch("/api/strava/import", { method: "POST" });
+      let body: { imported?: number; error?: string } = {};
+      try { body = await res.json() } catch { /* empty body */ }
+
       if (res.ok) {
-        const data = await res.json();
-        setResult(data);
+        setResult({ imported: body.imported ?? 0 });
         setStatus("done");
-        // Recharge la page pour afficher les nouvelles données
-        setTimeout(() => window.location.reload(), 1500);
+        setTimeout(() => window.location.reload(), 2000);
+      } else if (res.status === 401) {
+        setErrorMsg("Token Strava expiré — reconnecte ton compte");
+        setStatus("error");
       } else {
+        setErrorMsg(body.error ?? "Erreur serveur");
         setStatus("error");
       }
     } catch {
+      setErrorMsg("Impossible de joindre le serveur");
       setStatus("error");
     }
+  }
+
+  if (!stravaConnected) {
+    return (
+      <a href="/connect/strava" style={{ textDecoration: "none" }}>
+        <button style={{
+          padding: "9px 16px", background: "#FC4C02", color: "#fff", border: "none",
+          borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+          display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Connecter Strava
+        </button>
+      </a>
+    );
   }
 
   return (
@@ -32,8 +61,10 @@ export function SyncButton() {
           ✓ {result.imported} activité{result.imported !== 1 ? "s" : ""} importée{result.imported !== 1 ? "s" : ""}
         </span>
       )}
-      {status === "error" && (
-        <span style={{ fontSize: 12, color: "var(--bi-bad)", fontWeight: 500 }}>Erreur — réessaie</span>
+      {status === "error" && errorMsg && (
+        <span style={{ fontSize: 12, color: "var(--bi-bad)", fontWeight: 500, maxWidth: 220 }}>
+          {errorMsg}
+        </span>
       )}
       <button
         onClick={handleSync}
@@ -41,26 +72,15 @@ export function SyncButton() {
         style={{
           padding: "9px 16px",
           background: status === "loading" ? "rgba(252,76,2,0.6)" : "#FC4C02",
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          fontSize: 12.5,
-          fontWeight: 600,
-          fontFamily: "inherit",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
+          color: "#fff", border: "none", borderRadius: 10,
+          fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+          display: "flex", alignItems: "center", gap: 6,
           cursor: status === "loading" ? "not-allowed" : "pointer",
         }}
       >
         <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2"
-          strokeLinecap="round"
+          width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="#fff" strokeWidth="2" strokeLinecap="round"
           style={{ animation: status === "loading" ? "spin 1s linear infinite" : "none" }}
         >
           <path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3" />

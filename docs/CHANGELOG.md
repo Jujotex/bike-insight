@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Fix bouton resynchronisation Strava
+
+### Fixed
+- `SyncButton` : affichage d'un message d'erreur détaillé en cas d'échec (token expiré, erreur réseau)
+- `SyncButton` : nouveau prop `stravaConnected` — bouton désactivé si Strava non connecté, lien "Connecter Strava" affiché à la place
+- `api/strava/import/route.ts` : message 401 explicite ("Token Strava invalide ou expiré — reconnecte ton compte Strava") + `console.error` sur chaque point d'échec pour traçabilité dans les logs Vercel
+- `sync/page.tsx` : prop `stravaConnected` passé au `SyncButton`
+
+---
+
 ## [Unreleased] — Redesign page Composants
 
 ### Added
