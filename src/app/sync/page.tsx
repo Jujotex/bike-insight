@@ -2,6 +2,7 @@ import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead, StatusPill } from "@/components/bi/ui";
 import { SyncButton } from "@/components/bi/sync-button";
+import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { redirect } from "next/navigation";
 import { getSyncData } from "@/lib/data";
 
@@ -35,6 +36,7 @@ export default async function SyncPage() {
           sub="Statut de la connexion, dernière synchronisation et activités importées"
           actions={
             <div style={{ display: "flex", gap: 8 }}>
+              <ManualRideButton bikes={bikes.map(b => ({ id: b.id as string, name: b.name as string }))} />
               <SyncButton stravaConnected={stravaConnected} />
             </div>
           }

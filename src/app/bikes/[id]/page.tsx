@@ -4,6 +4,7 @@ import { BiCard, BiLabel, Mono, ProgressBar } from "@/components/bi/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getBikeData } from "@/lib/data";
+import { ManualRideButton } from "@/components/bi/manual-ride-button";
 
 const STATUS_COLORS: Record<string, string> = {
   ok: "var(--bi-ok)",
@@ -131,6 +132,7 @@ export default async function BikeDetailPage({
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
+            <ManualRideButton bikes={[{ id: bike.id as string, name: bike.name as string }]} defaultBikeId={bike.id as string} />
             <Link href={`/components/new`}>
               <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
@@ -326,15 +328,16 @@ export default async function BikeDetailPage({
                 </div>
                 {/* Coût */}
                 {log.cost !== null && (
-                  <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
-                    {log.cost} €
-                  </Mono>
+                  <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-jetbrains-mono)", flexShrink: 0 }}>
+                    {Math.round(log.cost).toLocaleString("fr")} €
+                  </div>
                 )}
               </div>
             );
           })}
         </BiCard>
       )}
+
       </div>
     </AppShell>
   );
