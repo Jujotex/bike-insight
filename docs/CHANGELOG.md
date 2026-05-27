@@ -15,6 +15,7 @@
 - `api/strava/import/route.ts` : message 401 explicite ("Token Strava invalide ou expiré — reconnecte ton compte Strava") + `console.error` sur chaque point d'échec pour traçabilité dans les logs Vercel
 - `sync/page.tsx` : prop `stravaConnected` passé au `SyncButton`
 - `login/page.tsx` : import Strava déclenché automatiquement en arrière-plan à chaque connexion à BikeInsight
+- Migration `20260527000001_activities_update_policy.sql` : ajout policy RLS `UPDATE` sur `activities` — le upsert Strava (INSERT + UPDATE on conflict) échouait sans cette policy
 
 ---
 
