@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Dashboard v2 (en cours — UI à venir)
+
+### Changed
+- `SideNav` : suppression de la liste déroulante des vélos individuels et du lien Analyse — nav simplifiée à 4 items (Dashboard, Mes vélos, Composants, Sync Strava)
+- `src/app/analysis/page.tsx` : redirige vers `/dashboard`
+- `getDashboardData()` : ajout `readinessScore` (composants 60% + régularité 20% + maintenance 20%), `attentionItems` (composants bad/warn tous vélos, triés par urgence), `bikeStatus` (statut + badCount/warnCount + lastRideAt par vélo), `predictions` (remplacements estimés avec weeksUntil + coût), `budget12m` (répartition par catégorie)
+- `src/app/dashboard/page.tsx` : refonte complète — readiness hero avec décomposition du score, zone "Ce qui nécessite ton attention", prévisions avec timeline 3 mois, statut par vélo, activité 30j + budget par poste
+
+---
+
 ## [Unreleased] — Saisie manuelle de sortie
 
 ### Added
