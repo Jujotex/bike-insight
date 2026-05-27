@@ -1,112 +1,114 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
-import { BiCard, BiLabel, Mono, Dot, ProgressBar } from "@/components/bi/ui";
-import { ActivityChart } from "@/components/bi/activity-chart";
-import Link from "next/link";
+import { BiCard, Mono } from "@/components/bi/ui";
 import { redirect } from "next/navigation";
 import { getDashboardData } from "@/lib/data";
+import Link from "next/link";
 
-const STATUS_COLORS: Record<string, string> = {
-  ok: "var(--bi-ok)",
-  warn: "var(--bi-warn)",
-  bad: "var(--bi-bad)",
-};
+function formatLastRide(iso: string | null): string {
+  if (!iso) return "Aucune sortie";
+  const d = new Date(iso);
+  const diffDays = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Aujourd'hui";
+  if (diffDays === 1) return "Hier";
+  if (diffDays < 7) return `Il y a ${diffDays} j`;
+  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} sem.`;
+  return d.toLocaleDateString("fr-FR", { month: "long" });
+}
 
-const STATUS_LABELS: Record<string, string> = {
-  ok: "OK",
-  warn: "Surveiller",
-  bad: "Remplacer",
+function formatWeeks(w: number | null): string {
+  if (w === null) return "—";
+  if (w <= 0) return "maintenant";
+  if (w === 1) return "1 sem.";
+  if (w < 5) return `${w} sem.`;
+  return `${Math.round(w / 4)} mois`;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  transmission: "Transmission",
+  freinage: "Freinage",
+  suspension: "Suspension",
+  roues: "Pneumatiques",
+  cockpit: "Cockpit",
+  eclairage: "Éclairage",
+  autre: "Autre",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   transmission: "var(--bi-accent)",
-  freins: "var(--bi-ok)",
   roues: "var(--bi-warn)",
-  pneumatiques: "var(--bi-warn)",
-  cadre: "#8B7CF8",
+  freinage: "var(--bi-ok)",
+  suspension: "#8B7CF8",
+  cockpit: "var(--bi-muted)",
+  eclairage: "var(--bi-muted)",
   autre: "var(--bi-muted)",
 };
-
-const CATEGORY_LABELS: Record<string, string> = {
-  transmission: "Transmission",
-  freins: "Freinage",
-  roues: "Roues",
-  pneumatiques: "Pneumatiques",
-  cadre: "Cadre",
-  autre: "Autre",
-};
-
-function formatNumber(n: number): string {
-  return n.toLocaleString("fr-FR");
-}
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
   if (!data) redirect("/login");
 
-  const { primaryBike, components, kpis, costByCategory, mostCritical, yearActivities } = data;
+  const {
+    user, primaryBike, bikes,
+    activityChart, kpis,
+    readinessScore, attentionItems, bikeStatus,
+    predictions, budget12m, budget12mTotal,
+  } = data;
 
-  // Cost distribution entries (exclude 0-cost categories)
-  const distEntries = (Object.entries(costByCategory) as [string, number][])
+  const userName = (user.user_metadata?.full_name as string)?.split(" ")[0] ?? "toi";
+  const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const todayCap = today.charAt(0).toUpperCase() + today.slice(1);
+
+  const readinessColor =
+    readinessScore.value >= 80 ? "var(--bi-ok)"
+    : readinessScore.value >= 55 ? "var(--bi-warn)"
+    : "var(--bi-bad)";
+
+  const readinessLabel =
+    readinessScore.value >= 80 ? "Prêt à rouler."
+    : readinessScore.value >= 55 ? "Sors avec précaution."
+    : "Action requise avant de partir.";
+
+  // Composant le plus critique pour le hint "remplacer X ferait passer le score à Y"
+  const topCritical = attentionItems[0] ?? null;
+  const scoreIfFixed = topCritical
+    ? Math.min(100, readinessScore.value + Math.round((100 - readinessScore.components) * 0.4))
+    : null;
+
+  // Budget prévisions 3 mois
+  const budget3m = predictions
+    .filter(p => p.weeksUntil !== null && p.weeksUntil <= 13)
+    .reduce((s, p) => s + (p.cost ?? 0), 0);
+
+  const maxChart = Math.max(...activityChart, 1);
+
+  // Budget 12m entries sorted by value
+  const budgetEntries = (Object.entries(budget12m) as [string, number][])
     .filter(([, v]) => v > 0)
-    .sort(([, a], [, b]) => b - a);
-
-  // Date display (server-side)
-  const now = new Date();
-  const rawDate = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  const dateDisplay = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
-
-  // KPI sub-texts
-  const criticalLabel =
-    kpis.criticalCount === 0
-      ? "Aucune alerte critique"
-      : `${kpis.criticalCount} alerte${kpis.criticalCount > 1 ? "s" : ""} critique${kpis.criticalCount > 1 ? "s" : ""}`;
-
-  // Insights from real data
-  const insights: Array<[string, string]> = [];
-  if (kpis.criticalCount > 0) {
-    insights.push([
-      `${kpis.criticalCount} composant${kpis.criticalCount > 1 ? "s" : ""} à remplacer maintenant`,
-      "var(--bi-bad)",
-    ]);
-  }
-  if (kpis.avgWear !== null && kpis.avgWear > 60) {
-    insights.push([`Usure moyenne élevée · ${kpis.avgWear} %`, "var(--bi-warn)"]);
-  }
-  if (distEntries.length > 0) {
-    const topCat = distEntries[0];
-    const topLabel = CATEGORY_LABELS[topCat[0]] ?? topCat[0];
-    const totalCost = distEntries.reduce((s, [, v]) => s + v, 0);
-    const pct = totalCost > 0 ? Math.round((topCat[1] / totalCost) * 100) : 0;
-    if (pct > 30) {
-      insights.push([`${topLabel} = ${pct} % du budget composants`, "var(--bi-muted)"]);
-    }
-  }
-  // Fallback insight
-  if (insights.length === 0) {
-    insights.push(["Tous les composants sont en bon état", "var(--bi-ok)"]);
-  }
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 4);
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page">
+      <div className="bi-page" style={{ maxWidth: 1200 }}>
 
-        {/* Top bar */}
+        {/* ── Header ─────────────────────────────────────────────── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              {dateDisplay} · Vue d&apos;ensemble
+              {todayCap}{primaryBike ? ` · ${primaryBike.name} · vélo actif` : ""}
             </div>
             <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 4 }}>
-              {primaryBike?.name ?? "Aucun vélo"}
+              Bonjour, {userName}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, color: "var(--bi-muted)" }}>
-              <Dot color="var(--bi-ok)" size={6} /> Sync · Strava
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--bi-ok)", display: "inline-block" }} />
+              {bikes.length} vélo{bikes.length !== 1 ? "s" : ""} · {kpis.totalKm12m.toLocaleString("fr")} km / 12 m
             </div>
-            <Link href="/components">
-              <button style={{ padding: "8px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+            <Link href="/components/new">
+              <button style={{ padding: "8px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
                 Composant
               </button>
@@ -114,259 +116,309 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* KPI row */}
-        <div className="bi-grid-4" style={{ marginBottom: 18 }}>
-          <BiCard pad={20}>
-            <BiLabel>Coût total composants</BiLabel>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
-              <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.2 }}>{formatNumber(kpis.totalComponentCost)}</Mono>
-              <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€</span>
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-              <Dot color="var(--bi-muted)" size={5} />{components.length} composant{components.length !== 1 ? "s" : ""} suivis
-            </div>
-          </BiCard>
-
-          <BiCard pad={20}>
-            <BiLabel>Coût par km</BiLabel>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
-              <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.2 }}>
-                {kpis.costPerKm !== null ? kpis.costPerKm.toFixed(2).replace(".", ",") : "—"}
-              </Mono>
-              <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€/km</span>
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-              <Dot color="var(--bi-muted)" size={5} />Sur {formatNumber(primaryBike?.total_km ?? 0)} km totaux
-            </div>
-          </BiCard>
-
-          <BiCard pad={20}>
-            <BiLabel>Distance · 12 mois</BiLabel>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
-              <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.2 }}>{formatNumber(kpis.totalKm12m)}</Mono>
-              <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>km</span>
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-              <Dot color="var(--bi-muted)" size={5} />{kpis.totalRides12m} sortie{kpis.totalRides12m !== 1 ? "s" : ""}
-            </div>
-          </BiCard>
-
-          <BiCard pad={20}>
-            <BiLabel>État global</BiLabel>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
-              <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.2 }}>
-                {kpis.avgWear !== null ? kpis.avgWear : "—"}
-              </Mono>
-              {kpis.avgWear !== null && (
-                <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>%</span>
-              )}
-            </div>
-            <div style={{
-              fontSize: 11.5,
-              color: kpis.criticalCount > 0 ? "var(--bi-bad)" : "var(--bi-muted)",
-              marginTop: 6,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}>
-              <Dot color={kpis.criticalCount > 0 ? "var(--bi-bad)" : "var(--bi-muted)"} size={5} />
-              {criticalLabel}
-            </div>
-          </BiCard>
-        </div>
-
-        {/* Main grid 1.4fr 1fr */}
-        <div className="bi-grid-split" style={{ marginBottom: 18 }}>
-
-          {/* Components table */}
-          <BiCard pad={0}>
-            <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* ── Readiness hero ──────────────────────────────────────── */}
+        <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr" }}>
+            {/* Score */}
+            <div style={{ padding: "28px 32px", borderRight: "1px solid var(--bi-line)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: readinessColor, display: "inline-block" }} />
+                <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--bi-muted)" }}>
+                  Prêt à rouler · {todayCap.split(" ").slice(1).join(" ")}
+                </span>
+              </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600 }}>État du matériel</div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                  {components.length} composant{components.length !== 1 ? "s" : ""} suivi{components.length !== 1 ? "s" : ""} · basé sur kilométrage importé
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
+                  <Mono style={{ fontSize: 88, fontWeight: 400, letterSpacing: -3, lineHeight: 1, color: readinessColor }}>{readinessScore.value}</Mono>
+                  <span style={{ fontSize: 22, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>/100</span>
+                </div>
+                <div style={{ marginTop: 14, height: 6, borderRadius: 999, background: "var(--bi-line)", overflow: "hidden" }}>
+                  <div style={{ width: `${readinessScore.value}%`, height: "100%", background: readinessColor, borderRadius: 999 }} />
+                </div>
+                <div style={{ marginTop: 14, fontSize: 14, lineHeight: 1.5, fontWeight: 500 }}>
+                  <span style={{ color: readinessColor, fontWeight: 600 }}>{readinessLabel}</span>
+                  {topCritical && <> Ta {topCritical.name.toLowerCase()} approche du seuil critique.</>}
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--bi-muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                Trié par usure
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 10l5 5 5-5" /></svg>
+            </div>
+
+            {/* Breakdown */}
+            <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Décomposition du score</span>
+                <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>pondéré 60/20/20</span>
               </div>
+              {([
+                ["Composants", readinessScore.components, attentionItems.length > 0 ? `${attentionItems.filter(a => a.status === "bad").length} critique · ${attentionItems.filter(a => a.status === "warn").length} à surveiller` : "Tout est OK"],
+                ["Régularité", readinessScore.regularity, `${kpis.totalRides12m} sortie${kpis.totalRides12m !== 1 ? "s" : ""} · 12 mois`],
+                ["Maintenance", readinessScore.maintenance, "Suivi actif"],
+              ] as [string, number, string][]).map(([label, score, detail]) => {
+                const c = score >= 80 ? "var(--bi-ok)" : score >= 55 ? "var(--bi-warn)" : "var(--bi-bad)";
+                return (
+                  <div key={label}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 500, width: 110, flexShrink: 0 }}>{label}</span>
+                      <div style={{ flex: 1, height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ width: `${score}%`, height: "100%", background: c, borderRadius: 999 }} />
+                      </div>
+                      <Mono style={{ fontSize: 12.5, fontWeight: 600, width: 38, textAlign: "right" }}>{score}</Mono>
+                    </div>
+                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 4, marginLeft: 120 }}>{detail}</div>
+                  </div>
+                );
+              })}
+              {topCritical && scoreIfFixed !== null && (
+                <div style={{ marginTop: 6, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>
+                    Remplacer la {topCritical.name.toLowerCase()} ferait passer le score à{" "}
+                    <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{scoreIfFixed}</Mono>
+                  </span>
+                  <Link href={`/components/${topCritical.id}`} style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
+                    Voir les options
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+                  </Link>
+                </div>
+              )}
             </div>
-            {/* Column headers */}
-            <div style={{
-              padding: "8px 22px 6px",
-              display: "grid",
-              gridTemplateColumns: "1.4fr 0.7fr 1.4fr 0.6fr 0.6fr 0.3fr",
-              gap: 14,
-              fontSize: 10.5,
-              color: "var(--bi-muted)",
-              fontWeight: 600,
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              borderBottom: "1px solid var(--bi-line)",
-            }}>
-              <span>Composant</span>
-              <span>Statut</span>
-              <span>Usure</span>
-              <span style={{ textAlign: "right" }}>Km</span>
-              <span style={{ textAlign: "right" }}>Coût</span>
-              <span />
+          </div>
+        </BiCard>
+
+        {/* ── Attention + Prévisions ──────────────────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14, marginBottom: 14 }}>
+
+          {/* Attention */}
+          <BiCard pad={0}>
+            <div style={{ padding: "20px 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {attentionItems.length > 0 && (
+                    <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bad)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>
+                      {attentionItems.length}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.3 }}>Ce qui nécessite ton attention</span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, marginLeft: attentionItems.length > 0 ? 30 : 0 }}>
+                  {attentionItems.length === 0
+                    ? "Tous tes composants sont en bon état"
+                    : `${attentionItems.filter(a => a.status === "bad").length} à remplacer · ${attentionItems.filter(a => a.status === "warn").length} à surveiller`}
+                </div>
+              </div>
+              {attentionItems.length > 0 && (
+                <Link href="/components" style={{ fontSize: 11.5, color: "var(--bi-muted)", textDecoration: "none" }}>
+                  Voir tout →
+                </Link>
+              )}
             </div>
-            {components.length === 0 ? (
-              <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
-                Aucun composant ajouté
+
+            {attentionItems.length === 0 ? (
+              <div style={{ padding: "24px 22px", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
+                </div>
+                <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Aucune action requise pour le moment.</span>
               </div>
             ) : (
-              components.map((c) => {
-                const color = STATUS_COLORS[c.status] ?? "var(--bi-muted)";
-                const wearPct = c.wear_pct ?? 0;
-                const wearFraction = Math.min(wearPct / 100, 1);
+              attentionItems.map((c, i) => {
+                const color = c.status === "bad" ? "var(--bi-bad)" : "var(--bi-warn)";
+                const label = c.status === "bad" ? "CRITIQUE" : "À SURVEILLER";
+                const remain = c.weeksUntil !== null
+                  ? `reste ~${c.kmRemaining.toLocaleString("fr")} km · ${formatWeeks(c.weeksUntil)}`
+                  : `reste ~${c.kmRemaining.toLocaleString("fr")} km`;
                 return (
-                  <div
-                    key={c.id}
-                    style={{
-                      padding: "16px 22px",
-                      display: "grid",
-                      gridTemplateColumns: "1.4fr 0.7fr 1.4fr 0.6fr 0.6fr 0.3fr",
-                      gap: 14,
-                      alignItems: "center",
-                      borderBottom: "1px solid var(--bi-line)",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
-                        {c.brand ?? c.category ?? "—"}
+                  <div key={c.id} style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 18, borderTop: "1px solid var(--bi-line)" }}>
+                    <div style={{ width: 4, height: 56, background: color, borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 600 }}>{c.name}</span>
+                        <span style={{ fontSize: 9.5, padding: "3px 8px", borderRadius: 999, background: `${color === "var(--bi-bad)" ? "rgba(200,54,46,0.1)" : "rgba(208,132,21,0.1)"}`, color, fontWeight: 700, letterSpacing: 0.5 }}>{label}</span>
+                        <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>· {c.bikeName}</span>
+                      </div>
+                      {c.brand && <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 3 }}>{c.brand}</div>}
+                      <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ flex: 1, maxWidth: 240, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                          <div style={{ width: `${c.wearPct}%`, height: "100%", background: color, borderRadius: 999 }} />
+                        </div>
+                        <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{c.wearPct} % · {remain}</Mono>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color }}>
-                      <Dot color={color} size={6} />
-                      {STATUS_LABELS[c.status] ?? c.status}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+                      {c.cost !== null && <Mono style={{ fontSize: 13, color: "var(--bi-muted)" }}>~ {c.cost} €</Mono>}
+                      <Link href={`/components/${c.id}`}>
+                        <button style={{ padding: "8px 14px", background: i === 0 ? "var(--bi-ink)" : "transparent", color: i === 0 ? "var(--bi-bg)" : "var(--bi-ink)", border: i === 0 ? "none" : "1px solid var(--bi-line)", borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                          {c.status === "bad" ? "Voir options" : "Planifier"}
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+                        </button>
+                      </Link>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ flex: 1 }}>
-                        <ProgressBar value={wearFraction} color={color} height={3} />
-                      </div>
-                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", width: 36, textAlign: "right" }}>
-                        {c.wear_pct !== null ? `${Math.round(wearPct)} %` : "—"}
-                      </Mono>
-                    </div>
-                    <Mono style={{ fontSize: 12.5, textAlign: "right" }}>
-                      {formatNumber(c.km_used ?? 0)}
-                    </Mono>
-                    <Mono style={{ fontSize: 12.5, textAlign: "right" }}>
-                      {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                    </Mono>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" style={{ justifySelf: "end" }}>
-                      <path d="M9 6l6 6-6 6" />
-                    </svg>
                   </div>
                 );
               })
             )}
           </BiCard>
 
-          {/* Right column: priority action + insights */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-
-            {/* Priority action */}
-            <div style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 22 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Dot color="var(--bi-accent)" size={6} />
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--bi-accent)", letterSpacing: "0.07em", textTransform: "uppercase" }}>Action prioritaire</span>
-                </div>
-              </div>
-              {mostCritical ? (
-                <>
-                  <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.5, lineHeight: 1.2, marginTop: 14 }}>
-                    {mostCritical.status === "bad"
-                      ? `Remplacer ${mostCritical.name}`
-                      : `Surveiller ${mostCritical.name}`}
-                    {mostCritical.km_remaining !== null && mostCritical.km_remaining < 500
-                      ? ` sous ~${mostCritical.km_remaining} km`
-                      : ""}
-                  </div>
-                  <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 8, lineHeight: 1.5 }}>
-                    {mostCritical.wear_pct !== null
-                      ? `Usure à ${Math.round(mostCritical.wear_pct)} %.`
-                      : "Vérifier l'état de ce composant."}{" "}
-                    {mostCritical.km_used !== null && mostCritical.km_max !== null
-                      ? `${formatNumber(mostCritical.km_used)} km / ${formatNumber(mostCritical.km_max)} km max.`
-                      : ""}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
-                    <Link href="/components">
-                      <button style={{ background: "var(--bi-accent)", color: "#0E0E10", border: "none", borderRadius: 999, padding: "9px 14px", fontSize: 12, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>Voir composants</button>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div style={{ fontSize: 18, fontWeight: 500, letterSpacing: -0.5, lineHeight: 1.3, marginTop: 14, color: "rgba(255,255,255,0.8)" }}>
-                  Tous les composants sont en bon état 🎉
-                </div>
+          {/* Prévisions */}
+          <BiCard pad={0}>
+            <div style={{ padding: "20px 22px 14px" }}>
+              <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.3 }}>Prévisions</div>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>Budget estimé sur les 3 prochains mois</div>
+            </div>
+            <div style={{ padding: "0 22px 14px", display: "flex", alignItems: "baseline", gap: 6 }}>
+              <Mono style={{ fontSize: 38, fontWeight: 500, letterSpacing: -1.2, lineHeight: 1 }}>{Math.round(budget3m)}</Mono>
+              <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€</span>
+              <span style={{ flex: 1 }} />
+              {budget12mTotal > 0 && (
+                <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{budget12mTotal} € total composants</span>
               )}
             </div>
 
-            {/* Insights compact */}
-            <BiCard pad={20}>
-              <BiLabel>Insights · {insights.length}</BiLabel>
-              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
-                {insights.map(([text, color]) => (
-                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: "1px solid var(--bi-line)" }}>
-                    <div style={{ width: 3, height: 24, background: color, borderRadius: 2, flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500 }}>{text}</span>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2">
-                      <path d="M9 6l6 6-6 6" />
-                    </svg>
+            {/* Timeline */}
+            <div style={{ padding: "0 22px 24px" }}>
+              <div style={{ position: "relative", height: 4, background: "var(--bi-line)", borderRadius: 999, marginBottom: 28 }}>
+                {[{ left: 8, label: "Maintenant" }, { left: 33, label: "1 mois" }, { left: 66, label: "2 mois" }, { left: 95, label: "3 mois" }].map(m => (
+                  <div key={m.label} style={{ position: "absolute", left: `${m.left}%`, top: -3, transform: "translateX(-50%)" }}>
+                    <div style={{ width: 1, height: 10, background: "var(--bi-muted)", opacity: 0.4 }} />
+                    <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", fontSize: 9.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)", whiteSpace: "nowrap" }}>{m.label}</div>
                   </div>
                 ))}
+                {predictions.filter(p => p.weeksUntil !== null && p.weeksUntil <= 13).map((p, i) => {
+                  const leftPct = Math.min(93, Math.round(((p.weeksUntil ?? 0) / 13) * 85) + 8);
+                  const dotColor = p.urgency === "now" ? "var(--bi-bad)" : "var(--bi-warn)";
+                  return (
+                    <div key={i} style={{ position: "absolute", left: `${leftPct}%`, top: -4, transform: "translateX(-50%)", width: 12, height: 12, borderRadius: 999, background: dotColor, border: "2px solid var(--bi-card)", boxShadow: `0 0 0 1.5px ${dotColor}` }} />
+                  );
+                })}
               </div>
-            </BiCard>
+            </div>
 
-          </div>
+            {/* Event list */}
+            <div style={{ borderTop: "1px solid var(--bi-line)" }}>
+              {predictions.length === 0 ? (
+                <div style={{ padding: "16px 22px", fontSize: 13, color: "var(--bi-muted)" }}>Aucun remplacement prévu prochainement.</div>
+              ) : (
+                [...predictions, ...predictions.filter(p => p.urgency === "later").slice(0, 2)].slice(0, 4).map((p, i, arr) => {
+                  const dotColor = p.urgency === "now" ? "var(--bi-bad)" : p.urgency === "soon" ? "var(--bi-warn)" : "var(--bi-muted)";
+                  const isBeyond = p.weeksUntil !== null && p.weeksUntil > 13;
+                  return (
+                    <div key={i} style={{ padding: "12px 22px", display: "flex", alignItems: "center", gap: 14, borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)", opacity: isBeyond ? 0.6 : 1 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 999, background: dotColor, flexShrink: 0, display: "inline-block" }} />
+                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 60, flexShrink: 0 }}>~{formatWeeks(p.weeksUntil)}</Mono>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600 }}>{p.componentName} · {p.bikeName}</div>
+                        <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 1 }}>{p.urgency === "now" ? "à remplacer" : "fin de cycle"}</div>
+                      </div>
+                      {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 500 }}>{p.cost} €</Mono>}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </BiCard>
         </div>
 
-        {/* Activity + cost split */}
-        <div className="bi-grid-split-lg">
+        {/* ── Statut par vélo ─────────────────────────────────────── */}
+        {bikeStatus.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.3 }}>Statut par vélo</span>
+              <span style={{ fontSize: 11.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                {bikeStatus.length} vélo{bikeStatus.length !== 1 ? "s" : ""} · {bikeStatus.reduce((s, b) => s + b.totalKm, 0).toLocaleString("fr")} km cumulés
+              </span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(bikeStatus.length, 3)}, 1fr)`, gap: 14 }}>
+              {bikeStatus.map(b => {
+                const sc = b.status === "bad" ? "var(--bi-bad)" : b.status === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
+                const statusLabel = b.status === "bad" ? "Action requise" : b.status === "warn" ? "À surveiller" : "Tout OK";
+                return (
+                  <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
+                    <BiCard pad={18} style={{ border: b.isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)", cursor: "pointer" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 14.5, fontWeight: 600 }}>{b.name}</span>
+                            {b.isActive && (
+                              <span style={{ fontSize: 9, padding: "3px 7px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontWeight: 700, letterSpacing: 0.4 }}>ACTIF</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 3 }}>
+                            {b.totalKm.toLocaleString("fr")} km
+                          </div>
+                        </div>
+                        <div style={{ width: 14, height: 14, borderRadius: 999, background: sc, flexShrink: 0, marginTop: 4, boxShadow: `0 0 0 4px ${sc === "var(--bi-bad)" ? "rgba(200,54,46,0.15)" : sc === "var(--bi-warn)" ? "rgba(208,132,21,0.15)" : "rgba(52,211,153,0.15)"}` }} />
+                      </div>
+                      <div style={{ marginTop: 14, padding: "8px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: sc }}>{statusLabel}</span>
+                        <div style={{ display: "flex", gap: 8, fontSize: 11, fontFamily: "var(--font-jetbrains-mono)" }}>
+                          {b.badCount > 0 && <span style={{ color: "var(--bi-bad)", fontWeight: 600 }}>● {b.badCount}</span>}
+                          {b.warnCount > 0 && <span style={{ color: "var(--bi-warn)", fontWeight: 600 }}>● {b.warnCount}</span>}
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11.5, color: "var(--bi-muted)" }}>
+                        <span>Dernière sortie : {formatLastRide(b.lastRideAt)}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+                      </div>
+                    </BiCard>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-          {/* Activity chart */}
+        {/* ── Activité + Budget ───────────────────────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14 }}>
           <BiCard pad={22}>
-            <ActivityChart activities={yearActivities} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Activité · 30 derniers jours</div>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
+                  {kpis.totalKm12m.toLocaleString("fr")} km · {kpis.totalRides12m} sortie{kpis.totalRides12m !== 1 ? "s" : ""} · 12 mois
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: 18, height: 80, display: "flex", alignItems: "flex-end", gap: 3 }}>
+              {activityChart.map((h, i) => (
+                <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxChart) * 100))}%`, background: h > maxChart * 0.6 ? "var(--bi-accent)" : h > 0 ? "var(--bi-line)" : "transparent", borderRadius: 2, minHeight: h > 0 ? 3 : 0 }} />
+              ))}
+            </div>
+            <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+              {[0, 9, 19, 29].map(i => {
+                const d = new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000);
+                return <span key={i}>{d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>;
+              })}
+            </div>
           </BiCard>
 
-          {/* Cost distribution */}
           <BiCard pad={22}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Répartition du coût</div>
-            <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>par catégorie · composants actifs</div>
-            {distEntries.length > 0 ? (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Budget · composants actifs</div>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{budget12mTotal} € · par poste</div>
+              </div>
+            </div>
+            {budgetEntries.length > 0 ? (
               <>
-                <div style={{ marginTop: 18, height: 8, borderRadius: 999, overflow: "hidden", display: "flex", gap: 2 }}>
-                  {distEntries.map(([cat, val]) => (
-                    <div
-                      key={cat}
-                      style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }}
-                    />
+                <div style={{ marginTop: 18, display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2 }}>
+                  {budgetEntries.map(([cat, val]) => (
+                    <div key={cat} style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }} />
                   ))}
                 </div>
                 <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {distEntries.map(([cat, val]) => (
+                  {budgetEntries.map(([cat, val]) => (
                     <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
-                      <Dot color={CATEGORY_COLORS[cat] ?? "var(--bi-muted)"} size={8} />
+                      <span style={{ width: 8, height: 8, borderRadius: 999, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)", flexShrink: 0, display: "inline-block" }} />
                       <span style={{ flex: 1 }}>{CATEGORY_LABELS[cat] ?? cat}</span>
-                      <Mono style={{ fontWeight: 500 }}>{val} €</Mono>
+                      <Mono style={{ fontWeight: 500 }}>{Math.round(val)} €</Mono>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <div style={{ marginTop: 24, textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
-                Aucun coût enregistré
-              </div>
+              <div style={{ marginTop: 18, fontSize: 13, color: "var(--bi-muted)" }}>Ajoute des composants pour voir la répartition.</div>
             )}
           </BiCard>
-
         </div>
+
       </div>
     </AppShell>
   );

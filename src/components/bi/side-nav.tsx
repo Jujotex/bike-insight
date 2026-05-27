@@ -30,12 +30,6 @@ const NAV_ITEMS = [
     icon: "M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8M12 9a3 3 0 100 6 3 3 0 000-6z",
   },
   {
-    id: "analysis",
-    label: "Analyse",
-    href: "/analysis",
-    icon: "M4 20V10M10 20V4M16 20v-6M22 20H2",
-  },
-  {
     id: "sync",
     label: "Sync Strava",
     href: "/sync",
@@ -158,66 +152,6 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
             </Link>
           );
         })}
-      </div>
-
-      {/* Mes vélos section */}
-      <div style={{ marginTop: 28, padding: "0 12px" }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--bi-muted)",
-          }}
-        >
-          Mes vélos
-        </div>
-        <div
-          style={{
-            marginTop: 10,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          {bikes.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", padding: "6px 0" }}>Aucun vélo connecté</div>
-          ) : (
-            bikes.map((b) => (
-              <Link
-                key={b.id}
-                href={`/bikes/${b.id}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 0",
-                  fontSize: 12.5,
-                  color: b.is_active ? "var(--bi-ink)" : "var(--bi-muted)",
-                  fontWeight: b.is_active ? 500 : 400,
-                  textDecoration: "none",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 6,
-                    height: 6,
-                    borderRadius: 999,
-                    background: b.most_critical_component
-                      ? "var(--bi-bad)"
-                      : b.is_active
-                      ? "var(--bi-accent)"
-                      : "var(--bi-muted)",
-                    flexShrink: 0,
-                  }}
-                />
-                {b.name}
-              </Link>
-            ))
-          )}
-        </div>
       </div>
 
       <div style={{ flex: 1 }} />

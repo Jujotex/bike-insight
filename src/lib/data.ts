@@ -9,6 +9,7 @@ export async function getDashboardData() {
 
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
   const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
 
   const { data: bikes } = await supabase
@@ -20,28 +21,23 @@ export async function getDashboardData() {
 
   const primaryBike = bikes?.[0] ?? null
 
-  const { data: components } = primaryBike
-    ? await supabase
-        .from('component_stats')
-        .select('*')
-        .eq('bike_id', primaryBike.id)
-        .eq('is_active', true)
-        .order('wear_pct', { ascending: false })
-    : { data: [] }
-
-  const { data: recentActivities } = await supabase
-    .from('activities')
-    .select('started_at, distance_km')
-    .eq('user_id', user.id)
-    .gte('started_at', thirtyDaysAgo.toISOString())
-    .order('started_at', { ascending: true })
-
-  const { data: yearActivities } = await supabase
-    .from('activities')
-    .select('started_at, distance_km')
-    .eq('user_id', user.id)
-    .gte('started_at', twelveMonthsAgo.toISOString())
-    .order('started_at', { ascending: true })
+  const [
+    { data: components },
+    { data: recentActivities },
+    { data: yearActivities },
+    { data: allComponents },
+    { data: ninetyDaysActivities },
+  ] = await Promise.all([
+    primaryBike
+      ? supabase.from('component_stats').select('*').eq('bike_id', primaryBike.id).eq('is_active', true).order('wear_pct', { ascending: false })
+      : Promise.resolve({ data: [] }),
+    supabase.from('activities').select('started_at, distance_km').eq('user_id', user.id).gte('started_at', thirtyDaysAgo.toISOString()).order('started_at', { ascending: true }),
+    supabase.from('activities').select('started_at, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()).order('started_at', { ascending: true }),
+    // Tous les composants actifs de tous les vélos pour les prédictions
+    supabase.from('component_stats').select('*').eq('user_id', user.id).eq('is_active', true).not('km_remaining', 'is', null),
+    // Activités 90j par vélo pour calculer le rythme km/semaine
+    supabase.from('activities').select('bike_id, distance_km, started_at').eq('user_id', user.id).gte('started_at', ninetyDaysAgo.toISOString()),
+  ])
 
   const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
   const totalRides12m = yearActivities?.length ?? 0
@@ -71,6 +67,141 @@ export async function getDashboardData() {
 
   const mostCritical = components?.find(c => c.status === 'bad') ?? components?.[0] ?? null
 
+  // ── Prédictions de remplacement ──────────────────────────────
+  // Rythme km/semaine par vélo sur les 90 derniers jours
+  const kmPerWeekByBike = new Map<string, number>()
+  for (const bike of (bikes ?? [])) {
+    const bikeKm90d = (ninetyDaysActivities ?? [])
+      .filter(a => a.bike_id === bike.id)
+      .reduce((s, a) => s + (a.distance_km ?? 0), 0)
+    kmPerWeekByBike.set(bike.id as string, bikeKm90d / 13) // 90j ≈ 13 semaines
+  }
+
+  const bikeName = new Map((bikes ?? []).map(b => [b.id as string, b.name as string]))
+
+  type Prediction = {
+    componentId: string
+    componentName: string
+    bikeName: string
+    bikeId: string
+    kmRemaining: number
+    weeksUntil: number | null
+    estimatedDate: string | null
+    cost: number | null
+    urgency: 'now' | 'soon' | 'later'
+  }
+
+  const predictions: Prediction[] = (allComponents ?? [])
+    .filter(c => (c.km_remaining as number) !== null)
+    .map(c => {
+      const bikeId = c.bike_id as string
+      const kmRemaining = c.km_remaining as number
+      const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
+      const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRemaining / weeklyKm)) : null
+      const estimatedDate = weeksUntil !== null
+        ? new Date(now.getTime() + weeksUntil * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        : null
+      const urgency: Prediction['urgency'] =
+        (c.status === 'bad') ? 'now' :
+        (weeksUntil !== null && weeksUntil <= 8) ? 'soon' : 'later'
+
+      return {
+        componentId: c.id as string,
+        componentName: c.name as string,
+        bikeName: bikeName.get(bikeId) ?? '—',
+        bikeId,
+        kmRemaining: Math.max(0, Math.round(kmRemaining)),
+        weeksUntil,
+        estimatedDate,
+        cost: c.purchase_price as number | null,
+        urgency,
+      }
+    })
+    .filter(p => p.urgency !== 'later') // Ne garder que now + soon pour le dashboard
+    .sort((a, b) => {
+      const order = { now: 0, soon: 1, later: 2 }
+      return order[a.urgency] - order[b.urgency]
+    })
+
+  // ── Readiness score ─────────────────────────────────────────
+  const allActive = allComponents ?? []
+  const hasBad = allActive.some(c => c.status === 'bad')
+  const hasWarn = allActive.some(c => c.status === 'warn')
+  const globalAvgWear = allActive.length > 0
+    ? allActive.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / allActive.length : 0
+  const componentsScore = hasBad
+    ? Math.max(30, Math.round(100 - globalAvgWear * 1.3))
+    : hasWarn
+      ? Math.max(60, Math.round(100 - globalAvgWear * 0.9))
+      : Math.max(75, Math.round(100 - globalAvgWear * 0.5))
+  const rides30d = recentActivities?.length ?? 0
+  const regularityScore = Math.min(100, Math.round(rides30d * 7)) // 14+ sorties = 100
+  const maintenanceScore = 80 // proxy statique — affiné dans une prochaine version
+  const readinessValue = Math.round(componentsScore * 0.6 + regularityScore * 0.2 + maintenanceScore * 0.2)
+  const readinessScore = { value: readinessValue, components: componentsScore, regularity: regularityScore, maintenance: maintenanceScore }
+
+  // ── Attention items (bad + warn, tous vélos) ─────────────────
+  const attentionItems = allActive
+    .filter(c => c.status === 'bad' || c.status === 'warn')
+    .map(c => {
+      const bikeId = c.bike_id as string
+      const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
+      const kmRem = (c.km_remaining as number) ?? 0
+      const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRem / weeklyKm)) : null
+      return {
+        id: c.id as string,
+        name: c.name as string,
+        brand: (c.brand as string) ?? null,
+        bikeName: bikeName.get(bikeId) ?? '—',
+        bikeId,
+        status: c.status as string,
+        wearPct: Math.round((c.wear_pct as number) ?? 0),
+        kmRemaining: Math.max(0, Math.round(kmRem)),
+        weeksUntil,
+        cost: (c.purchase_price as number) ?? null,
+      }
+    })
+    .sort((a, b) => {
+      if (a.status === 'bad' && b.status !== 'bad') return -1
+      if (a.status !== 'bad' && b.status === 'bad') return 1
+      return b.wearPct - a.wearPct
+    })
+    .slice(0, 5)
+
+  // ── Statut par vélo ───────────────────────────────────────────
+  const lastRideByBike = new Map<string, string>()
+  for (const a of (ninetyDaysActivities ?? [])) {
+    if (!a.bike_id) continue
+    const cur = lastRideByBike.get(a.bike_id as string)
+    if (!cur || (a.started_at as string) > cur) lastRideByBike.set(a.bike_id as string, a.started_at as string)
+  }
+
+  const bikeStatus = (bikes ?? []).map((b, i) => {
+    const bikeComps = allActive.filter(c => c.bike_id === b.id)
+    const badCount = bikeComps.filter(c => c.status === 'bad').length
+    const warnCount = bikeComps.filter(c => c.status === 'warn').length
+    const status = badCount > 0 ? 'bad' : warnCount > 0 ? 'warn' : 'ok'
+    return {
+      id: b.id as string,
+      name: b.name as string,
+      totalKm: (b.total_km as number) ?? 0,
+      lastRideAt: lastRideByBike.get(b.id as string) ?? null,
+      status,
+      badCount,
+      warnCount,
+      isActive: i === 0,
+    }
+  })
+
+  // ── Budget 12 mois par catégorie ─────────────────────────────
+  const budget12m = allActive.reduce((acc, c) => {
+    const cat = (c.category as string) ?? 'autre'
+    const price = (c.purchase_price as number) ?? 0
+    acc[cat] = (acc[cat] ?? 0) + price
+    return acc
+  }, {} as Record<string, number>)
+  const budget12mTotal = (Object.values(budget12m) as number[]).reduce((s, v) => s + v, 0)
+
   return {
     user,
     primaryBike,
@@ -89,6 +220,12 @@ export async function getDashboardData() {
     mostCritical,
     recentActivities: recentActivities ?? [],
     yearActivities: (yearActivities ?? []).map(a => ({ started_at: a.started_at as string, distance_km: a.distance_km ?? 0 })),
+    predictions,
+    readinessScore,
+    attentionItems,
+    bikeStatus,
+    budget12m,
+    budget12mTotal: Math.round(budget12mTotal),
   }
 }
 
