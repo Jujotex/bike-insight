@@ -28,7 +28,7 @@ export default async function BikesPage() {
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-  const [{ data: bikes }, { data: yearActivities }] = await Promise.all([
+  const [{ data: bikes }, { data: yearActivities }, { data: profile }] = await Promise.all([
     supabase
       .from("bike_stats")
       .select("*")
@@ -40,7 +40,14 @@ export default async function BikesPage() {
       .select("bike_id, distance_km, started_at")
       .eq("user_id", user.id)
       .gte("started_at", twelveMonthsAgo.toISOString()),
+    supabase
+      .from("profiles")
+      .select("strava_athlete_id")
+      .eq("id", user.id)
+      .single(),
   ]);
+
+  const stravaConnected = !!profile?.strava_athlete_id;
 
   const bikeList = bikes ?? [];
 
@@ -76,7 +83,7 @@ export default async function BikesPage() {
         <PageHead
           title="Mes vélos"
           sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} importé${bikeList.length !== 1 ? "s" : ""} depuis Strava · ${totalKm.toLocaleString("fr-FR")} km cumulés`}
-          actions={<SyncButton />}
+          actions={<SyncButton stravaConnected={stravaConnected} />}
         />
 
         {/* Summary strip */}
