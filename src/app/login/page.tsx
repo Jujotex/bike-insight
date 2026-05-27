@@ -67,6 +67,8 @@ function LoginForm() {
       setError(translateError(error.message));
       setLoading(false);
     } else {
+      // Sync Strava en arrière-plan dès la connexion
+      fetch("/api/strava/import", { method: "POST" }).catch(() => {});
       const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
       // Hard reload pour que le middleware lise les cookies de session
       window.location.href = redirectTo;
