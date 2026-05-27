@@ -7,6 +7,23 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Redesign page Composants
+
+### Added
+- `src/app/components/client.tsx` — nouveau composant client `ComponentsClient` qui gère toute la UI de la page
+- **KPI strip** (4 cellules) : composants actifs, remplacés 12 mois, coût total, durée de vie moy. vs estimation
+- **Tabs client-side** : Actifs / Historique des remplacements / Tous — sans rechargement de page
+- **Filtre vélo** (pills) dans l'onglet Actifs quand plusieurs vélos détectés
+- **Table active** redesignée : barre verticale colorée par statut, colonne Installé, barre d'usure + % inline
+- **Table historique** : Date, Composant, Vélo, Durée de vie (km + mini-barre + cible), Vs prévu (± km coloré), Coût, badge Raison, chevron vers le détail
+- **Footer insight** dynamique : lime icon box + texte calculé sur la durée de vie moyenne vs estimation + lien Analyse
+
+### Changed
+- `src/app/components/page.tsx` — simplifié en pur Server Component qui passe les données à `ComponentsClient`
+- `src/lib/data.ts` — `getComponentsData` remplace les deux queries composants actifs/archivés par une query actifs + une query `maintenance_logs` (jointure `components`) avec calcul KPIs (activeCount, replacedCount, totalCost, avgBeat)
+
+---
+
 ## [Unreleased] — Raison de remplacement
 
 ### Added
