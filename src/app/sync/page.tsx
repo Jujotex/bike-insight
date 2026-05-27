@@ -35,7 +35,7 @@ export default async function SyncPage() {
           sub="Statut de la connexion, dernière synchronisation et activités importées"
           actions={
             <div style={{ display: "flex", gap: 8 }}>
-              <SyncButton />
+              <SyncButton stravaConnected={stravaConnected} />
             </div>
           }
         />

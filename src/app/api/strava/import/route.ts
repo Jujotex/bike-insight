@@ -13,9 +13,16 @@ export async function POST() {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
-  const accessToken = await getValidStravaToken(user.id)
+  let accessToken: string | null = null
+  try {
+    accessToken = await getValidStravaToken(user.id)
+  } catch (err) {
+    console.error('[sync] getValidStravaToken error:', err)
+    return NextResponse.json({ error: 'Erreur lors du refresh du token Strava' }, { status: 500 })
+  }
+
   if (!accessToken) {
-    return NextResponse.json({ error: 'Token Strava invalide' }, { status: 401 })
+    return NextResponse.json({ error: 'Token Strava invalide ou expiré — reconnecte ton compte Strava' }, { status: 401 })
   }
 
   // Récupère les vélos de l'utilisateur pour mapper strava_gear_id → bike_id
@@ -39,7 +46,10 @@ export async function POST() {
       { headers: { Authorization: `Bearer ${accessToken}` } }
     )
 
-    if (!res.ok) break
+    if (!res.ok) {
+      console.error('[sync] Strava activities fetch failed:', res.status, await res.text().catch(() => ''))
+      break
+    }
 
     const activities = await res.json()
     if (!Array.isArray(activities) || activities.length === 0) break
@@ -76,6 +86,7 @@ export async function POST() {
       .upsert(allActivities, { onConflict: 'strava_id', ignoreDuplicates: false })
 
     if (error) {
+      console.error('[sync] upsert activities error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
     totalImported = allActivities.length
@@ -99,12 +110,17 @@ export async function POST() {
         }
       }
     }
-  } catch {
+  } catch (err) {
+    console.error('[sync] athlete fetch error:', err)
     // Fail silently — total_km sera mis à jour au prochain import
   }
 
   // Recalcule km_used sur tous les composants actifs (déclenche le trigger statut ok/warn/bad)
-  await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
+  const { error: rpcError } = await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
+  if (rpcError) {
+    console.error('[sync] recalculate_component_km error:', rpcError)
+    // Ne pas bloquer la réponse — les km seront recalculés au prochain import
+  }
 
   return NextResponse.json({ imported: totalImported, pages: page - 1 })
 }
