@@ -123,12 +123,16 @@ export async function getDashboardData() {
       return order[a.urgency] - order[b.urgency]
     })
 
-  // ── Readiness score ─────────────────────────────────────────
+  // ── Readiness score — basé sur le vélo actif (primaryBike) uniquement ──
   const allActive = allComponents ?? []
-  const hasBad = allActive.some(c => c.status === 'bad')
-  const hasWarn = allActive.some(c => c.status === 'warn')
-  const globalAvgWear = allActive.length > 0
-    ? allActive.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / allActive.length : 0
+  // Pour le score : uniquement les composants du vélo actif
+  const primaryComponents = primaryBike
+    ? allActive.filter(c => c.bike_id === primaryBike.id)
+    : allActive
+  const hasBad = primaryComponents.some(c => c.status === 'bad')
+  const hasWarn = primaryComponents.some(c => c.status === 'warn')
+  const globalAvgWear = primaryComponents.length > 0
+    ? primaryComponents.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / primaryComponents.length : 0
   const componentsScore = hasBad
     ? Math.max(30, Math.round(100 - globalAvgWear * 1.3))
     : hasWarn

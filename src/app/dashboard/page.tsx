@@ -70,7 +70,8 @@ export default async function DashboardPage() {
     : "Action requise avant de partir.";
 
   // Composant le plus critique pour le hint "remplacer X ferait passer le score à Y"
-  const topCritical = attentionItems[0] ?? null;
+  // topCritical : uniquement le vélo actif — pour cohérence avec l'eyebrow
+  const topCritical = attentionItems.find(a => a.bikeId === primaryBike?.id) ?? null;
   const scoreIfFixed = topCritical
     ? Math.min(100, readinessScore.value + Math.round((100 - readinessScore.components) * 0.4))
     : null;
