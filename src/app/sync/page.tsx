@@ -102,7 +102,6 @@ export default async function SyncPage() {
                   <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < bikes.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
                     <Dot color="var(--bi-ok)" />
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{b.name}</span>
-                    {b.strava_gear_id && <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>{b.strava_gear_id}</Mono>}
                     <Mono style={{ fontSize: 12.5, fontWeight: 500, minWidth: 80, textAlign: "right" }}>
                       {(b.total_km ?? 0).toLocaleString("fr")} km
                     </Mono>
