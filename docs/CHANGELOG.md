@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Saisie manuelle de sortie
+
+### Added
+- `ManualRideButton` : bouton + modal pour ajouter une sortie sans Strava (vélo, distance, date, nom optionnel) — insère dans `activities` avec `strava_id = null`, déclenche le recalcul d'usure
+- Page détail vélo `/bikes/[id]` : bouton "Sortie manuelle" dans les actions du header
+- Page sync : bouton "Sortie manuelle" à côté du bouton Resynchroniser
+- Migration `20260527000002_activities_strava_id_nullable.sql` : `strava_id` passe de `NOT NULL` à nullable pour autoriser les activités manuelles
+
+---
+
 ## [Unreleased] — Fix bouton resynchronisation Strava
 
 ### Fixed
