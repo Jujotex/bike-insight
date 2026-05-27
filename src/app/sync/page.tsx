@@ -57,10 +57,7 @@ export default async function SyncPage() {
                 }
               </div>
               <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>
-                {stravaConnected
-                  ? <>Athlete ID : <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{profile.strava_athlete_id}</Mono></>
-                  : "Connecte ton compte Strava pour importer tes activités"
-                }
+                {!stravaConnected && "Connecte ton compte Strava pour importer tes activités"}
               </div>
             </div>
             <div className="bi-hero-card-count">
@@ -82,7 +79,6 @@ export default async function SyncPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{k}</div>
-                    <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)", display: "block", marginTop: 2 }}>{String(v)}</Mono>
                   </div>
                 </div>
               ))}
@@ -102,7 +98,6 @@ export default async function SyncPage() {
                   <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < bikes.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
                     <Dot color="var(--bi-ok)" />
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{b.name}</span>
-                    {b.strava_gear_id && <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>{b.strava_gear_id}</Mono>}
                     <Mono style={{ fontSize: 12.5, fontWeight: 500, minWidth: 80, textAlign: "right" }}>
                       {(b.total_km ?? 0).toLocaleString("fr")} km
                     </Mono>
