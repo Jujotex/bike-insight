@@ -13,7 +13,13 @@
 - `SideNav` : suppression de la liste déroulante des vélos individuels et du lien Analyse — nav simplifiée à 4 items (Dashboard, Mes vélos, Composants, Sync Strava)
 - `src/app/analysis/page.tsx` : redirige vers `/dashboard`
 - `getDashboardData()` : ajout `readinessScore` (composants 60% + régularité 20% + maintenance 20%), `attentionItems` (composants bad/warn tous vélos, triés par urgence), `bikeStatus` (statut + badCount/warnCount + lastRideAt par vélo), `predictions` (remplacements estimés avec weeksUntil + coût), `budget12m` (répartition par catégorie)
+- `getDashboardData()` : ajout `readinessByBike` (score readiness calculé individuellement par vélo) — suppression du slice(0,5) sur attentionItems pour permettre le filtrage client-side
 - `src/app/dashboard/page.tsx` : refonte complète — readiness hero avec décomposition du score, zone "Ce qui nécessite ton attention", prévisions avec timeline 3 mois, statut par vélo, activité 30j + budget par poste
+- `src/app/dashboard/page.tsx` : simplifié en Server Component pur — passe toutes les données à `DashboardClient`
+
+### Added
+- `src/app/dashboard/client.tsx` : nouveau `DashboardClient` ("use client") — pills de sélection de vélo en haut de page (visible si ≥ 2 vélos), readiness / attention / prévisions filtrées par vélo sélectionné
+- `globals.css` : classes `bi-grid-readiness` (1fr 1.4fr → stack mobile), `bi-grid-bikes` (3 cols → 1 col mobile), `bi-readiness-divider` (border-right → border-bottom mobile) — responsive complet du dashboard
 
 ---
 

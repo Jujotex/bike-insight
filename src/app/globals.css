@@ -133,3 +133,40 @@ body {
 /* ── Clickable table rows ───────────────────────────────────── */
 .bi-component-row { transition: background 0.1s; }
 .bi-component-row:hover { background: var(--bi-bg) !important; }
+
+/* ── Dashboard-specific responsive grids ──────────────────── */
+
+/* Readiness hero: score | breakdown */
+.bi-grid-readiness {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+}
+
+/* Bike status cards: up to 3 cols */
+.bi-grid-bikes {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Readiness score pane separator */
+.bi-readiness-divider {
+  border-right: 1px solid var(--bi-line);
+}
+
+@media (max-width: 768px) {
+  .bi-grid-readiness { grid-template-columns: 1fr; }
+  .bi-grid-bikes     { grid-template-columns: 1fr; }
+
+  /* On mobile: right border → bottom border for the score pane */
+  .bi-readiness-divider {
+    border-right: none;
+    border-bottom: 1px solid var(--bi-line);
+  }
+
+  /* Readiness hero score: reduce giant number */
+  .bi-readiness-score { font-size: 64px !important; }
+
+  /* Attention item: tighter on mobile */
+  .bi-attention-row { gap: 10px !important; padding: 14px 16px !important; }
+}
