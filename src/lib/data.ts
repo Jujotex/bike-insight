@@ -145,7 +145,7 @@ export async function getDashboardData() {
   const readinessScore = { value: readinessValue, components: componentsScore, regularity: regularityScore, maintenance: maintenanceScore }
 
   // ── Readiness par vélo ────────────────────────────────────────
-  type ReadinessScore = { value: number; components: number; regularity: number; maintenance: number }
+  type ReadinessScore = { value: number; components: number; regularity: number; maintenance: number; rides30d: number }
   const readinessByBike: Record<string, ReadinessScore> = {}
   const thirtyDaysAgoIso = thirtyDaysAgo.toISOString()
   const rides30dByBike = new Map<string, number>()
@@ -165,7 +165,7 @@ export async function getDashboardData() {
       : _warn ? Math.max(60, Math.round(100 - _avgW * 0.9)) : Math.max(75, Math.round(100 - _avgW * 0.5))
     const _r30 = rides30dByBike.get(_bid) ?? 0
     const _rScore = Math.min(100, Math.round(_r30 * 7))
-    readinessByBike[_bid] = { value: Math.round(_cScore * 0.6 + _rScore * 0.2 + 80 * 0.2), components: _cScore, regularity: _rScore, maintenance: 80 }
+    readinessByBike[_bid] = { value: Math.round(_cScore * 0.6 + _rScore * 0.2 + 80 * 0.2), components: _cScore, regularity: _rScore, maintenance: 80, rides30d: _r30 }
   }
 
   // ── Attention items (bad + warn, tous vélos) ─────────────────
