@@ -52,6 +52,7 @@ interface ReadinessScore {
   components: number;
   regularity: number;
   maintenance: number;
+  rides30d: number;
 }
 
 interface AttentionItem {
@@ -250,7 +251,7 @@ export function DashboardClient({
             </div>
             {([
               ["Composants", currentReadiness.components, filteredAttention.length > 0 ? `${filteredAttention.filter(a => a.status === "bad").length} critique · ${filteredAttention.filter(a => a.status === "warn").length} à surveiller` : "Tout est OK"],
-              ["Régularité", currentReadiness.regularity, `${kpis.totalRides12m} sortie${kpis.totalRides12m !== 1 ? "s" : ""} · 12 mois`],
+              ["Régularité", currentReadiness.regularity, `${currentReadiness.rides30d} sortie${currentReadiness.rides30d !== 1 ? "s" : ""} · 30 jours`],
               ["Maintenance", currentReadiness.maintenance, "Suivi actif"],
             ] as [string, number, string][]).map(([label, score, detail]) => {
               const c = score >= 80 ? "var(--bi-ok)" : score >= 55 ? "var(--bi-warn)" : "var(--bi-bad)";
