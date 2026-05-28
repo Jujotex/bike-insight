@@ -7,6 +7,12 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Redesign pages Mes Vélos + Détail composant
+
+### Changed
+- `src/app/bikes/page.tsx` : grille fixe 3 colonnes, hero neutre avec icône vélo simplifiée + badge ACTIF (lime) sur le vélo le plus récent + badge type (Route/VTT), stat Coût/km à la place de Sorties·12m, strip statut avec compteurs bad/warn + sorties, `ManualRideButton` dans le header, texte empty slot "Ajouter un vélo manuel"
+- `src/app/components/[id]/page.tsx` : ajout section "Usure dans le temps" (graphique SVG linéaire depuis l'installation), section "Historique" (timeline depuis `maintenance_logs` avec dots colorés + badge raison), stats refaites (Intensité + Vie restante à la place de Km parcourus/restants), carte Recommandation avec icône alerte
+
 ## [Unreleased] — Dashboard v2 (en cours — UI à venir)
 
 ### Changed

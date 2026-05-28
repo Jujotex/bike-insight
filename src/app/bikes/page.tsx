@@ -1,25 +1,11 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
-import { BiCard, BiLabel, Mono, Dot, PageHead, StatusPill } from "@/components/bi/ui";
+import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
 import { SyncButton } from "@/components/bi/sync-button";
+import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-
-// Palette de fonds pour les cartes vélos
-const BIKE_PALETTES = [
-  { bg: "#1A1A2E", accent: "#C7FF3F", stroke: "rgba(199,255,63,0.6)" },
-  { bg: "#0F2027", accent: "#FC4C02", stroke: "rgba(252,76,2,0.6)"  },
-  { bg: "#1C1C1C", accent: "#A78BFA", stroke: "rgba(167,139,250,0.6)" },
-  { bg: "#0D1F12", accent: "#34D399", stroke: "rgba(52,211,153,0.6)" },
-  { bg: "#1E1B2E", accent: "#F59E0B", stroke: "rgba(245,158,11,0.6)" },
-];
-
-function bikeColor(name: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  return BIKE_PALETTES[hash % BIKE_PALETTES.length];
-}
 
 export default async function BikesPage() {
   const supabase = await createSupabaseServerClient();
@@ -48,10 +34,9 @@ export default async function BikesPage() {
   ]);
 
   const stravaConnected = !!profile?.strava_athlete_id;
-
   const bikeList = bikes ?? [];
 
-  // km and rides per bike (12m)
+  // km, rides, last ride per bike (12m)
   const bikeStats12m = new Map<string, { km: number; rides: number; lastDate: string | null }>();
   for (const a of yearActivities ?? []) {
     if (!a.bike_id) continue;
@@ -60,6 +45,16 @@ export default async function BikesPage() {
     cur.rides += 1;
     if (!cur.lastDate || a.started_at > cur.lastDate) cur.lastDate = a.started_at;
     bikeStats12m.set(a.bike_id, cur);
+  }
+
+  // Most recently ridden bike = "active"
+  let activeBikeId: string | null = null;
+  let latestDate: string | null = null;
+  for (const [bid, s] of bikeStats12m.entries()) {
+    if (s.lastDate && (!latestDate || s.lastDate > latestDate)) {
+      latestDate = s.lastDate;
+      activeBikeId = bid;
+    }
   }
 
   const totalKm = bikeList.reduce((s, b) => s + (b.total_km ?? 0), 0);
@@ -77,13 +72,20 @@ export default async function BikesPage() {
     return d.toLocaleDateString("fr-FR", { month: "long" });
   }
 
+  const bikesMini = bikeList.map(b => ({ id: b.id as string, name: b.name as string }));
+
   return (
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page" style={{ maxWidth: 1100 }}>
         <PageHead
           title="Mes vélos"
-          sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} importé${bikeList.length !== 1 ? "s" : ""} depuis Strava · ${totalKm.toLocaleString("fr-FR")} km cumulés`}
-          actions={<SyncButton stravaConnected={stravaConnected} />}
+          sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} · ${totalKm.toLocaleString("fr-FR")} km cumulés`}
+          actions={
+            <div style={{ display: "flex", gap: 8 }}>
+              <SyncButton stravaConnected={stravaConnected} />
+              <ManualRideButton bikes={bikesMini} />
+            </div>
+          }
         />
 
         {/* Summary strip */}
@@ -108,104 +110,124 @@ export default async function BikesPage() {
             <div style={{ fontSize: 13, marginTop: 8, marginBottom: 24 }}>Connecte ton compte Strava pour importer tes vélos.</div>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+          <div className="bi-grid-bikes">
             {bikeList.map((b) => {
               const stats = bikeStats12m.get(b.id) ?? { km: 0, rides: 0, lastDate: null };
-              const palette = bikeColor(b.name as string);
+              const isActive = b.id === activeBikeId;
+              const badCount = (b.bad_count as number) ?? 0;
+              const warnCount = (b.warn_count as number) ?? 0;
+              const costPerKm = (b.cost_per_km as number | null);
+
               return (
                 <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
-                  <BiCard pad={0} style={{ overflow: "hidden", cursor: "pointer" }}>
-                    {/* Hero illustration */}
-                    <div style={{ height: 150, background: palette.bg, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {/* Subtle grid */}
-                      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07 }} xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <pattern id={`grid-${b.id}`} width="24" height="24" patternUnits="userSpaceOnUse">
-                            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="white" strokeWidth="0.5"/>
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill={`url(#grid-${b.id})`} />
+                  <BiCard
+                    pad={0}
+                    style={{
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      border: isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
+                    }}
+                  >
+                    {/* Hero placeholder */}
+                    <div style={{
+                      height: 140,
+                      background: "var(--bi-bg)",
+                      position: "relative",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderBottom: "1px solid var(--bi-line)",
+                    }}>
+                      {/* Simple bike icon */}
+                      <svg width="74" height="74" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.35 }}>
+                        <circle cx="5" cy="17" r="3.5"/>
+                        <circle cx="19" cy="17" r="3.5"/>
+                        <path d="M12 7l-3 10h6l-3-10zM12 7V4h3"/>
                       </svg>
-                      {/* Bike SVG illustration */}
-                      <svg width="110" height="80" viewBox="0 0 110 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {/* Rear wheel */}
-                        <circle cx="22" cy="54" r="18" stroke={palette.stroke} strokeWidth="3"/>
-                        <circle cx="22" cy="54" r="3" fill={palette.accent}/>
-                        {/* Front wheel */}
-                        <circle cx="88" cy="54" r="18" stroke={palette.stroke} strokeWidth="3"/>
-                        <circle cx="88" cy="54" r="3" fill={palette.accent}/>
-                        {/* Frame */}
-                        <path d="M22 54 L50 20 L78 54" stroke={palette.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M50 20 L88 54" stroke={palette.stroke} strokeWidth="2.5" strokeLinecap="round"/>
-                        <path d="M22 54 L65 54" stroke={palette.stroke} strokeWidth="2.5" strokeLinecap="round"/>
-                        {/* Seat post */}
-                        <path d="M50 20 L48 8" stroke={palette.stroke} strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M42 8 L56 8" stroke={palette.accent} strokeWidth="2.5" strokeLinecap="round"/>
-                        {/* Fork */}
-                        <path d="M78 54 L82 30" stroke={palette.stroke} strokeWidth="2" strokeLinecap="round"/>
-                        {/* Handlebar */}
-                        <path d="M78 26 L90 24" stroke={palette.accent} strokeWidth="2.5" strokeLinecap="round"/>
-                        <circle cx="82" cy="30" r="2" fill={palette.accent}/>
-                        {/* Spokes rear */}
-                        <line x1="22" y1="36" x2="22" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="8" y1="48" x2="22" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="36" y1="48" x2="22" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        {/* Spokes front */}
-                        <line x1="88" y1="36" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="74" y1="48" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        <line x1="102" y1="48" x2="88" y2="54" stroke={palette.stroke} strokeWidth="1" opacity="0.5"/>
-                        {/* Chainring */}
-                        <circle cx="50" cy="48" r="7" stroke={palette.accent} strokeWidth="1.5" opacity="0.7"/>
-                        <circle cx="50" cy="48" r="2" fill={palette.accent} opacity="0.7"/>
-                      </svg>
-                      {b.strava_gear_id && (
-                        <span style={{ position: "absolute", top: 12, left: 12, fontSize: 9.5, padding: "4px 9px", background: "#FC4C02", color: "#fff", borderRadius: 999, fontWeight: 700, letterSpacing: 0.5 }}>STRAVA</span>
+
+                      {/* ACTIF badge */}
+                      {isActive && (
+                        <span style={{
+                          position: "absolute", top: 12, right: 12,
+                          fontSize: 10, padding: "4px 9px",
+                          background: "var(--bi-accent)", color: "var(--bi-accent-ink)",
+                          borderRadius: 999, fontWeight: 700, letterSpacing: 0.5,
+                        }}>
+                          ACTIF
+                        </span>
                       )}
-                      {/* km badge */}
-                      <span style={{ position: "absolute", bottom: 12, right: 12, fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, fontWeight: 600, color: palette.accent, background: "rgba(0,0,0,0.35)", padding: "3px 8px", borderRadius: 6 }}>
-                        {(b.total_km ?? 0).toLocaleString("fr")} km
+
+                      {/* Type badge — Route / VTT */}
+                      <span style={{
+                        position: "absolute", top: 12, left: 12,
+                        fontSize: 9.5, padding: "4px 9px",
+                        background: "var(--bi-card)",
+                        color: "var(--bi-muted)",
+                        border: "1px solid var(--bi-line)",
+                        borderRadius: 999, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase",
+                      }}>
+                        {(b.model as string | null)?.toLowerCase().includes("vtt") || (b.name as string).toLowerCase().includes("vtt") ? "VTT" : "Route"}
                       </span>
                     </div>
 
                     <div style={{ padding: 18 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name as string}</div>
                       <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                        {b.brand ? `${b.brand}${b.model ? ` · ${b.model}` : ""}` : (b.model ?? "Vélo")}
+                        {(b.brand as string | null) ? `${b.brand}${(b.model as string | null) ? ` · ${b.model}` : ""}` : ((b.model as string | null) ?? "Vélo")}
                       </div>
 
+                      {/* Stats: km + coût/km */}
                       <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <div>
-                          <BiLabel>Kilométrage total</BiLabel>
+                          <BiLabel>Kilométrage</BiLabel>
                           <div style={{ marginTop: 4 }}>
-                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{(b.total_km ?? 0).toLocaleString("fr")}</Mono>
+                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{((b.total_km as number) ?? 0).toLocaleString("fr")}</Mono>
                             <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> km</span>
                           </div>
                         </div>
                         <div>
-                          <BiLabel>Sorties · 12 m</BiLabel>
+                          <BiLabel>Coût/km</BiLabel>
                           <div style={{ marginTop: 4 }}>
-                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{stats.rides}</Mono>
-                            <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> sorties</span>
+                            {costPerKm !== null && costPerKm !== undefined ? (
+                              <>
+                                <Mono style={{ fontSize: 18, fontWeight: 500 }}>{(costPerKm as number).toFixed(2)}</Mono>
+                                <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> €</span>
+                              </>
+                            ) : (
+                              <Mono style={{ fontSize: 18, fontWeight: 500, color: "var(--bi-muted)" }}>—</Mono>
+                            )}
                           </div>
                         </div>
                       </div>
 
+                      {/* Status strip */}
                       <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        {b.most_critical_component ? (
-                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "var(--bi-bad)" }}>
-                            <Dot color="var(--bi-bad)" size={6} /> {b.most_critical_component}
-                          </span>
-                        ) : (
-                          <StatusPill kind="ok" label="Tout OK" />
-                        )}
+                        <div style={{ display: "flex", gap: 8 }}>
+                          {badCount > 0 && (
+                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-bad)" }}>
+                              <Dot color="var(--bi-bad)" size={6} />{badCount}
+                            </span>
+                          )}
+                          {warnCount > 0 && (
+                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-warn)" }}>
+                              <Dot color="var(--bi-warn)" size={6} />{warnCount}
+                            </span>
+                          )}
+                          {badCount === 0 && warnCount === 0 && (
+                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-ok)" }}>
+                              <Dot color="var(--bi-ok)" size={6} />Tout OK
+                            </span>
+                          )}
+                        </div>
                         <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>
-                          {(b.component_count as number) ?? 0} composant{((b.component_count as number) ?? 0) !== 1 ? "s" : ""}
+                          {stats.rides} sortie{stats.rides !== 1 ? "s" : ""}
                         </Mono>
                       </div>
 
+                      {/* Footer */}
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
-                          Dernière sortie : {formatLastRide(stats.lastDate)}
+                          {formatLastRide(stats.lastDate)}
                         </span>
                         <span style={{ fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
                           Détail <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
@@ -222,9 +244,9 @@ export default async function BikesPage() {
               <div style={{ width: 44, height: 44, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Vélo non Strava ?</div>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Ajouter un vélo manuel</div>
               <div style={{ fontSize: 11.5, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45 }}>
-                Lance une synchronisation pour importer les vélos depuis Strava.
+                Pour suivre un vélo qui n&apos;apparaît pas dans ton Strava.
               </div>
             </div>
           </div>
