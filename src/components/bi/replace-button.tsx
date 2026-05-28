@@ -7,10 +7,10 @@ import { supabase } from "@/lib/supabase";
 type Reason = "usure" | "crevaison" | "casse" | "anticipé";
 
 const REASONS: { value: Reason; label: string; color: string; bg: string }[] = [
-  { value: "usure",     label: "Usure normale", color: "var(--bi-muted)",   bg: "transparent" },
-  { value: "crevaison", label: "Crevaison",      color: "var(--bi-warn)",    bg: "rgba(208,132,21,0.06)" },
-  { value: "casse",     label: "Casse",          color: "var(--bi-bad)",     bg: "rgba(200,54,46,0.06)" },
-  { value: "anticipé",  label: "Anticipé",       color: "var(--bi-accent-ink)", bg: "var(--bi-accent)" },
+  { value: "usure",     label: "Usure normale", color: "var(--bi-muted)",       bg: "transparent" },
+  { value: "crevaison", label: "Crevaison",      color: "var(--bi-warn)",        bg: "rgba(208,132,21,0.06)" },
+  { value: "casse",     label: "Casse",          color: "var(--bi-bad)",         bg: "rgba(200,54,46,0.06)" },
+  { value: "anticipé",  label: "Anticipé",       color: "var(--bi-accent-ink)",  bg: "var(--bi-accent)" },
 ];
 
 interface Props {
@@ -20,6 +20,9 @@ interface Props {
   componentCategory: string;
   currentBikeKm: number;
   componentPrice?: number | null;
+  label?: string;
+  fullWidth?: boolean;
+  variant?: "default" | "accent";
 }
 
 export function ReplaceButton({
@@ -29,6 +32,9 @@ export function ReplaceButton({
   componentCategory,
   currentBikeKm,
   componentPrice,
+  label,
+  fullWidth,
+  variant = "default",
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -41,7 +47,6 @@ export function ReplaceButton({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    // 1. Archiver le composant
     const { error: archiveErr } = await supabase
       .from("components")
       .update({ status: "archived", is_active: false })
@@ -49,7 +54,6 @@ export function ReplaceButton({
 
     if (archiveErr) { setLoading(false); return; }
 
-    // 2. Insérer un log de maintenance avec la raison
     await supabase.from("maintenance_logs").insert({
       component_id: componentId,
       user_id:      user.id,
@@ -60,10 +64,8 @@ export function ReplaceButton({
       reason,
     });
 
-    // 3. Recalculer l'usure
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
-    // 4. Rediriger vers le formulaire pré-rempli
     const params = new URLSearchParams({
       bike_id:      bikeId,
       type:         componentName.split(" · ")[0],
@@ -75,7 +77,7 @@ export function ReplaceButton({
     router.refresh();
   }
 
-  // Step 1 — choose reason
+  // ── Step 1: choose reason ──────────────────────────────────────
   if (step === "reason") {
     return (
       <div style={{
@@ -83,8 +85,8 @@ export function ReplaceButton({
         display: "flex", alignItems: "center", justifyContent: "center", padding: 20
       }}>
         <div style={{
-          background: "var(--bi-card)", borderRadius: 18, padding: 28, width: "100%", maxWidth: 380,
-          boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
+          background: "var(--bi-card)", borderRadius: 18, padding: 28,
+          width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
         }}>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Remplacer ce composant</div>
           <div style={{ fontSize: 13, color: "var(--bi-muted)", marginBottom: 20 }}>
@@ -101,8 +103,7 @@ export function ReplaceButton({
                   padding: "11px 14px",
                   background: reason === r.value ? r.bg : "transparent",
                   border: `1.5px solid ${reason === r.value ? r.color : "var(--bi-line)"}`,
-                  borderRadius: 10, cursor: "pointer", fontFamily: "inherit",
-                  textAlign: "left",
+                  borderRadius: 10, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                 }}
               >
                 <div style={{
@@ -111,7 +112,11 @@ export function ReplaceButton({
                   background: reason === r.value ? r.color : "transparent",
                   flexShrink: 0,
                 }} />
-                <span style={{ fontSize: 13, fontWeight: reason === r.value ? 600 : 400, color: reason === r.value ? r.color : "var(--bi-ink)" }}>
+                <span style={{
+                  fontSize: 13,
+                  fontWeight: reason === r.value ? 600 : 400,
+                  color: reason === r.value ? r.color : "var(--bi-ink)",
+                }}>
                   {r.label}
                 </span>
               </button>
@@ -137,7 +142,7 @@ export function ReplaceButton({
     );
   }
 
-  // Step 2 — confirm
+  // ── Step 2: confirm ────────────────────────────────────────────
   if (step === "confirm") {
     const selected = REASONS.find((r) => r.value === reason)!;
     return (
@@ -146,8 +151,8 @@ export function ReplaceButton({
         display: "flex", alignItems: "center", justifyContent: "center", padding: 20
       }}>
         <div style={{
-          background: "var(--bi-card)", borderRadius: 18, padding: 28, width: "100%", maxWidth: 380,
-          boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
+          background: "var(--bi-card)", borderRadius: 18, padding: 28,
+          width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
         }}>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Confirmer le remplacement</div>
           <div style={{ fontSize: 13, color: "var(--bi-muted)", marginBottom: 20 }}>
@@ -157,12 +162,9 @@ export function ReplaceButton({
           <div style={{ padding: "12px 14px", background: "var(--bi-bg)", borderRadius: 10, marginBottom: 20, display: "flex", gap: 10, alignItems: "center" }}>
             <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Raison</div>
             <div style={{
-              marginLeft: "auto", fontSize: 12, fontWeight: 600,
-              color: selected.color,
-              padding: "3px 10px",
-              border: `1px solid ${selected.color}`,
-              borderRadius: 999,
-              background: selected.bg,
+              marginLeft: "auto", fontSize: 12, fontWeight: 600, color: selected.color,
+              padding: "3px 10px", border: `1px solid ${selected.color}`,
+              borderRadius: 999, background: selected.bg,
             }}>
               {selected.label}
             </div>
@@ -188,17 +190,34 @@ export function ReplaceButton({
     );
   }
 
-  // Idle — trigger button
+  // ── Idle ───────────────────────────────────────────────────────
+  const isAccent = variant === "accent";
+  const btnLabel = label ?? "Remplacer";
   return (
     <button
       onClick={() => setStep("reason")}
-      style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}
+      style={{
+        padding: label ? "13px 0" : "9px 16px",
+        width: fullWidth ? "100%" : undefined,
+        background: isAccent ? "var(--bi-accent)" : "transparent",
+        color: isAccent ? "var(--bi-accent-ink)" : "var(--bi-ink)",
+        border: isAccent ? "none" : "1px solid var(--bi-line)",
+        borderRadius: 10,
+        fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+        cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+      }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-      </svg>
-      Remplacer
+      {!label && (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+      )}
+      {btnLabel}
+      {label && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      )}
     </button>
   );
 }

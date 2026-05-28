@@ -138,21 +138,11 @@ export async function getDashboardData() {
     : hasWarn
       ? Math.max(60, Math.round(100 - globalAvgWear * 0.9))
       : Math.max(75, Math.round(100 - globalAvgWear * 0.5))
-  const rides30d = recentActivities?.length ?? 0
-  const regularityScore = Math.min(100, Math.round(rides30d * 7)) // 14+ sorties = 100
-  const maintenanceScore = 80 // proxy statique — affiné dans une prochaine version
-  const readinessValue = Math.round(componentsScore * 0.6 + regularityScore * 0.2 + maintenanceScore * 0.2)
-  const readinessScore = { value: readinessValue, components: componentsScore, regularity: regularityScore, maintenance: maintenanceScore }
+  const readinessScore = { value: componentsScore, components: componentsScore }
 
   // ── Readiness par vélo ────────────────────────────────────────
-  type ReadinessScore = { value: number; components: number; regularity: number; maintenance: number; rides30d: number }
+  type ReadinessScore = { value: number; components: number }
   const readinessByBike: Record<string, ReadinessScore> = {}
-  const thirtyDaysAgoIso = thirtyDaysAgo.toISOString()
-  const rides30dByBike = new Map<string, number>()
-  for (const a of (ninetyDaysActivities ?? [])) {
-    if (!a.bike_id || (a.started_at as string) < thirtyDaysAgoIso) continue
-    rides30dByBike.set(a.bike_id as string, (rides30dByBike.get(a.bike_id as string) ?? 0) + 1)
-  }
   for (const bike of (bikes ?? [])) {
     const _bid = bike.id as string
     const _comps = allActive.filter(c => c.bike_id === _bid)
@@ -163,9 +153,7 @@ export async function getDashboardData() {
     const _cScore = _bad
       ? Math.max(30, Math.round(100 - _avgW * 1.3))
       : _warn ? Math.max(60, Math.round(100 - _avgW * 0.9)) : Math.max(75, Math.round(100 - _avgW * 0.5))
-    const _r30 = rides30dByBike.get(_bid) ?? 0
-    const _rScore = Math.min(100, Math.round(_r30 * 7))
-    readinessByBike[_bid] = { value: Math.round(_cScore * 0.6 + _rScore * 0.2 + 80 * 0.2), components: _cScore, regularity: _rScore, maintenance: 80, rides30d: _r30 }
+    readinessByBike[_bid] = { value: _cScore, components: _cScore }
   }
 
   // ── Attention items (bad + warn, tous vélos) ─────────────────
@@ -208,6 +196,7 @@ export async function getDashboardData() {
     const bikeComps = allActive.filter(c => c.bike_id === b.id)
     const badCount = bikeComps.filter(c => c.status === 'bad').length
     const warnCount = bikeComps.filter(c => c.status === 'warn').length
+    const okCount = bikeComps.length - badCount - warnCount
     const status = badCount > 0 ? 'bad' : warnCount > 0 ? 'warn' : 'ok'
     return {
       id: b.id as string,
@@ -217,6 +206,7 @@ export async function getDashboardData() {
       status,
       badCount,
       warnCount,
+      okCount,
       isActive: i === 0,
     }
   })
