@@ -159,7 +159,7 @@ export function DashboardClient({
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            {todayCap}{selectedBike ? ` · ${selectedBike.name as string} · vélo actif` : ""}
+            {todayCap}{selectedBike ? ` · ${selectedBike.name as string}` : ""}
           </div>
           <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 4 }}>
             Bonjour, {userName}
