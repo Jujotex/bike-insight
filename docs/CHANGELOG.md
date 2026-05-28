@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Page comparateur de remplacement
+
+### Added
+- `src/app/components/[id]/compare/page.tsx` : nouvelle page comparateur — carte contexte (usure actuelle / vie restante), 3 options de remplacement générées dynamiquement (Budget / Recommandé / Premium) basées sur le prix et km_max du composant, tableau comparatif détaillé (6 lignes × 3 options), carte raisonnement + prochaines étapes numérotées
+- `ReplaceButton` : nouveaux props `label`, `fullWidth`, `variant` — permettent l'intégration dans le comparateur (bouton pleine largeur avec libellé personnalisé et variante accent)
+- Lien "Voir les options" dans la page détail composant → `/components/[id]/compare`
+
+---
+
+## [Unreleased] — Landing page
+
+### Changed
+- `src/app/page.tsx` : refonte complète selon maquette `web-landing.jsx` — nav avec liens + BETA badge, hero 2 colonnes (headline highlight + mini-dashboard preview animé), metrics strip (4 chiffres clés), section "Comment ça marche" (3 étapes avec visuels), insights réels (3 cartes), tableau comparatif (Bike Insight vs Strava / ProBikeGarage / tableur), CTA dark avec fond radial lime, footer 4 colonnes
+
 ## [Unreleased] — Redesign pages Mes Vélos + Détail composant
 
 ### Changed

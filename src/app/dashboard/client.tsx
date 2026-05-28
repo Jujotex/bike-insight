@@ -50,9 +50,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 interface ReadinessScore {
   value: number;
   components: number;
-  regularity: number;
-  maintenance: number;
-  rides30d: number;
 }
 
 interface AttentionItem {
@@ -87,6 +84,7 @@ interface BikeStatusItem {
   status: string;
   badCount: number;
   warnCount: number;
+  okCount: number;
   isActive: boolean;
 }
 
@@ -140,7 +138,7 @@ export function DashboardClient({
 
   const topCritical = filteredAttention[0] ?? null;
   const scoreIfFixed = topCritical
-    ? Math.min(100, currentReadiness.value + Math.round((100 - currentReadiness.components) * 0.4))
+    ? Math.min(100, currentReadiness.value + Math.round((100 - currentReadiness.value) * 0.5))
     : null;
 
   const budget3m = filteredPredictions
@@ -243,39 +241,39 @@ export function DashboardClient({
             </div>
           </div>
 
-          {/* Breakdown */}
-          <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Décomposition du score</span>
-              <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>pondéré 60/20/20</span>
-            </div>
-            {([
-              ["Composants", currentReadiness.components, filteredAttention.length > 0 ? `${filteredAttention.filter(a => a.status === "bad").length} critique · ${filteredAttention.filter(a => a.status === "warn").length} à surveiller` : "Tout est OK"],
-              ["Régularité", currentReadiness.regularity, `${currentReadiness.rides30d} sortie${currentReadiness.rides30d !== 1 ? "s" : ""} · 30 jours`],
-              ["Maintenance", currentReadiness.maintenance, "Suivi actif"],
-            ] as [string, number, string][]).map(([label, score, detail]) => {
-              const c = score >= 80 ? "var(--bi-ok)" : score >= 55 ? "var(--bi-warn)" : "var(--bi-bad)";
-              return (
-                <div key={label}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 500, width: 110, flexShrink: 0 }}>{label}</span>
-                    <div style={{ flex: 1, height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
-                      <div style={{ width: `${score}%`, height: "100%", background: c, borderRadius: 999 }} />
-                    </div>
-                    <Mono style={{ fontSize: 12.5, fontWeight: 600, width: 38, textAlign: "right" }}>{score}</Mono>
-                  </div>
-                  <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 4, marginLeft: 120 }}>{detail}</div>
+          {/* Breakdown — composants uniquement */}
+          <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>État des composants</span>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ flex: 1, height: 6, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                  <div style={{ width: `${currentReadiness.value}%`, height: "100%", background: readinessColor, borderRadius: 999 }} />
                 </div>
-              );
-            })}
+                <Mono style={{ fontSize: 14, fontWeight: 600, width: 38, textAlign: "right" }}>{currentReadiness.value}</Mono>
+              </div>
+              <div style={{ marginTop: 10, fontSize: 12, color: "var(--bi-muted)", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {(() => {
+                  const selectedStatus = bikeStatus.find(b => b.id === selectedBikeId);
+                  const bad = selectedStatus?.badCount ?? filteredAttention.filter(a => a.status === "bad").length;
+                  const warn = selectedStatus?.warnCount ?? filteredAttention.filter(a => a.status === "warn").length;
+                  const ok = selectedStatus?.okCount ?? 0;
+                  return <>
+                    {bad > 0 && <span style={{ color: "var(--bi-bad)", fontWeight: 600 }}>● {bad} critique{bad > 1 ? "s" : ""}</span>}
+                    {warn > 0 && <span style={{ color: "var(--bi-warn)", fontWeight: 600 }}>● {warn} à surveiller</span>}
+                    {ok > 0 && <span style={{ color: "var(--bi-ok)" }}>● {ok} OK</span>}
+                    {bad === 0 && warn === 0 && ok === 0 && <span>Aucun composant suivi</span>}
+                  </>;
+                })()}
+              </div>
+            </div>
             {topCritical && scoreIfFixed !== null && (
-              <div style={{ marginTop: 6, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>
+              <div style={{ paddingTop: 16, borderTop: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 11.5, color: "var(--bi-muted)", lineHeight: 1.4 }}>
                   Remplacer la {topCritical.name.toLowerCase()} ferait passer le score à{" "}
                   <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{scoreIfFixed}</Mono>
                 </span>
-                <Link href={`/components/${topCritical.id}`} style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
-                  Voir les options
+                <Link href={`/components/${topCritical.id}`} style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, textDecoration: "none", flexShrink: 0 }}>
+                  Voir
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
                 </Link>
               </div>

@@ -148,6 +148,13 @@ export default async function ComponentDetailPage({
                 </button>
               </Link>
               {(comp.status as string) !== "archived" && (
+                <Link href={"/components/" + id + "/compare"}>
+                  <button style={{ padding: "9px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                    Voir les options
+                  </button>
+                </Link>
+              )}
+              {(comp.status as string) !== "archived" && (
                 <ReplaceButton
                   componentId={id}
                   bikeId={comp.bike_id as string}
