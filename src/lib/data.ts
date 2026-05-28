@@ -144,6 +144,30 @@ export async function getDashboardData() {
   const readinessValue = Math.round(componentsScore * 0.6 + regularityScore * 0.2 + maintenanceScore * 0.2)
   const readinessScore = { value: readinessValue, components: componentsScore, regularity: regularityScore, maintenance: maintenanceScore }
 
+  // ── Readiness par vélo ────────────────────────────────────────
+  type ReadinessScore = { value: number; components: number; regularity: number; maintenance: number }
+  const readinessByBike: Record<string, ReadinessScore> = {}
+  const thirtyDaysAgoIso = thirtyDaysAgo.toISOString()
+  const rides30dByBike = new Map<string, number>()
+  for (const a of (ninetyDaysActivities ?? [])) {
+    if (!a.bike_id || (a.started_at as string) < thirtyDaysAgoIso) continue
+    rides30dByBike.set(a.bike_id as string, (rides30dByBike.get(a.bike_id as string) ?? 0) + 1)
+  }
+  for (const bike of (bikes ?? [])) {
+    const _bid = bike.id as string
+    const _comps = allActive.filter(c => c.bike_id === _bid)
+    const _bad = _comps.some(c => c.status === 'bad')
+    const _warn = _comps.some(c => c.status === 'warn')
+    const _avgW = _comps.length > 0
+      ? _comps.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / _comps.length : 0
+    const _cScore = _bad
+      ? Math.max(30, Math.round(100 - _avgW * 1.3))
+      : _warn ? Math.max(60, Math.round(100 - _avgW * 0.9)) : Math.max(75, Math.round(100 - _avgW * 0.5))
+    const _r30 = rides30dByBike.get(_bid) ?? 0
+    const _rScore = Math.min(100, Math.round(_r30 * 7))
+    readinessByBike[_bid] = { value: Math.round(_cScore * 0.6 + _rScore * 0.2 + 80 * 0.2), components: _cScore, regularity: _rScore, maintenance: 80 }
+  }
+
   // ── Attention items (bad + warn, tous vélos) ─────────────────
   const attentionItems = allActive
     .filter(c => c.status === 'bad' || c.status === 'warn')
@@ -170,7 +194,7 @@ export async function getDashboardData() {
       if (a.status !== 'bad' && b.status === 'bad') return 1
       return b.wearPct - a.wearPct
     })
-    .slice(0, 5)
+    
 
   // ── Statut par vélo ───────────────────────────────────────────
   const lastRideByBike = new Map<string, string>()
@@ -230,6 +254,7 @@ export async function getDashboardData() {
     bikeStatus,
     budget12m,
     budget12mTotal: Math.round(budget12mTotal),
+    readinessByBike,
   }
 }
 
