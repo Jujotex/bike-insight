@@ -220,6 +220,26 @@ export async function getDashboardData() {
   }, {} as Record<string, number>)
   const budget12mTotal = (Object.values(budget12m) as number[]).reduce((s, v) => s + v, 0)
 
+  // ── Usure par catégorie, par vélo ────────────────────────────
+  type CatWear = { avgWear: number; count: number; worstStatus: string }
+  const wearByCategoryByBike: Record<string, Record<string, CatWear>> = {}
+  for (const bike of (bikes ?? [])) {
+    const bid = bike.id as string
+    const bikeComps = allActive.filter(c => c.bike_id === bid)
+    const byCat: Record<string, CatWear> = {}
+    for (const c of bikeComps) {
+      const cat = (c.category as string) ?? 'autre'
+      const w = (c.wear_pct as number) ?? 0
+      const st = (c.status as string) ?? 'ok'
+      if (!byCat[cat]) byCat[cat] = { avgWear: 0, count: 0, worstStatus: 'ok' }
+      byCat[cat].avgWear = (byCat[cat].avgWear * byCat[cat].count + w) / (byCat[cat].count + 1)
+      byCat[cat].count += 1
+      const rank = (s: string) => s === 'bad' ? 2 : s === 'warn' ? 1 : 0
+      if (rank(st) > rank(byCat[cat].worstStatus)) byCat[cat].worstStatus = st
+    }
+    wearByCategoryByBike[bid] = byCat
+  }
+
   return {
     user,
     primaryBike,
@@ -245,6 +265,7 @@ export async function getDashboardData() {
     budget12m,
     budget12mTotal: Math.round(budget12mTotal),
     readinessByBike,
+    wearByCategoryByBike,
   }
 }
 

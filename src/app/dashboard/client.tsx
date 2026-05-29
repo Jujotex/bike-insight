@@ -107,6 +107,7 @@ export interface DashboardClientProps {
   predictions: Prediction[];
   budget12m: Record<string, number>;
   budget12mTotal: number;
+  wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -114,7 +115,7 @@ export interface DashboardClientProps {
 export function DashboardClient({
   userName, todayCap, bikes, activityChart, kpis,
   readinessByBike, attentionItems, bikeStatus,
-  predictions, budget12m, budget12mTotal,
+  predictions, budget12m, budget12mTotal, wearByCategoryByBike,
 }: DashboardClientProps) {
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
   const [selectedBikeId, setSelectedBikeId] = useState(primaryBikeId);
@@ -241,43 +242,38 @@ export function DashboardClient({
             </div>
           </div>
 
-          {/* Breakdown — composants uniquement */}
-          <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
+          {/* Breakdown — une ligne par catégorie */}
+          <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
             <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>État des composants</span>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ flex: 1, height: 6, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
-                  <div style={{ width: `${currentReadiness.value}%`, height: "100%", background: readinessColor, borderRadius: 999 }} />
-                </div>
-                <Mono style={{ fontSize: 14, fontWeight: 600, width: 38, textAlign: "right" }}>{currentReadiness.value}</Mono>
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, color: "var(--bi-muted)", display: "flex", gap: 12, flexWrap: "wrap" }}>
-                {(() => {
-                  const selectedStatus = bikeStatus.find(b => b.id === selectedBikeId);
-                  const bad = selectedStatus?.badCount ?? filteredAttention.filter(a => a.status === "bad").length;
-                  const warn = selectedStatus?.warnCount ?? filteredAttention.filter(a => a.status === "warn").length;
-                  const ok = selectedStatus?.okCount ?? 0;
-                  return <>
-                    {bad > 0 && <span style={{ color: "var(--bi-bad)", fontWeight: 600 }}>● {bad} critique{bad > 1 ? "s" : ""}</span>}
-                    {warn > 0 && <span style={{ color: "var(--bi-warn)", fontWeight: 600 }}>● {warn} à surveiller</span>}
-                    {ok > 0 && <span style={{ color: "var(--bi-ok)" }}>● {ok} OK</span>}
-                    {bad === 0 && warn === 0 && ok === 0 && <span>Aucun composant suivi</span>}
-                  </>;
-                })()}
-              </div>
-            </div>
-            {topCritical && scoreIfFixed !== null && (
-              <div style={{ paddingTop: 16, borderTop: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 11.5, color: "var(--bi-muted)", lineHeight: 1.4 }}>
-                  Remplacer la {topCritical.name.toLowerCase()} ferait passer le score à{" "}
-                  <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{scoreIfFixed}</Mono>
-                </span>
-                <Link href={`/components/${topCritical.id}`} style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, textDecoration: "none", flexShrink: 0 }}>
-                  Voir
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-                </Link>
-              </div>
-            )}
+            {(() => {
+              const CAT_LABELS: Record<string, string> = {
+                transmission: "Transmission", freinage: "Freinage", roues: "Pneumatiques",
+                suspension: "Suspension", cockpit: "Cockpit", eclairage: "Éclairage", autre: "Autre",
+              };
+              const CAT_ORDER = ["transmission", "freinage", "roues", "suspension", "cockpit", "eclairage", "autre"];
+              const byCat = wearByCategoryByBike[selectedBikeId] ?? {};
+              const entries = CAT_ORDER.filter(k => byCat[k]).map(k => ({ key: k, ...byCat[k] }));
+              if (entries.length === 0) return (
+                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>Aucun composant suivi</span>
+              );
+              return entries.map(({ key, avgWear, worstStatus }) => {
+                const barColor = worstStatus === "bad" ? "var(--bi-bad)" : worstStatus === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
+                const pct = Math.min(Math.round(avgWear), 100);
+                return (
+                  <div key={key}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11.5, color: "var(--bi-ink)", fontWeight: worstStatus !== "ok" ? 600 : 400 }}>
+                        {CAT_LABELS[key] ?? key}
+                      </span>
+                      <Mono style={{ fontSize: 11, color: barColor, fontWeight: 600 }}>{pct}%</Mono>
+                    </div>
+                    <div style={{ height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 999 }} />
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </BiCard>
