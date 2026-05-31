@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
   {
@@ -20,24 +22,40 @@ const NAV_ITEMS = [
     id: "parts",
     label: "Pièces",
     href: "/components",
-    icon: "M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8M12 9a3 3 0 100 6 3 3 0 000-6z",
+    icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z",
   },
   {
-    id: "analysis",
-    label: "Analyse",
-    href: "/analysis",
-    icon: "M4 20V10M10 20V4M16 20v-6M22 20H2",
+    id: "notifications",
+    label: "Alertes",
+    href: "/notifications",
+    icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0",
   },
   {
-    id: "sync",
-    label: "Sync",
-    href: "/sync",
-    icon: "M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3",
+    id: "account",
+    label: "Compte",
+    href: "/account",
+    icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchUnread() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { count } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
+      setUnreadCount(count ?? 0);
+    }
+    fetchUnread();
+  }, [pathname]); // re-fetch quand on navigue
+
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
@@ -45,7 +63,7 @@ export function BottomNav() {
     <nav
       style={{
         flexShrink: 0,
-        padding: "12px 12px 28px",
+        padding: "12px 8px 28px",
         background: "var(--bi-bg)",
         borderTop: "1px solid var(--bi-line)",
         display: "flex",
@@ -55,6 +73,9 @@ export function BottomNav() {
     >
       {NAV_ITEMS.map((item) => {
         const active = isActive(item.href);
+        const isNotif = item.id === "notifications";
+        const badge = isNotif && unreadCount > 0 ? unreadCount : 0;
+
         return (
           <Link
             key={item.id}
@@ -68,27 +89,39 @@ export function BottomNav() {
               borderRadius: 12,
               textDecoration: "none",
               color: active ? "var(--bi-ink)" : "var(--bi-muted)",
+              position: "relative",
             }}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.6"
-            >
-              <path d={item.icon} />
-            </svg>
-            <span
-              style={{
-                fontSize: 10.5,
-                fontWeight: active ? 600 : 500,
-                letterSpacing: 0.2,
-              }}
-            >
+            <div style={{ position: "relative" }}>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.6"
+              >
+                <path d={item.icon} />
+              </svg>
+              {badge > 0 && (
+                <span style={{
+                  position: "absolute",
+                  top: -4, right: -6,
+                  fontSize: 9, fontWeight: 700,
+                  padding: "1px 5px",
+                  borderRadius: 999,
+                  background: "var(--bi-bad)",
+                  color: "#fff",
+                  lineHeight: 1.4,
+                  fontFamily: "var(--bi-font-mono)",
+                }}>
+                  {badge > 9 ? "9+" : badge}
+                </span>
+              )}
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, letterSpacing: 0.2 }}>
               {item.label}
             </span>
           </Link>
