@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BiCard, Mono } from "@/components/bi/ui";
+import { OnboardingOverlay } from "@/components/bi/onboarding-overlay";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -155,6 +156,7 @@ export function DashboardClient({
 
   return (
     <>
+      <OnboardingOverlay />
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
         <div>
