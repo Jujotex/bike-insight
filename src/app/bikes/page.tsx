@@ -112,12 +112,17 @@ export default async function BikesPage() {
           </div>
         ) : (
           <div className="bi-grid-bikes">
-            {bikeList.map((b) => {
+            {bikeList.map((b, bikeIdx) => {
               const stats = bikeStats12m.get(b.id) ?? { km: 0, rides: 0, lastDate: null };
               const isActive = b.id === activeBikeId;
               const badCount = (b.bad_count as number) ?? 0;
               const warnCount = (b.warn_count as number) ?? 0;
               const costPerKm = (b.cost_per_km as number | null);
+              const isStrava = !!(b.strava_gear_id as string | null);
+
+              // Couleur cyclique par index — comme l'ancienne version
+              const BIKE_COLORS = ["#F97316", "#8B5CF6", "#84CC16", "#06B6D4", "#F43F5E", "#A78BFA"];
+              const bikeColor = BIKE_COLORS[bikeIdx % BIKE_COLORS.length];
 
               return (
                 <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
@@ -129,23 +134,71 @@ export default async function BikesPage() {
                       border: isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
                     }}
                   >
-                    {/* Hero placeholder */}
+                    {/* Hero — fond sombre + quadrillage + SVG coloré */}
                     <div style={{
-                      height: 140,
-                      background: "var(--bi-bg)",
+                      height: 160,
+                      background: "#14141A",
+                      backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+                      backgroundSize: "20px 20px",
                       position: "relative",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      borderBottom: "1px solid var(--bi-line)",
                     }}>
-                      {/* Emoji vélo selon le type */}
-                      <span style={{ fontSize: 64, lineHeight: 1, userSelect: "none" }}>
-                        {(b.model as string | null)?.toLowerCase().includes("vtt") || (b.name as string).toLowerCase().includes("vtt")
-                          ? "🚵"
-                          : (b.name as string).toLowerCase().includes("gravel") || (b.model as string | null)?.toLowerCase().includes("gravel")
-                          ? "🚵‍♂️"
-                          : "🚴"}
+                      {/* SVG vélo coloré — cadre losange correct */}
+                      <svg width="120" height="80" viewBox="0 0 120 80" fill="none" stroke={bikeColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {/* Roues */}
+                        <circle cx="22" cy="56" r="18"/>
+                        <circle cx="98" cy="56" r="18"/>
+                        {/* Moyeux */}
+                        <circle cx="22" cy="56" r="3" fill={bikeColor}/>
+                        <circle cx="98" cy="56" r="3" fill={bikeColor}/>
+                        {/* Pédalier */}
+                        <circle cx="60" cy="56" r="4" fill={bikeColor}/>
+                        {/* Bases (chainstay) — pédalier → roue arrière */}
+                        <path d="M22 56 L60 56"/>
+                        {/* Haubans (seatstay) — roue arrière → haut tube de selle */}
+                        <path d="M22 56 L56 24"/>
+                        {/* Tube de selle — haut → pédalier */}
+                        <path d="M56 24 L60 56"/>
+                        {/* Tube supérieur — haut tube de selle → potence */}
+                        <path d="M56 24 L84 22"/>
+                        {/* Tube diagonal — potence → pédalier */}
+                        <path d="M84 30 L60 56"/>
+                        {/* Tube de direction (head tube) */}
+                        <path d="M84 22 L84 30"/>
+                        {/* Fourche — potence bas → roue avant */}
+                        <path d="M84 30 L98 56"/>
+                        {/* Potence + cintre */}
+                        <path d="M84 22 L84 14"/>
+                        <path d="M78 14 L92 14"/>
+                        {/* Tige de selle + selle */}
+                        <path d="M56 24 L56 16"/>
+                        <path d="M49 16 L64 16"/>
+                        {/* Manivelles */}
+                        <path d="M56 56 L64 60"/>
+                        <path d="M60 52 L56 56"/>
+                      </svg>
+
+                      {/* Badge STRAVA ou MANUEL */}
+                      <span style={{
+                        position: "absolute", top: 12, left: 12,
+                        fontSize: 9.5, padding: "3px 8px",
+                        background: isStrava ? "#FC4C02" : "rgba(255,255,255,0.12)",
+                        color: "#fff",
+                        borderRadius: 999, fontWeight: 700, letterSpacing: 0.8,
+                      }}>
+                        {isStrava ? "STRAVA" : "MANUEL"}
+                      </span>
+
+                      {/* Km en bas à droite */}
+                      <span style={{
+                        position: "absolute", bottom: 12, right: 12,
+                        fontSize: 11.5, fontWeight: 600,
+                        color: bikeColor,
+                        fontFamily: "var(--bi-font-mono)",
+                      }}>
+                        {((b.total_km as number) ?? 0).toLocaleString("fr-FR")} km
                       </span>
 
                       {/* ACTIF badge */}
@@ -159,19 +212,8 @@ export default async function BikesPage() {
                           ACTIF
                         </span>
                       )}
-
-                      {/* Type badge — Route / VTT */}
-                      <span style={{
-                        position: "absolute", top: 12, left: 12,
-                        fontSize: 9.5, padding: "4px 9px",
-                        background: "var(--bi-card)",
-                        color: "var(--bi-muted)",
-                        border: "1px solid var(--bi-line)",
-                        borderRadius: 999, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase",
-                      }}>
-                        {(b.model as string | null)?.toLowerCase().includes("vtt") || (b.name as string).toLowerCase().includes("vtt") ? "VTT" : "Route"}
-                      </span>
                     </div>
+
 
                     <div style={{ padding: 18 }}>
                       <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name as string}</div>
