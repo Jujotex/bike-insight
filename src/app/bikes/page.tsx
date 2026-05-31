@@ -3,6 +3,7 @@ import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
 import { SyncButton } from "@/components/bi/sync-button";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
+import { AddBikeButton } from "@/components/bi/add-bike-button";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -242,14 +243,8 @@ export default async function BikesPage() {
             })}
 
             {/* Add bike slot */}
-            <div style={{ borderRadius: 18, border: "1px dashed var(--bi-line)", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 10, minHeight: 320 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Ajouter un vélo manuel</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45 }}>
-                Pour suivre un vélo qui n&apos;apparaît pas dans ton Strava.
-              </div>
+            <div style={{ borderRadius: 18, border: "1px dashed var(--bi-line)", minHeight: 320, overflow: "hidden" }}>
+              <AddBikeButton />
             </div>
           </div>
         )}
