@@ -37,13 +37,40 @@ const row: React.CSSProperties = {
 };
 
 export function AccountClient({
-  firstName, lastName, email, initials,
+  firstName: initialFirstName, lastName: initialLastName, email, initials: initialInitials,
   stravaConnected, bikeCount, componentCount,
   unreadNotifCount, memberSince,
 }: Props) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Profile editing
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [firstName, setFirstName] = useState(initialFirstName);
+  const [lastName, setLastName] = useState(initialLastName);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  async function handleSaveProfile() {
+    if (!firstName.trim() && !lastName.trim()) return;
+    setSaving(true);
+    setSaveError("");
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+      },
+    });
+    setSaving(false);
+    if (error) { setSaveError("Erreur lors de la sauvegarde."); return; }
+    setSaveSuccess(true);
+    setEditingProfile(false);
+    setTimeout(() => setSaveSuccess(false), 3000);
+    router.refresh();
+  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -52,6 +79,9 @@ export function AccountClient({
   }
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ") || "—";
+  const initials = fullName !== "—"
+    ? fullName.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("")
+    : initialInitials;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -90,15 +120,79 @@ export function AccountClient({
 
       {/* Profil */}
       <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
-        <div style={sectionTitle}>Profil</div>
-        <div style={{ ...row }}>
-          <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Prénom</span>
-          <span style={{ fontSize: 13.5, fontWeight: 500 }}>{firstName || "—"}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={sectionTitle as React.CSSProperties}>Profil</div>
+          {!editingProfile ? (
+            <button
+              onClick={() => setEditingProfile(true)}
+              style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              Modifier
+            </button>
+          ) : (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => { setEditingProfile(false); setFirstName(initialFirstName); setLastName(initialLastName); setSaveError(""); }}
+                style={{ fontSize: 12, color: "var(--bi-muted)", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                style={{ fontSize: 12, color: "var(--bi-bg)", fontWeight: 600, background: "var(--bi-ink)", border: "none", borderRadius: 8, padding: "5px 14px", cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: saving ? 0.7 : 1 }}
+              >
+                {saving ? "…" : "Enregistrer"}
+              </button>
+            </div>
+          )}
         </div>
+
+        {saveSuccess && (
+          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(14,143,90,0.08)", color: "var(--bi-ok)", fontSize: 12.5, fontWeight: 500 }}>
+            ✓ Profil mis à jour
+          </div>
+        )}
+        {saveError && (
+          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 12.5 }}>
+            {saveError}
+          </div>
+        )}
+
+        {/* Prénom */}
         <div style={{ ...row }}>
-          <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Nom</span>
-          <span style={{ fontSize: 13.5, fontWeight: 500 }}>{lastName || "—"}</span>
+          <span style={{ fontSize: 13, color: "var(--bi-muted)", flexShrink: 0 }}>Prénom</span>
+          {editingProfile ? (
+            <input
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
+              placeholder="Prénom"
+              style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1.5px solid var(--bi-ink)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
+              autoFocus
+            />
+          ) : (
+            <span style={{ fontSize: 13.5, fontWeight: 500 }}>{firstName || "—"}</span>
+          )}
         </div>
+
+        {/* Nom */}
+        <div style={{ ...row }}>
+          <span style={{ fontSize: 13, color: "var(--bi-muted)", flexShrink: 0 }}>Nom</span>
+          {editingProfile ? (
+            <input
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
+              placeholder="Nom"
+              style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1px solid var(--bi-line)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
+            />
+          ) : (
+            <span style={{ fontSize: 13.5, fontWeight: 500 }}>{lastName || "—"}</span>
+          )}
+        </div>
+
+        {/* Email — toujours lecture seule */}
         <div style={{ ...row, borderBottom: "none" }}>
           <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Email</span>
           <Mono style={{ fontSize: 12.5 }}>{email}</Mono>
