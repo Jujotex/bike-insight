@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Ajout vélo manuel
+
+### Added
+- `src/components/bi/add-bike-button.tsx` : modal d'ajout de vélo manuel — sélecteur de type (Route/VTT/Gravel/Autre avec emojis), nom, marque, modèle, kilométrage actuel, année. Insert dans `bikes` + recalcul usure + refresh page.
+- `src/app/bikes/page.tsx` : slot "Ajouter un vélo manuel" branché sur `AddBikeButton`
+
+---
+
 ## [Unreleased] — Page compte + Signup Prénom/Nom
 
 ### Added
