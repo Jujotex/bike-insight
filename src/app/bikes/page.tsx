@@ -138,12 +138,14 @@ export default async function BikesPage() {
                       justifyContent: "center",
                       borderBottom: "1px solid var(--bi-line)",
                     }}>
-                      {/* Simple bike icon */}
-                      <svg width="74" height="74" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.35 }}>
-                        <circle cx="5" cy="17" r="3.5"/>
-                        <circle cx="19" cy="17" r="3.5"/>
-                        <path d="M12 7l-3 10h6l-3-10zM12 7V4h3"/>
-                      </svg>
+                      {/* Emoji vélo selon le type */}
+                      <span style={{ fontSize: 64, lineHeight: 1, userSelect: "none" }}>
+                        {(b.model as string | null)?.toLowerCase().includes("vtt") || (b.name as string).toLowerCase().includes("vtt")
+                          ? "🚵"
+                          : (b.name as string).toLowerCase().includes("gravel") || (b.model as string | null)?.toLowerCase().includes("gravel")
+                          ? "🚵‍♂️"
+                          : "🚴"}
+                      </span>
 
                       {/* ACTIF badge */}
                       {isActive && (
