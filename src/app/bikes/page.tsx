@@ -112,12 +112,17 @@ export default async function BikesPage() {
           </div>
         ) : (
           <div className="bi-grid-bikes">
-            {bikeList.map((b) => {
+            {bikeList.map((b, bikeIdx) => {
               const stats = bikeStats12m.get(b.id) ?? { km: 0, rides: 0, lastDate: null };
               const isActive = b.id === activeBikeId;
               const badCount = (b.bad_count as number) ?? 0;
               const warnCount = (b.warn_count as number) ?? 0;
               const costPerKm = (b.cost_per_km as number | null);
+              const isStrava = !!(b.strava_gear_id as string | null);
+
+              // Couleur cyclique par index — comme l'ancienne version
+              const BIKE_COLORS = ["#F97316", "#8B5CF6", "#84CC16", "#06B6D4", "#F43F5E", "#A78BFA"];
+              const bikeColor = BIKE_COLORS[bikeIdx % BIKE_COLORS.length];
 
               return (
                 <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
@@ -129,90 +134,62 @@ export default async function BikesPage() {
                       border: isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
                     }}
                   >
-                    {/* Hero placeholder */}
+                    {/* Hero — fond sombre + quadrillage + SVG coloré */}
                     <div style={{
-                      height: 140,
-                      background: "var(--bi-bg)",
+                      height: 160,
+                      background: "#14141A",
+                      backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+                      backgroundSize: "20px 20px",
                       position: "relative",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      borderBottom: "1px solid var(--bi-line)",
                     }}>
-                      {/* SVG vélo custom selon le type */}
-                      {(() => {
-                        const nameL = (b.name as string).toLowerCase();
-                        const modelL = (b.model as string | null)?.toLowerCase() ?? "";
-                        const isVTT = nameL.includes("vtt") || modelL.includes("vtt") || nameL.includes("mountain") || modelL.includes("mountain");
-                        const isGravel = nameL.includes("gravel") || modelL.includes("gravel") || nameL.includes("topstone") || modelL.includes("topstone");
+                      {/* SVG vélo coloré */}
+                      <svg width="110" height="80" viewBox="0 0 110 80" fill="none" stroke={bikeColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {/* Roues */}
+                        <circle cx="24" cy="56" r="20"/>
+                        <circle cx="86" cy="56" r="20"/>
+                        {/* Moyeux */}
+                        <circle cx="24" cy="56" r="3" fill={bikeColor}/>
+                        <circle cx="86" cy="56" r="3" fill={bikeColor}/>
+                        {/* Cadre */}
+                        <path d="M24 56 L50 24 L86 56"/>
+                        <path d="M50 24 L64 56"/>
+                        <path d="M50 24 L38 24"/>
+                        {/* Fourche */}
+                        <path d="M86 56 L80 32 L86 26"/>
+                        {/* Cintre */}
+                        <path d="M76 26 L96 24"/>
+                        <path d="M86 26 L86 20"/>
+                        {/* Selle */}
+                        <path d="M44 24 L58 24"/>
+                        <path d="M51 24 L51 17"/>
+                        {/* Pédalier */}
+                        <circle cx="64" cy="56" r="5"/>
+                        <line x1="60" y1="60" x2="68" y2="52"/>
+                      </svg>
 
-                        if (isVTT) return (
-                          // VTT — roues plus épaisses, guidon droit, fourche suspendue
-                          <svg width="90" height="72" viewBox="0 0 90 72" fill="none" stroke="var(--bi-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-                            <circle cx="20" cy="50" r="16"/>
-                            <circle cx="70" cy="50" r="16"/>
-                            <circle cx="20" cy="50" r="3"/>
-                            <circle cx="70" cy="50" r="3"/>
-                            {/* Cadre VTT */}
-                            <path d="M20 50 L38 22 L70 50"/>
-                            <path d="M38 22 L52 50"/>
-                            <path d="M38 22 L28 22"/>
-                            {/* Fourche suspendue */}
-                            <path d="M70 50 L64 28 L72 22"/>
-                            <path d="M64 28 L70 28"/>
-                            {/* Guidon droit */}
-                            <path d="M62 22 L82 22"/>
-                            <path d="M72 22 L72 18"/>
-                            {/* Selle */}
-                            <path d="M34 22 L44 22"/>
-                            <path d="M39 22 L39 16"/>
-                          </svg>
-                        );
+                      {/* Badge STRAVA ou MANUEL */}
+                      <span style={{
+                        position: "absolute", top: 12, left: 12,
+                        fontSize: 9.5, padding: "3px 8px",
+                        background: isStrava ? "#FC4C02" : "rgba(255,255,255,0.12)",
+                        color: "#fff",
+                        borderRadius: 999, fontWeight: 700, letterSpacing: 0.8,
+                      }}>
+                        {isStrava ? "STRAVA" : "MANUEL"}
+                      </span>
 
-                        if (isGravel) return (
-                          // Gravel — géométrie intermédiaire, cintre légèrement courbé
-                          <svg width="90" height="72" viewBox="0 0 90 72" fill="none" stroke="var(--bi-ink)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-                            <circle cx="20" cy="50" r="15"/>
-                            <circle cx="70" cy="50" r="15"/>
-                            <circle cx="20" cy="50" r="3"/>
-                            <circle cx="70" cy="50" r="3"/>
-                            {/* Cadre gravel */}
-                            <path d="M20 50 L40 24 L70 50"/>
-                            <path d="M40 24 L52 50"/>
-                            <path d="M40 24 L30 24"/>
-                            {/* Fourche */}
-                            <path d="M70 50 L65 28 L70 22"/>
-                            {/* Cintre gravel semi-drop */}
-                            <path d="M61 22 L78 20 Q82 20 82 24"/>
-                            <path d="M70 22 L70 18"/>
-                            {/* Selle */}
-                            <path d="M35 24 L45 24"/>
-                            <path d="M40 24 L40 18"/>
-                          </svg>
-                        );
-
-                        // Route — géométrie agressive, cintre drop
-                        return (
-                          <svg width="90" height="72" viewBox="0 0 90 72" fill="none" stroke="var(--bi-ink)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-                            <circle cx="20" cy="52" r="15"/>
-                            <circle cx="70" cy="52" r="15"/>
-                            <circle cx="20" cy="52" r="2.5"/>
-                            <circle cx="70" cy="52" r="2.5"/>
-                            {/* Cadre route */}
-                            <path d="M20 52 L42 26 L70 52"/>
-                            <path d="M42 26 L54 52"/>
-                            <path d="M42 26 L32 26"/>
-                            {/* Fourche */}
-                            <path d="M70 52 L66 30 L70 24"/>
-                            {/* Cintre drop */}
-                            <path d="M62 24 L76 22 Q82 22 82 28 Q82 32 78 32"/>
-                            <path d="M70 24 L70 20"/>
-                            {/* Selle */}
-                            <path d="M36 26 L46 26"/>
-                            <path d="M41 26 L41 20"/>
-                          </svg>
-                        );
-                      })()}
+                      {/* Km en bas à droite */}
+                      <span style={{
+                        position: "absolute", bottom: 12, right: 12,
+                        fontSize: 11.5, fontWeight: 600,
+                        color: bikeColor,
+                        fontFamily: "var(--bi-font-mono)",
+                      }}>
+                        {((b.total_km as number) ?? 0).toLocaleString("fr-FR")} km
+                      </span>
 
                       {/* ACTIF badge */}
                       {isActive && (
@@ -225,19 +202,8 @@ export default async function BikesPage() {
                           ACTIF
                         </span>
                       )}
-
-                      {/* Type badge — Route / VTT */}
-                      <span style={{
-                        position: "absolute", top: 12, left: 12,
-                        fontSize: 9.5, padding: "4px 9px",
-                        background: "var(--bi-card)",
-                        color: "var(--bi-muted)",
-                        border: "1px solid var(--bi-line)",
-                        borderRadius: 999, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase",
-                      }}>
-                        {(b.model as string | null)?.toLowerCase().includes("vtt") || (b.name as string).toLowerCase().includes("vtt") ? "VTT" : "Route"}
-                      </span>
                     </div>
+
 
                     <div style={{ padding: 18 }}>
                       <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name as string}</div>
