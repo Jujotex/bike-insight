@@ -65,14 +65,14 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
       }}
     >
       {/* Brand */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 10px 28px" }}>
+      <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 10px 28px", textDecoration: "none", color: "inherit" }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 18l4-8 4 6 4-10 4 8" />
           </svg>
         </div>
         <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Bike Insight</span>
-      </div>
+      </Link>
 
       {/* Nav items */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
