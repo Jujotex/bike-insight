@@ -35,10 +35,6 @@ function LandingNav() {
         <span style={{ fontSize: 10, padding: "3px 7px", borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontWeight: 600, letterSpacing: 0.5, marginLeft: 6 }}>BETA</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {["Comment ca marche", "Tarifs", "Pourquoi nous"].map(l => (
-          <span key={l} style={{ fontSize: 13, color: T.muted, padding: "8px 14px", fontWeight: 500, cursor: "pointer" }}>{l}</span>
-        ))}
-        <div style={{ width: 1, height: 20, background: T.line, marginLeft: 6 }} />
         <Link href="/login" style={{ fontSize: 13, color: T.ink, padding: "8px 14px", fontWeight: 500, textDecoration: "none" }}>Se connecter</Link>
         <Link href="/signup">
           <button style={{ padding: "9px 16px", background: T.ink, color: T.bg, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", marginLeft: 4 }}>
@@ -180,14 +176,6 @@ function LandingHero() {
           </Link>
         </div>
 
-        <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 16, fontSize: 11.5, color: T.muted }}>
-          {["Gratuit pendant la beta", "Pas de CB", "Setup en 30 sec."].map(l => (
-            <div key={l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
-              {l}
-            </div>
-          ))}
-        </div>
       </div>
 
       <MiniDashPreview />
@@ -441,9 +429,6 @@ function LandingCTA() {
             </button>
           </Link>
         </div>
-        <div style={{ marginTop: 24, fontSize: 11.5, color: "rgba(255,255,255,0.5)" }}>
-          Gratuit · Pas de carte bancaire · Desinscription en 1 clic
-        </div>
       </div>
     </div>
   );
@@ -462,7 +447,7 @@ function LandingFooter() {
             <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
           </div>
           <div style={{ fontSize: 12, color: T.muted, marginTop: 12, lineHeight: 1.55, maxWidth: 280 }}>
-            L&apos;outil de gestion materiel pour cyclistes Strava. Construit a Paris.
+            L&apos;outil de gestion matériel pour cyclistes Strava.
           </div>
         </div>
         {[
@@ -480,7 +465,6 @@ function LandingFooter() {
       </div>
       <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: T.muted }}>
         <Mono>© 2026 Bike Insight · v 0.4.2 beta</Mono>
-        <span>Compatible Strava · Donnees privees, jamais revendues</span>
       </div>
     </div>
   );
