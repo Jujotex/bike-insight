@@ -145,29 +145,39 @@ export default async function BikesPage() {
                       alignItems: "center",
                       justifyContent: "center",
                     }}>
-                      {/* SVG vélo coloré */}
-                      <svg width="110" height="80" viewBox="0 0 110 80" fill="none" stroke={bikeColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      {/* SVG vélo coloré — cadre losange correct */}
+                      <svg width="120" height="80" viewBox="0 0 120 80" fill="none" stroke={bikeColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         {/* Roues */}
-                        <circle cx="24" cy="56" r="20"/>
-                        <circle cx="86" cy="56" r="20"/>
+                        <circle cx="22" cy="56" r="18"/>
+                        <circle cx="98" cy="56" r="18"/>
                         {/* Moyeux */}
-                        <circle cx="24" cy="56" r="3" fill={bikeColor}/>
-                        <circle cx="86" cy="56" r="3" fill={bikeColor}/>
-                        {/* Cadre */}
-                        <path d="M24 56 L50 24 L86 56"/>
-                        <path d="M50 24 L64 56"/>
-                        <path d="M50 24 L38 24"/>
-                        {/* Fourche */}
-                        <path d="M86 56 L80 32 L86 26"/>
-                        {/* Cintre */}
-                        <path d="M76 26 L96 24"/>
-                        <path d="M86 26 L86 20"/>
-                        {/* Selle */}
-                        <path d="M44 24 L58 24"/>
-                        <path d="M51 24 L51 17"/>
+                        <circle cx="22" cy="56" r="3" fill={bikeColor}/>
+                        <circle cx="98" cy="56" r="3" fill={bikeColor}/>
                         {/* Pédalier */}
-                        <circle cx="64" cy="56" r="5"/>
-                        <line x1="60" y1="60" x2="68" y2="52"/>
+                        <circle cx="60" cy="56" r="4" fill={bikeColor}/>
+                        {/* Bases (chainstay) — pédalier → roue arrière */}
+                        <path d="M22 56 L60 56"/>
+                        {/* Haubans (seatstay) — roue arrière → haut tube de selle */}
+                        <path d="M22 56 L56 24"/>
+                        {/* Tube de selle — haut → pédalier */}
+                        <path d="M56 24 L60 56"/>
+                        {/* Tube supérieur — haut tube de selle → potence */}
+                        <path d="M56 24 L84 22"/>
+                        {/* Tube diagonal — potence → pédalier */}
+                        <path d="M84 30 L60 56"/>
+                        {/* Tube de direction (head tube) */}
+                        <path d="M84 22 L84 30"/>
+                        {/* Fourche — potence bas → roue avant */}
+                        <path d="M84 30 L98 56"/>
+                        {/* Potence + cintre */}
+                        <path d="M84 22 L84 14"/>
+                        <path d="M78 14 L92 14"/>
+                        {/* Tige de selle + selle */}
+                        <path d="M56 24 L56 16"/>
+                        <path d="M49 16 L64 16"/>
+                        {/* Manivelles */}
+                        <path d="M56 56 L64 60"/>
+                        <path d="M60 52 L56 56"/>
                       </svg>
 
                       {/* Badge STRAVA ou MANUEL */}
