@@ -495,7 +495,6 @@ export default function Home() {
       <LandingMetrics />
       <LandingHow />
       <LandingInsights />
-      <LandingComparison />
       <LandingCTA />
       <LandingFooter />
     </main>

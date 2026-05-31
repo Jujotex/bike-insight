@@ -7,6 +7,29 @@
 
 ## [Unreleased]
 
+## [Unreleased] — Page compte + Signup Prénom/Nom
+
+### Added
+- `src/app/account/page.tsx` + `client.tsx` : page compte — avatar avec initiales, stats (vélos, composants, alertes), profil (prénom/nom/email), statut Strava, navigation rapide, déconnexion, suppression compte (via support)
+- `SideNav` : avatar utilisateur en bas cliquable → `/account`
+
+### Changed
+- `src/app/signup/page.tsx` : ajout champs Prénom + Nom (2 colonnes), validation mot de passe renforcée (8 car. min, chiffre, majuscule, spécial), stockage `first_name`/`last_name`/`full_name` dans les métadonnées Supabase
+
+---
+
+## [Unreleased] — Notifications in-app
+
+### Added
+- Migration `20260531000001_notifications.sql` : table `notifications` (component_id, bike_id, component_name, bike_name, type warn/bad, read, created_at) + RLS
+- `/api/components/recalculate` : après recalcul, insère des notifs pour les composants warn/bad sans doublon (évite les doublons sur notifs non lues)
+- `/api/notifications/read` : route POST pour marquer une ou toutes les notifs comme lues
+- `SideNavLoader` : fetch du count non lu en parallèle des vélos — passé à `SideNav`
+- `SideNav` : item "Alertes" avec icône cloche et badge rouge (count non lues)
+- `src/app/notifications/page.tsx` + `client.tsx` : page liste des alertes — marquer une/toutes comme lues, lien vers le composant concerné
+
+---
+
 ## [Unreleased] — Page comparateur de remplacement
 
 ### Added
