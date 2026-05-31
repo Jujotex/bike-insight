@@ -20,15 +20,32 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const labelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  color: "var(--bi-muted)",
+  marginBottom: 8,
+};
+
 const ERROR_MESSAGES: Record<string, string> = {
   "User already registered": "Un compte existe déjà avec cet email.",
-  "Password should be at least 6 characters": "Le mot de passe doit faire au moins 6 caractères.",
+  "Password should be at least 6 characters": "Le mot de passe doit faire au moins 8 caractères.",
   "Unable to validate email address: invalid format": "Adresse email invalide.",
   "Too many requests": "Trop de tentatives. Réessaie dans quelques minutes.",
 };
 
 function translateError(msg: string): string {
   return ERROR_MESSAGES[msg] ?? msg;
+}
+
+function validatePassword(p: string): string | null {
+  if (p.length < 8) return "Au moins 8 caractères requis.";
+  if (!/[0-9]/.test(p)) return "Au moins un chiffre requis.";
+  if (!/[A-Z]/.test(p)) return "Au moins une majuscule requise.";
+  if (!/[^a-zA-Z0-9]/.test(p)) return "Au moins un caractère spécial requis.";
+  return null;
 }
 
 function GoogleIcon() {
@@ -51,6 +68,8 @@ function AppleIcon() {
 }
 
 export default function SignupPage() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -58,9 +77,18 @@ export default function SignupPage() {
   const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
 
+  const isFormValid =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    email.includes("@") &&
+    validatePassword(password) === null;
+
   const handleSignup = async () => {
-    if (!email || !password) { setError("Remplis tous les champs."); return; }
-    if (password.length < 6) { setError("Le mot de passe doit faire au moins 6 caractères."); return; }
+    if (!firstName.trim() || !lastName.trim()) { setError("Prénom et nom requis."); return; }
+    if (!email) { setError("Email requis."); return; }
+    const pwdError = validatePassword(password);
+    if (pwdError) { setError(pwdError); return; }
+
     setLoading(true);
     setError("");
 
@@ -69,6 +97,11 @@ export default function SignupPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/connect/strava`,
+        data: {
+          full_name: `${firstName.trim()} ${lastName.trim()}`,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+        },
       },
     });
 
@@ -78,14 +111,12 @@ export default function SignupPage() {
       return;
     }
 
-    // Si Supabase nécessite une confirmation email
     if (data.user && !data.session) {
       setEmailSent(true);
       setLoading(false);
       return;
     }
 
-    // Inscription directe (confirmation email désactivée)
     window.location.href = "/connect/strava";
   };
 
@@ -95,36 +126,22 @@ export default function SignupPage() {
 
   if (emailSent) {
     return (
-      <AuthShell
-        step={1}
-        total={3}
-        eyebrow="Inscription"
+      <AuthShell step={1} total={3} eyebrow="Inscription"
         headline={<>Vérifie<br />ton email.</>}
-        sub="Un lien de confirmation t'a été envoyé. Clique dessus pour activer ton compte et continuer."
-      >
-        <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>
-          Étape 1 · 3
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>
-          Email envoyé
-        </div>
+        sub="Un lien de confirmation t'a été envoyé. Clique dessus pour activer ton compte et continuer.">
+        <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>Étape 1 · 3</div>
+        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>Email envoyé</div>
         <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
-          On a envoyé un lien à <strong style={{ color: "var(--bi-ink)" }}>{email}</strong>.<br />
-          Clique dessus pour activer ton compte.
+          On a envoyé un lien à <strong style={{ color: "var(--bi-ink)" }}>{email}</strong>.<br />Clique dessus pour activer ton compte.
         </div>
-
         <div style={{ marginTop: 28, padding: "20px", borderRadius: 14, background: "rgba(14,143,90,0.06)", border: "1px solid rgba(14,143,90,0.15)", textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>📬</div>
           <div style={{ fontSize: 13.5, color: "var(--bi-ok)", fontWeight: 600 }}>Email de confirmation envoyé</div>
           <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 6 }}>Vérifie aussi tes spams si tu ne le vois pas.</div>
         </div>
-
         <div style={{ marginTop: 24, fontSize: 12.5, color: "var(--bi-muted)", textAlign: "center" }}>
           Mauvaise adresse ?{" "}
-          <button
-            onClick={() => setEmailSent(false)}
-            style={{ background: "none", border: "none", color: "var(--bi-ink)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", borderBottom: "1px solid var(--bi-ink)", padding: 0 }}
-          >
+          <button onClick={() => setEmailSent(false)} style={{ background: "none", border: "none", color: "var(--bi-ink)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", borderBottom: "1px solid var(--bi-ink)", padding: 0 }}>
             Recommencer
           </button>
         </div>
@@ -133,46 +150,71 @@ export default function SignupPage() {
   }
 
   return (
-    <AuthShell
-      step={1}
-      total={3}
-      eyebrow="Inscription"
+    <AuthShell step={1} total={3} eyebrow="Inscription"
       headline={<>Comprends enfin<br />combien te coûte<br />ton vélo.</>}
-      sub="Connecte ton compte Strava une fois. On calcule l'usure réelle, le coût par km et te dit quand changer chaque pièce."
-    >
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>
-        Étape 1 · 3
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>
-        Crée ton compte
-      </div>
+      sub="Connecte ton compte Strava une fois. On calcule l'usure réelle, le coût par km et te dit quand changer chaque pièce.">
+
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>Étape 1 · 3</div>
+      <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>Crée ton compte</div>
       <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
         Gratuit pendant la beta. Pas de carte bancaire requise.
       </div>
 
       <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Prénom + Nom */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div>
+            <div style={labelStyle}>Prénom</div>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Léo"
+              style={{ ...inputStyle, border: firstName ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)" }}
+              autoFocus
+            />
+          </div>
+          <div>
+            <div style={labelStyle}>Nom</div>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Martin"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        {/* Email */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Email</div>
+          <div style={labelStyle}>Email</div>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="ton@email.com"
-            style={{ ...inputStyle, border: "1.5px solid var(--bi-ink)" }}
-            autoFocus
+            style={inputStyle}
           />
         </div>
+
+        {/* Mot de passe */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginBottom: 8 }}>Mot de passe</div>
+          <div style={labelStyle}>Mot de passe</div>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Au moins 6 caractères"
+            placeholder="Au moins 8 caractères"
             style={inputStyle}
           />
+          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 6 }}>
+            Un chiffre, une majuscule, un caractère spécial
+          </div>
         </div>
       </div>
 

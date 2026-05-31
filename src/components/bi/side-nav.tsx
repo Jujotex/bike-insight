@@ -42,9 +42,10 @@ interface SideNavProps {
   userInitials?: string;
   userName?: string;
   bikeCount?: number;
+  unreadCount?: number;
 }
 
-export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateur", bikeCount }: SideNavProps) {
+export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateur", bikeCount, unreadCount = 0 }: SideNavProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) =>
@@ -64,43 +65,13 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
       }}
     >
       {/* Brand */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "4px 10px 28px",
-        }}
-      >
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: "var(--bi-accent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--bi-accent-ink)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 10px 28px" }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 18l4-8 4 6 4-10 4 8" />
           </svg>
         </div>
-        <span
-          style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}
-        >
-          Bike Insight
-        </span>
+        <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Bike Insight</span>
       </div>
 
       {/* Nav items */}
@@ -112,74 +83,60 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
               key={item.id}
               href={item.href}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 12px",
-                borderRadius: 10,
-                textDecoration: "none",
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "10px 12px", borderRadius: 10, textDecoration: "none",
                 background: on ? "rgba(14,14,16,0.05)" : "transparent",
                 color: on ? "var(--bi-ink)" : "var(--bi-muted)",
-                fontSize: 13.5,
-                fontWeight: on ? 600 : 500,
+                fontSize: 13.5, fontWeight: on ? 600 : 500,
               }}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <path d={item.icon} />
               </svg>
               <span style={{ flex: 1 }}>{item.label}</span>
               {on && (
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 5,
-                    height: 5,
-                    borderRadius: 999,
-                    background: "var(--bi-accent)",
-                    flexShrink: 0,
-                  }}
-                />
+                <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "var(--bi-accent)", flexShrink: 0 }} />
               )}
             </Link>
           );
         })}
+
+        {/* Notifications */}
+        <Link
+          href="/notifications"
+          style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "10px 12px", borderRadius: 10, textDecoration: "none",
+            background: isActive("/notifications") ? "rgba(14,14,16,0.05)" : "transparent",
+            color: isActive("/notifications") ? "var(--bi-ink)" : "var(--bi-muted)",
+            fontSize: 13.5, fontWeight: isActive("/notifications") ? 600 : 500,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span style={{ flex: 1 }}>Alertes</span>
+          {unreadCount > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, lineHeight: 1,
+              padding: "2px 6px", borderRadius: 999,
+              background: "var(--bi-bad)", color: "#fff",
+              fontFamily: "var(--font-jetbrains-mono)",
+            }}>
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+          {isActive("/notifications") && unreadCount === 0 && (
+            <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "var(--bi-accent)", flexShrink: 0 }} />
+          )}
+        </Link>
       </div>
 
       <div style={{ flex: 1 }} />
 
       {/* User footer */}
-      <div
-        style={{
-          padding: "0 12px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 999,
-            background: "var(--bi-card)",
-            border: "1px solid var(--bi-line)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            fontWeight: 600,
-            flexShrink: 0,
-          }}
-        >
+      <Link href="/account" style={{ padding: "0 12px", display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit", borderRadius: 10, marginLeft: -12, marginRight: -12, paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8, background: isActive("/account") ? "rgba(14,14,16,0.05)" : "transparent" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
           {userInitials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -188,7 +145,8 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
             {bikeCount !== undefined ? `${bikeCount} vélo${bikeCount !== 1 ? "s" : ""} actif${bikeCount !== 1 ? "s" : ""}` : ""}
           </div>
         </div>
-      </div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+      </Link>
     </nav>
   );
 }
