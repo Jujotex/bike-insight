@@ -309,11 +309,41 @@ export function DashboardClient({
           </div>
 
           {filteredAttention.length === 0 ? (
-            <div style={{ padding: "24px 22px", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
+            <div style={{ padding: "20px 22px 24px" }}>
+              {/* Bannière verte */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12, background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 999, background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bi-ok)" }}>Tout est en ordre — roule sereinement.</div>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucun composant ne nécessite d'attention actuellement.</div>
+                </div>
               </div>
-              <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Aucune action requise pour le moment.</span>
+
+              {/* Prochaine échéance */}
+              {filteredPredictions.length > 0 && (() => {
+                const next = filteredPredictions.sort((a, b) => (a.weeksUntil ?? 999) - (b.weeksUntil ?? 999))[0];
+                const weeksLabel = next.weeksUntil !== null
+                  ? next.weeksUntil <= 4 ? `dans ${next.weeksUntil} semaine${next.weeksUntil > 1 ? "s" : ""}`
+                  : `dans ${Math.round(next.weeksUntil / 4)} mois`
+                  : "à surveiller";
+                return (
+                  <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)" }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 3 }}>Prochaine révision estimée</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{next.componentName}</div>
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>
+                        {weeksLabel}{next.cost ? ` · ~${next.cost} €` : ""}
+                      </div>
+                    </div>
+                    <Link href={`/components`} style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                      Voir
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
+                    </Link>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             filteredAttention.map((c, i) => {
