@@ -100,7 +100,27 @@ export function OnboardingOverlay() {
 
   useEffect(() => {
     const done = localStorage.getItem(STORAGE_KEY);
-    if (!done) setVisible(true);
+    if (done) return;
+
+    // Vérifie si l'utilisateur a déjà des composants — si oui, pas besoin de l'overlay
+    import("@/lib/supabase").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return;
+        supabase
+          .from("components")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .then(({ count }) => {
+            if ((count ?? 0) > 0) {
+              // A déjà des composants → considéré comme onboardé
+              localStorage.setItem(STORAGE_KEY, "1");
+            } else {
+              setVisible(true);
+            }
+          });
+      });
+    });
   }, []);
 
   function dismiss() {

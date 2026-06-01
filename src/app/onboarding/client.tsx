@@ -114,6 +114,7 @@ export function OnboardingWizard({ userId, bikes }: { userId: string; bikes: Bik
     }
 
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    localStorage.setItem("bi_onboarding_done", "1");
     router.push("/dashboard");
   }
 
