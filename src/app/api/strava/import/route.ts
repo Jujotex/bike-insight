@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { getValidStravaToken } from '@/lib/strava'
 
-const DAYS_TO_IMPORT = 90
+const FIRST_SYNC_DAYS = 90  // Premier import : 90 derniers jours
 const PAGE_SIZE = 100
 
 export async function POST() {
@@ -25,7 +25,29 @@ export async function POST() {
     return NextResponse.json({ error: 'Token Strava invalide ou expiré — reconnecte ton compte Strava' }, { status: 401 })
   }
 
-  // Récupère les vélos de l'utilisateur pour mapper strava_gear_id → bike_id
+  // ── Détermine la date de départ de l'import ───────────────────
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('last_sync_at')
+    .eq('id', user.id)
+    .single()
+
+  const lastSyncAt = profile?.last_sync_at as string | null
+  const isFirstSync = !lastSyncAt
+
+  let after: number
+  if (isFirstSync) {
+    // Premier import → 90 derniers jours
+    after = Math.floor((Date.now() - FIRST_SYNC_DAYS * 24 * 60 * 60 * 1000) / 1000)
+    console.log(`[sync] Premier import — depuis ${FIRST_SYNC_DAYS} jours`)
+  } else {
+    // Import incrémental → depuis la dernière sync (avec 1h de marge pour éviter les trous)
+    const lastSyncMs = new Date(lastSyncAt).getTime() - 60 * 60 * 1000
+    after = Math.floor(lastSyncMs / 1000)
+    console.log(`[sync] Import incrémental — depuis ${new Date(lastSyncAt).toISOString()}`)
+  }
+
+  // ── Récupère les vélos ────────────────────────────────────────
   const { data: bikes } = await supabase
     .from('bikes')
     .select('id, strava_gear_id')
@@ -34,8 +56,8 @@ export async function POST() {
   const bikeMap = new Map<string, string>()
   bikes?.forEach(b => { if (b.strava_gear_id) bikeMap.set(b.strava_gear_id, b.id) })
 
-  // Fetch des activités Strava (paginé)
-  const after = Math.floor((Date.now() - DAYS_TO_IMPORT * 24 * 60 * 60 * 1000) / 1000)
+  // ── Fetch des activités Strava (paginé) ───────────────────────
+  const syncStartedAt = new Date().toISOString()
   let page = 1
   let totalImported = 0
   const allActivities: object[] = []
@@ -79,7 +101,7 @@ export async function POST() {
     if (activities.length < PAGE_SIZE) break
   }
 
-  // Upsert en batch
+  // ── Upsert en batch ───────────────────────────────────────────
   if (allActivities.length > 0) {
     const { error } = await supabase
       .from('activities')
@@ -92,7 +114,13 @@ export async function POST() {
     totalImported = allActivities.length
   }
 
-  // Met à jour total_km depuis Strava (kilométrage de vie total, pas juste les 90j importés)
+  // ── Mise à jour last_sync_at ──────────────────────────────────
+  await supabase
+    .from('profiles')
+    .update({ last_sync_at: syncStartedAt })
+    .eq('id', user.id)
+
+  // ── Met à jour total_km depuis Strava ─────────────────────────
   try {
     const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -112,15 +140,20 @@ export async function POST() {
     }
   } catch (err) {
     console.error('[sync] athlete fetch error:', err)
-    // Fail silently — total_km sera mis à jour au prochain import
   }
 
-  // Recalcule km_used sur tous les composants actifs (déclenche le trigger statut ok/warn/bad)
+  // ── Recalcul usure ────────────────────────────────────────────
   const { error: rpcError } = await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
   if (rpcError) {
     console.error('[sync] recalculate_component_km error:', rpcError)
-    // Ne pas bloquer la réponse — les km seront recalculés au prochain import
   }
 
-  return NextResponse.json({ imported: totalImported, pages: page - 1 })
+  console.log(`[sync] ${isFirstSync ? 'Premier import' : 'Import incrémental'} — ${totalImported} activités, ${page - 1} pages`)
+
+  return NextResponse.json({
+    imported: totalImported,
+    pages: page - 1,
+    incremental: !isFirstSync,
+    since: new Date(after * 1000).toISOString(),
+  })
 }
