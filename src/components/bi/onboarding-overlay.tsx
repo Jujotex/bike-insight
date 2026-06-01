@@ -64,8 +64,8 @@ const STEPS = [
         </div>
       </div>
     ),
-    cta: "Ajouter mon premier composant",
-    ctaHref: "/components/new",
+    cta: "Configurer mon vélo en 2 min",
+    ctaHref: "/onboarding",
     skip: true,
   },
   {
