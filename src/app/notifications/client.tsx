@@ -285,8 +285,12 @@ export function NotificationsClient({
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
                     {n.component_id && (
-                      <Link href={`/components/${n.component_id}`} style={{ fontSize: 11.5, color: "var(--bi-ink)", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                        Voir <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
+                      <Link
+                        href={n.type === "bad" ? `/components/${n.component_id}/compare` : `/components/${n.component_id}`}
+                        style={{ fontSize: 11.5, color: n.type === "bad" ? "var(--bi-bad)" : "var(--bi-ink)", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 3, whiteSpace: "nowrap" }}
+                      >
+                        {n.type === "bad" ? "Voir options" : "Voir"}
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
                       </Link>
                     )}
                     {!n.read && (

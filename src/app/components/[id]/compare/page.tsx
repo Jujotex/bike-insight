@@ -5,6 +5,7 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import { findCatalogEntry, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
 
 const CATEGORY_LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -12,58 +13,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   suspension: "Suspension",
   roues: "Roues",
   cockpit: "Cockpit",
-  eclairage: "Eclairage",
+  eclairage: "Éclairage",
   autre: "Autre",
 };
 
-// Generate 3 replacement tiers based on component data
-function buildOptions(price: number | null, kmMax: number, name: string) {
+// Fallback générique si aucun catalogue ne correspond
+function buildGenericOptions(price: number | null, kmMax: number) {
   const basePrice = price ?? 40;
   const baseKm = kmMax > 0 ? kmMax : 3000;
-
   return [
-    {
-      id: "budget",
-      badge: "Budget",
-      label: "Option economique",
-      price: Math.round(basePrice * 0.7),
-      lifeKm: Math.round(baseKm * 0.85),
-      costPerKm: (basePrice * 0.7) / (baseKm * 0.85),
-      annual: Math.round((basePrice * 0.7) / (baseKm * 0.85) * 3000),
-      pros: ["Economique", "Compatible standard"],
-      cons: ["Duree de vie plus courte", "Garantie reduite"],
-      stock: "2 jours",
-      warranty: "6 mois",
-      recommended: false,
-    },
-    {
-      id: "recommended",
-      badge: "Recommande",
-      label: "Meme modele",
-      price: basePrice,
-      lifeKm: baseKm,
-      costPerKm: basePrice / baseKm,
-      annual: Math.round((basePrice / baseKm) * 3000),
-      pros: ["Modele que tu connais", "Meilleur cycle d'usure", "En stock"],
-      cons: [],
-      stock: "En stock",
-      warranty: "1 an",
-      recommended: true,
-    },
-    {
-      id: "premium",
-      badge: "Premium",
-      label: "Haut de gamme",
-      price: Math.round(basePrice * 1.75),
-      lifeKm: Math.round(baseKm * 1.5),
-      costPerKm: (basePrice * 1.75) / (baseKm * 1.5),
-      annual: Math.round(((basePrice * 1.75) / (baseKm * 1.5)) * 3000),
-      pros: ["Duree +50%", "Plus silencieux", "Meilleure performance"],
-      cons: ["Investissement initial", "Sur commande"],
-      stock: "5-7 jours",
-      warranty: "2 ans",
-      recommended: false,
-    },
+    { name: "Option économique", brand: "", price: Math.round(basePrice * 0.7), lifeKm: Math.round(baseKm * 0.85), tier: "budget" as const, note: "Vérifier la compatibilité avec ton groupe" },
+    { name: "Même référence", brand: "", price: basePrice, lifeKm: baseKm, tier: "original" as const, note: "Le modèle que tu connais déjà" },
+    { name: "Gamme supérieure", brand: "", price: Math.round(basePrice * 1.75), lifeKm: Math.round(baseKm * 1.5), tier: "premium" as const, note: "Durée de vie +50%, meilleure finition" },
   ];
 }
 
@@ -98,13 +59,13 @@ export default async function ComparePage({
   const kmRemaining = Math.max(0, kmMax - kmUsed);
   const installedDate = comp.installed_at
     ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-    : "-";
+    : "—";
   const status = comp.status as string;
   const statusColor = status === "bad" ? "var(--bi-bad)" : status === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
-  const urgencyLabel = status === "bad" ? "URGENT" : status === "warn" ? "A SURVEILLER" : "OK";
+  const urgencyLabel = status === "bad" ? "URGENT" : status === "warn" ? "À SURVEILLER" : "OK";
 
-  // Estimated days remaining
-  let daysLabel = "-";
+  // Vie restante estimée
+  let daysLabel = "—";
   if (kmRemaining > 0 && kmUsed > 0 && comp.installed_at) {
     const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
     if (ageDays > 0) {
@@ -115,36 +76,50 @@ export default async function ComparePage({
       else daysLabel = "~ " + Math.round(daysLeft / 30) + " mois";
     }
   } else if (kmRemaining === 0 && kmMax > 0) {
-    daysLabel = "0 j restants";
+    daysLabel = "Dépassé";
   }
 
-  const options = buildOptions(comp.purchase_price as number | null, kmMax, comp.name as string);
-  const recommended = options[1];
+  // ── Catalogue ──────────────────────────────────────────────
+  const catalogEntry = findCatalogEntry(comp.name as string, comp.category as string);
+  const products: CatalogProduct[] = catalogEntry
+    ? catalogEntry.products
+    : buildGenericOptions(comp.purchase_price as number | null, kmMax);
 
-  const tableRows = [
-    ["Duree estimee", options.map(o => o.lifeKm.toLocaleString("fr") + " km")],
-    ["Prix d'achat", options.map(o => o.price + " EUR")],
-    ["Cout par km", options.map(o => o.costPerKm.toFixed(3) + " EUR")],
-    ["Cout annuel equiv.", options.map(o => o.annual + " EUR")],
-    ["Disponibilite", options.map(o => o.stock)],
-    ["Garantie", options.map(o => o.warranty)],
-  ];
+  const tiers = ["budget", "original", "premium"] as const;
+  const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
+  const recommended = options[1]; // original = recommandé
+
+  // Km par an estimé à partir de l'usage réel
+  const ageDaysReal = comp.installed_at
+    ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
+    : 365;
+  const kmPerYear = ageDaysReal > 30 ? Math.round((kmUsed / ageDaysReal) * 365) : 3000;
 
   return (
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page" style={{ maxWidth: 1100 }}>
         <PageHead
           title={"Remplacer : " + (comp.name as string)}
-          breadcrumb={["Composants", comp.name as string, "Remplacer"]}
-          sub={"3 options pour " + (bike?.name ?? "ton velo") + " · estimations a 3 000 km/an"}
+          sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}
           actions={
             <Link href={"/components/" + id}>
               <button style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>
-                Retour
+                ← Retour
               </button>
             </Link>
           }
         />
+
+        {/* Banner compatibilité détectée */}
+        {catalogEntry && (
+          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
+            <div>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Compatibilité détectée — </span>
+              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{catalogEntry.compatNote}</span>
+            </div>
+          </div>
+        )}
 
         {/* Context card */}
         <div style={{ background: "var(--bi-card)", borderRadius: 16, border: "1px solid var(--bi-line)", overflow: "hidden", marginBottom: 22 }}>
@@ -156,7 +131,7 @@ export default async function ComparePage({
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{comp.name as string}</div>
                   <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>
-                    {CATEGORY_LABELS[comp.category as string] ?? String(comp.category)} · installe le {installedDate}
+                    {CATEGORY_LABELS[comp.category as string] ?? String(comp.category)} · installé le {installedDate}
                   </div>
                 </div>
               </div>
@@ -180,7 +155,7 @@ export default async function ComparePage({
                 <Mono style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.6, color: statusColor }}>{daysLabel}</Mono>
               </div>
               <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
-                {kmRemaining > 0 ? "~" + kmRemaining.toLocaleString("fr") + " km restants" : "Depasse"}
+                {kmRemaining > 0 ? "~" + kmRemaining.toLocaleString("fr") + " km restants" : "Dépassé"}
               </div>
             </div>
           </div>
@@ -188,10 +163,13 @@ export default async function ComparePage({
 
         {/* 3 option cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 22 }}>
-          {options.map(o => {
-            const isReco = o.recommended;
+          {options.map((o, idx) => {
+            const isReco = idx === 1;
+            const costPerKm = o.price / o.lifeKm;
+            const annual = Math.round(costPerKm * kmPerYear);
+
             return (
-              <div key={o.id} style={{
+              <div key={o.tier} style={{
                 position: "relative",
                 background: isReco ? "var(--bi-ink)" : "var(--bi-card)",
                 color: isReco ? "#fff" : "var(--bi-ink)",
@@ -202,28 +180,40 @@ export default async function ComparePage({
               }}>
                 {isReco && (
                   <div style={{ position: "absolute", top: -10, left: 24, padding: "4px 10px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
-                    RECOMMANDE POUR TOI
+                    RECOMMANDÉ
                   </div>
                 )}
 
-                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" as const, color: isReco ? "var(--bi-accent)" : "var(--bi-muted)" }}>{o.badge}</div>
-                <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: -0.5, marginTop: 6 }}>{o.label}</div>
-                <div style={{ fontSize: 11.5, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", marginTop: 2 }}>{o.stock}</div>
+                {/* Tier label */}
+                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" as const, color: isReco ? "var(--bi-accent)" : "var(--bi-muted)" }}>
+                  {TIER_LABELS[o.tier]}
+                </div>
 
-                {/* Price */}
-                <div style={{ marginTop: 24, paddingBottom: 18, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.08)" : "var(--bi-soft-line)") }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                    <Mono style={{ fontSize: 44, fontWeight: 500, letterSpacing: -1.4, lineHeight: 1 }}>{o.price}</Mono>
-                    <span style={{ fontSize: 16, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>EUR</span>
+                {/* Nom produit */}
+                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.4, marginTop: 6, lineHeight: 1.2 }}>{o.name}</div>
+
+                {/* Marque + référence */}
+                {(o.brand || o.reference) && (
+                  <div style={{ fontSize: 11.5, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", marginTop: 4 }}>
+                    {o.brand}{o.reference ? ` · ${o.reference}` : ""}
                   </div>
+                )}
+
+                {/* Prix */}
+                <div style={{ marginTop: 20, paddingBottom: 16, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.1)" : "var(--bi-line)") }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                    <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.4, lineHeight: 1 }}>{o.price}</Mono>
+                    <span style={{ fontSize: 15, color: isReco ? "rgba(255,255,255,0.5)" : "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: isReco ? "rgba(255,255,255,0.4)" : "var(--bi-muted)", marginTop: 4 }}>{TIER_DESC[o.tier]}</div>
                 </div>
 
                 {/* Stats */}
-                <div style={{ paddingTop: 14, paddingBottom: 16, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.08)" : "var(--bi-soft-line)"), display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ paddingTop: 14, paddingBottom: 16, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.1)" : "var(--bi-line)"), display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
-                    ["Duree estimee", o.lifeKm.toLocaleString("fr") + " km"],
-                    ["Cout / km", o.costPerKm.toFixed(3) + " EUR"],
-                    ["Cout annuel", o.annual + " EUR"],
+                    ["Durée estimée", o.lifeKm.toLocaleString("fr") + " km"],
+                    ["Coût / km", costPerKm.toFixed(3) + " €"],
+                    ["Coût annuel (" + kmPerYear.toLocaleString("fr") + " km)", annual + " €"],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: 11.5, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)" }}>{k}</span>
@@ -232,68 +222,59 @@ export default async function ComparePage({
                   ))}
                 </div>
 
-                {/* Pros/Cons */}
-                <div style={{ paddingTop: 14, flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                  {o.pros.map(p => (
-                    <div key={p} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, lineHeight: 1.45 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isReco ? "var(--bi-accent)" : "var(--bi-ok)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M4 12l5 5L20 7"/></svg>
-                      {p}
-                    </div>
-                  ))}
-                  {o.cons.map(c => (
-                    <div key={c} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", lineHeight: 1.45 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M18 6L6 18M6 6l12 12"/></svg>
-                      {c}
-                    </div>
-                  ))}
-                </div>
+                {/* Note / conseil */}
+                {o.note && (
+                  <div style={{ paddingTop: 14, flex: 1, fontSize: 12, color: isReco ? "rgba(255,255,255,0.65)" : "var(--bi-muted)", lineHeight: 1.5 }}>
+                    {o.note}
+                  </div>
+                )}
 
-                {/* CTA → goes to replace flow */}
+                {/* CTA */}
                 <div style={{ marginTop: 20 }}>
                   <ReplaceButton
                     componentId={id}
                     bikeId={comp.bike_id as string}
-                    componentName={(comp.name as string).split(" - ")[0]}
+                    componentName={(comp.name as string).split(" · ")[0]}
                     componentCategory={comp.category as string}
                     currentBikeKm={bike?.total_km ?? 0}
                     componentPrice={o.price}
-                    label={"Choisir cette option"}
+                    label="Choisir cette option"
                     fullWidth
                     variant={isReco ? "accent" : "default"}
                   />
-                </div>
-
-                <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", fontSize: 10.5, color: isReco ? "rgba(255,255,255,0.5)" : "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>
-                  <span>Stock : {o.stock}</span>
-                  <span>Garantie {o.warranty}</span>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Detailed comparison table */}
-        <div style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.4 }}>Comparaison detaillee</div>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>Sur la base de ton rythme actuel · 3 000 km/an</div>
-          </div>
+        {/* Tableau comparatif */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.4 }}>Comparaison détaillée</div>
+          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>Basé sur ton rythme réel de {kmPerYear.toLocaleString("fr")} km/an</div>
         </div>
 
         <BiCard pad={0} style={{ marginBottom: 22 }}>
-          <div style={{ padding: "14px 22px 12px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: "1px solid var(--bi-soft-line)" }}>
+          <div style={{ padding: "14px 22px 12px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: "1px solid var(--bi-line)" }}>
             <span></span>
-            {options.map(o => (
-              <span key={o.id} style={{ textAlign: "center", color: o.recommended ? "var(--bi-ink)" : "var(--bi-muted)" }}>
-                {o.recommended ? "Recommande" : o.badge}
+            {options.map((o, i) => (
+              <span key={o.tier} style={{ textAlign: "center", color: i === 1 ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                {TIER_LABELS[o.tier]}
               </span>
             ))}
           </div>
-          {tableRows.map(([label, vals], i) => (
-            <div key={i} style={{ padding: "14px 22px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, alignItems: "center", borderBottom: i === tableRows.length - 1 ? "none" : "1px solid var(--bi-soft-line)" }}>
+          {[
+            ["Produit", options.map(o => o.name)],
+            ["Marque", options.map(o => o.brand || "—")],
+            ["Durée estimée", options.map(o => o.lifeKm.toLocaleString("fr") + " km")],
+            ["Prix", options.map(o => o.price + " €")],
+            ["Coût / km", options.map(o => (o.price / o.lifeKm).toFixed(3) + " €")],
+            ["Coût / an", options.map(o => Math.round((o.price / o.lifeKm) * kmPerYear) + " €")],
+          ].map(([label, vals], i, arr) => (
+            <div key={i} style={{ padding: "13px 22px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, alignItems: "center", borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)" }}>
               <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{label as string}</span>
               {(vals as string[]).map((v, j) => (
-                <span key={j} style={{ fontSize: 13, fontWeight: j === 1 ? 600 : 500, textAlign: "center", fontFamily: "var(--bi-font-mono)", background: j === 1 ? "rgba(14,14,16,0.025)" : "transparent", padding: "6px 0", borderRadius: 6 }}>
+                <span key={j} style={{ fontSize: 12.5, fontWeight: j === 1 ? 600 : 500, textAlign: "center", fontFamily: "var(--bi-font-mono)", background: j === 1 ? "rgba(14,14,16,0.03)" : "transparent", padding: "5px 0", borderRadius: 6 }}>
                   {v}
                 </span>
               ))}
@@ -301,26 +282,31 @@ export default async function ComparePage({
           ))}
         </BiCard>
 
-        {/* Reasoning + Next steps */}
+        {/* Raisonnement + prochaines étapes */}
         <div className="bi-grid-split">
           <BiCard pad={22} style={{ borderLeft: "3px solid var(--bi-accent)" }}>
-            <BiLabel style={{ marginBottom: 10 }}>Notre raisonnement</BiLabel>
-            <div style={{ fontSize: 14, lineHeight: 1.55 }}>
-              <strong>L&apos;option recommandee</strong> est la plus equilibree pour ton usage. Tu connais deja ce composant ({comp.name as string}), son cycle d&apos;usure est maitrise et le rapport cout/km est optimal a 3 000 km/an.
+            <BiLabel style={{ marginBottom: 10 }}>Pourquoi cette recommandation</BiLabel>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6 }}>
+              {catalogEntry
+                ? (<><strong>{recommended.name}</strong> est la référence directe compatible avec ton groupe. C'est le meilleur rapport durée de vie / prix pour ton usage de {kmPerYear.toLocaleString("fr")} km/an.</>)
+                : (<><strong>L'option équivalente</strong> est la plus équilibrée. Elle correspond au niveau de ton composant actuel et son cycle d'usure est maîtrisé.</>)
+              }
             </div>
-            <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "var(--bi-bg)", fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-              <strong style={{ color: "var(--bi-ink)" }}>Si tu roules plus de 5 000 km/an,</strong> l&apos;option premium devient plus rentable grace a sa duree de vie accrue.
-            </div>
+            {catalogEntry && (
+              <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "var(--bi-bg)", fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+                <strong style={{ color: "var(--bi-ink)" }}>Si tu roules plus de 5 000 km/an,</strong> l'option premium devient plus rentable grâce à sa durée de vie accrue.
+              </div>
+            )}
           </BiCard>
 
           <BiCard pad={22}>
-            <BiLabel style={{ marginBottom: 14 }}>Action apres ton choix</BiLabel>
+            <BiLabel style={{ marginBottom: 14 }}>Prochaines étapes</BiLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                ["1", "Commande la piece (chez ton vendeur habituel)"],
-                ["2", "Pose-la toi-meme ou demande a ton mecano"],
-                ["3", "Marque-la comme installee dans Bike Insight"],
-                ["4", "L'app reprend le suivi automatiquement"],
+                ["1", "Commande la pièce (chez ton vélociste ou en ligne)"],
+                ["2", "Fais-la poser ou installe-la toi-même"],
+                ["3", "Marque-la comme installée dans Bike Insight"],
+                ["4", "Le suivi d'usure reprend automatiquement"],
               ].map(([n, label]) => (
                 <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{n}</div>
@@ -332,11 +318,11 @@ export default async function ComparePage({
               <ReplaceButton
                 componentId={id}
                 bikeId={comp.bike_id as string}
-                componentName={(comp.name as string).split(" - ")[0]}
+                componentName={(comp.name as string).split(" · ")[0]}
                 componentCategory={comp.category as string}
                 currentBikeKm={bike?.total_km ?? 0}
                 componentPrice={recommended.price}
-                label="Marquer comme remplace (recommande)"
+                label="Marquer comme remplacé"
                 fullWidth
               />
             </div>

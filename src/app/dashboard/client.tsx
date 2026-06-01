@@ -319,30 +319,47 @@ export function DashboardClient({
             filteredAttention.map((c, i) => {
               const color = c.status === "bad" ? "var(--bi-bad)" : "var(--bi-warn)";
               const label = c.status === "bad" ? "CRITIQUE" : "À SURVEILLER";
-              const remain = c.weeksUntil !== null
-                ? `reste ~${c.kmRemaining.toLocaleString("fr")} km · ${formatWeeks(c.weeksUntil)}`
-                : `reste ~${c.kmRemaining.toLocaleString("fr")} km`;
+              const isBad = c.status === "bad";
+
+              // Phrase temporelle humaine
+              const urgencyLine = (() => {
+                if (isBad) {
+                  if (c.weeksUntil !== null && c.weeksUntil <= 0) return "Dépassé — remplace maintenant";
+                  if (c.weeksUntil !== null && c.weeksUntil <= 1) return "À ton rythme · remplace cette semaine";
+                  if (c.weeksUntil !== null) return `À ton rythme · remplace dans ${formatWeeks(c.weeksUntil)}`;
+                  return `~${c.kmRemaining.toLocaleString("fr")} km restants`;
+                } else {
+                  if (c.weeksUntil !== null && c.weeksUntil <= 2) return `À ton rythme · commence à chercher (~${formatWeeks(c.weeksUntil)})`;
+                  if (c.weeksUntil !== null) return `À ton rythme · encore ${formatWeeks(c.weeksUntil)} devant toi`;
+                  return `~${c.kmRemaining.toLocaleString("fr")} km restants`;
+                }
+              })();
+
+              const href = isBad ? `/components/${c.id}/compare` : `/components/${c.id}`;
+              const btnLabel = isBad ? "Voir options" : "Planifier";
+
               return (
                 <div key={c.id} style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 18, borderTop: "1px solid var(--bi-line)" }}>
                   <div style={{ width: 4, height: 56, background: color, borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 14.5, fontWeight: 600 }}>{c.name}</span>
-                      <span style={{ fontSize: 9.5, padding: "3px 8px", borderRadius: 999, background: `${color === "var(--bi-bad)" ? "rgba(200,54,46,0.1)" : "rgba(208,132,21,0.1)"}`, color, fontWeight: 700, letterSpacing: 0.5 }}>{label}</span>
+                      <span style={{ fontSize: 9.5, padding: "3px 8px", borderRadius: 999, background: isBad ? "rgba(200,54,46,0.1)" : "rgba(208,132,21,0.1)", color, fontWeight: 700, letterSpacing: 0.5 }}>{label}</span>
                     </div>
-                    {c.brand && <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 3 }}>{c.brand}</div>}
-                    <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
+                    {/* Phrase temporelle */}
+                    <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{urgencyLine}</div>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ flex: 1, maxWidth: 200, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
                         <div style={{ width: `${c.wearPct}%`, height: "100%", background: color, borderRadius: 999 }} />
                       </div>
-                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{c.wearPct} % · {remain}</Mono>
+                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{c.wearPct}%</Mono>
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
                     {c.cost !== null && <Mono style={{ fontSize: 13, color: "var(--bi-muted)" }}>~ {c.cost} €</Mono>}
-                    <Link href={`/components/${c.id}`}>
+                    <Link href={href}>
                       <button style={{ padding: "8px 14px", background: i === 0 ? "var(--bi-ink)" : "transparent", color: i === 0 ? "var(--bi-bg)" : "var(--bi-ink)", border: i === 0 ? "none" : "1px solid var(--bi-line)", borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                        {c.status === "bad" ? "Voir options" : "Planifier"}
+                        {btnLabel}
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
                       </button>
                     </Link>
