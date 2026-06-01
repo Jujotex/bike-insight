@@ -19,7 +19,7 @@ export default async function NotificationsPage() {
       .limit(50),
     supabase
       .from("notification_settings")
-      .select("notify_warn, notify_bad")
+      .select("notify_warn, notify_bad, warn_threshold, bad_threshold")
       .eq("user_id", user.id)
       .single(),
   ]);
@@ -48,8 +48,10 @@ export default async function NotificationsPage() {
         <NotificationsClient
           notifications={notifs}
           initialSettings={{
-            notify_warn: settings?.notify_warn ?? true,
-            notify_bad:  settings?.notify_bad  ?? true,
+            notify_warn:    settings?.notify_warn    ?? true,
+            notify_bad:     settings?.notify_bad     ?? true,
+            warn_threshold: settings?.warn_threshold ?? 80,
+            bad_threshold:  settings?.bad_threshold  ?? 100,
           }}
         />
       </div>
