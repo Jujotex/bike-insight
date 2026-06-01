@@ -184,19 +184,21 @@ export function NotificationsClient({
 
         {/* Alerte "À remplacer" — bad */}
         <div style={{ padding: "18px 20px", borderBottom: "1px solid var(--bi-line)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-bad)", flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 500 }}>Composant à remplacer</span>
-                <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600, letterSpacing: 0.4 }}>PAR DÉFAUT 100%</span>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-bad)", flexShrink: 0, marginTop: 4 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 500 }}>À remplacer</span>
+                <Toggle
+                  enabled={settings.notify_bad}
+                  onChange={() => saveSettings({ ...settings, notify_bad: !settings.notify_bad })}
+                />
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Déclenche une alerte critique quand l'usure atteint ce seuil</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Alerte critique — défaut</span>
+                <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>100%</span>
+              </div>
             </div>
-            <Toggle
-              enabled={settings.notify_bad}
-              onChange={() => saveSettings({ ...settings, notify_bad: !settings.notify_bad })}
-            />
           </div>
           {settings.notify_bad && (
             <ThresholdSlider
@@ -210,19 +212,21 @@ export function NotificationsClient({
 
         {/* Alerte "À surveiller" — warn */}
         <div style={{ padding: "18px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-warn)", flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 500 }}>Composant à surveiller</span>
-                <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600, letterSpacing: 0.4 }}>PAR DÉFAUT 80%</span>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-warn)", flexShrink: 0, marginTop: 4 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 500 }}>À surveiller</span>
+                <Toggle
+                  enabled={settings.notify_warn}
+                  onChange={() => saveSettings({ ...settings, notify_warn: !settings.notify_warn })}
+                />
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Déclenche une alerte préventive quand l'usure atteint ce seuil</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Alerte préventive — défaut</span>
+                <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>80%</span>
+              </div>
             </div>
-            <Toggle
-              enabled={settings.notify_warn}
-              onChange={() => saveSettings({ ...settings, notify_warn: !settings.notify_warn })}
-            />
           </div>
           {settings.notify_warn && (
             <ThresholdSlider
