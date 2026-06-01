@@ -15,7 +15,7 @@ export default async function BikesPage() {
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-  const [{ data: bikes }, { data: yearActivities }, { data: profile }] = await Promise.all([
+  const [{ data: bikes }, { data: yearActivities }, { data: profile }, { data: configuredBikes }] = await Promise.all([
     supabase
       .from("bike_stats")
       .select("*")
@@ -32,7 +32,14 @@ export default async function BikesPage() {
       .select("strava_athlete_id")
       .eq("id", user.id)
       .single(),
+    supabase
+      .from("components")
+      .select("bike_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true),
   ]);
+
+  const configuredBikeIds = new Set((configuredBikes ?? []).map(c => c.bike_id as string));
 
   const stravaConnected = !!profile?.strava_athlete_id;
   const bikeList = bikes ?? [];
@@ -119,6 +126,7 @@ export default async function BikesPage() {
               const warnCount = (b.warn_count as number) ?? 0;
               const costPerKm = (b.cost_per_km as number | null);
               const isStrava = !!(b.strava_gear_id as string | null);
+              const isConfigured = configuredBikeIds.has(b.id as string);
 
               // Couleur cyclique par index — comme l'ancienne version
               const BIKE_COLORS = ["#F97316", "#8B5CF6", "#84CC16", "#06B6D4", "#F43F5E", "#A78BFA"];
@@ -268,6 +276,18 @@ export default async function BikesPage() {
                           {stats.rides} sortie{stats.rides !== 1 ? "s" : ""}
                         </Mono>
                       </div>
+
+                      {/* Badge non configuré */}
+                      {!isConfigured && (
+                        <Link
+                          href={`/onboarding?bike_id=${b.id}`}
+                          onClick={e => e.stopPropagation()}
+                          style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-ok)" }}>Configurer le matériel</span>
+                        </Link>
+                      )}
 
                       {/* Footer */}
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
