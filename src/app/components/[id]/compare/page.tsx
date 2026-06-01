@@ -241,6 +241,9 @@ export default async function ComparePage({
                     label="Choisir cette option"
                     fullWidth
                     variant={isReco ? "accent" : "default"}
+                    newComponentName={o.name}
+                    newComponentBrand={o.brand || undefined}
+                    newComponentKmMax={o.lifeKm}
                   />
                 </div>
               </div>
@@ -322,8 +325,11 @@ export default async function ComparePage({
                 componentCategory={comp.category as string}
                 currentBikeKm={bike?.total_km ?? 0}
                 componentPrice={recommended.price}
-                label="Marquer comme remplacé"
+                label="Marquer comme remplacé (recommandé)"
                 fullWidth
+                newComponentName={recommended.name}
+                newComponentBrand={recommended.brand || undefined}
+                newComponentKmMax={recommended.lifeKm}
               />
             </div>
           </BiCard>

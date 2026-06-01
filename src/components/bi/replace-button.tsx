@@ -23,6 +23,11 @@ interface Props {
   label?: string;
   fullWidth?: boolean;
   variant?: "default" | "accent";
+  // Données du nouveau composant (depuis le comparateur)
+  // Si présentes → création automatique sans passer par /components/new
+  newComponentName?: string;
+  newComponentBrand?: string;
+  newComponentKmMax?: number;
 }
 
 export function ReplaceButton({
@@ -35,6 +40,9 @@ export function ReplaceButton({
   label,
   fullWidth,
   variant = "default",
+  newComponentName,
+  newComponentBrand,
+  newComponentKmMax,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -64,6 +72,34 @@ export function ReplaceButton({
       reason,
     });
 
+    // Si les données du nouveau composant sont fournies → création automatique
+    if (newComponentName && newComponentKmMax) {
+      const { data: newComp } = await supabase.from("components").insert({
+        user_id:        user.id,
+        bike_id:        bikeId,
+        name:           newComponentName,
+        brand:          newComponentBrand ?? null,
+        category:       componentCategory,
+        purchase_price: componentPrice ?? null,
+        km_max:         newComponentKmMax,
+        installed_km:   Math.round(currentBikeKm),
+        installed_at:   new Date().toISOString().slice(0, 10),
+        is_active:      true,
+        status:         "ok",
+      }).select("id").single();
+
+      await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+
+      if (newComp?.id) {
+        router.push(`/components/${newComp.id}`);
+      } else {
+        router.push(`/components`);
+      }
+      router.refresh();
+      return;
+    }
+
+    // Sinon → comportement classique : redirection vers /components/new
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     const params = new URLSearchParams({
