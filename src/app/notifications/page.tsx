@@ -1,9 +1,8 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
-import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
+import { PageHead } from "@/components/bi/ui";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { NotificationsClient } from "./client";
 
 export default async function NotificationsPage() {
@@ -11,12 +10,19 @@ export default async function NotificationsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: notifications } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: notifications }, { data: settings }] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("notification_settings")
+      .select("notify_warn, notify_bad")
+      .eq("user_id", user.id)
+      .single(),
+  ]);
 
   const notifs = (notifications ?? []) as {
     id: string;
@@ -39,7 +45,13 @@ export default async function NotificationsPage() {
           sub={unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}` : "Tout est à jour"}
         />
 
-        <NotificationsClient notifications={notifs} />
+        <NotificationsClient
+          notifications={notifs}
+          initialSettings={{
+            notify_warn: settings?.notify_warn ?? true,
+            notify_bad:  settings?.notify_bad  ?? true,
+          }}
+        />
       </div>
     </AppShell>
   );

@@ -15,16 +15,36 @@ export async function POST() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // 2. Fetch composants warn/bad après recalcul
+  // 2. Paramètres de notification de l'utilisateur
+  const { data: settings } = await supabase
+    .from('notification_settings')
+    .select('notify_warn, notify_bad')
+    .eq('user_id', user.id)
+    .single()
+
+  const notifyWarn = settings?.notify_warn ?? true
+  const notifyBad  = settings?.notify_bad  ?? true
+
+  // Si tout est désactivé, on s'arrête là
+  if (!notifyWarn && !notifyBad) {
+    return NextResponse.json({ ok: true })
+  }
+
+  // 3. Fetch composants selon les statuts activés
+  const activeStatuses = [
+    ...(notifyBad  ? ['bad']  : []),
+    ...(notifyWarn ? ['warn'] : []),
+  ]
+
   const { data: alertComps } = await supabase
     .from('component_stats')
     .select('id, name, bike_id, status, bikes(name)')
     .eq('user_id', user.id)
     .eq('is_active', true)
-    .in('status', ['warn', 'bad'])
+    .in('status', activeStatuses)
 
   if (alertComps && alertComps.length > 0) {
-    // 3. Notifs déjà non lues pour ces composants (évite les doublons)
+    // 4. Notifs déjà non lues pour ces composants (évite les doublons)
     const compIds = alertComps.map(c => c.id as string)
     const { data: existing } = await supabase
       .from('notifications')
@@ -38,10 +58,7 @@ export async function POST() {
     )
 
     const toInsert = alertComps
-      .filter(c => {
-        const key = `${c.id}:${c.status}`
-        return !existingSet.has(key)
-      })
+      .filter(c => !existingSet.has(`${c.id}:${c.status}`))
       .map(c => {
         const bikeRaw = c.bikes as { name: string } | { name: string }[] | null
         const bikeName = Array.isArray(bikeRaw) ? (bikeRaw[0]?.name ?? '—') : (bikeRaw?.name ?? '—')
