@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/bi/auth-shell";
 import { Mono } from "@/components/bi/ui";
+import { supabase } from "@/lib/supabase";
 
 type Step = "intro" | "auth" | "importing" | "success";
 const STEP_ORDER: Step[] = ["intro", "auth", "importing", "success"];
@@ -232,19 +233,39 @@ function StepImporting({ onNext }: { onNext: () => void }) {
 
 // ── Step 4: Success ────────────────────────────────────────────
 function StepSuccess() {
-  const bikes = [
-    { name: "Canyon Aeroad", model: "CF SLX 8", sorties: 87, km: 2840 },
-    { name: "Specialized Tarmac", model: "SL7 Comp", sorties: 38, km: 1120 },
-    { name: "Cube Reaction", model: "Hardtail C:62", sorties: 17, km: 540 },
-  ];
+  const [bikes, setBikes] = useState<{ id: string; name: string; model: string | null; total_km: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBikes() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const { data } = await supabase
+        .from("bikes")
+        .select("id, name, model, total_km")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .order("total_km", { ascending: false });
+      setBikes(data ?? []);
+      setLoading(false);
+    }
+    fetchBikes();
+  }, []);
+
+  const totalKm = bikes.reduce((s, b) => s + (b.total_km ?? 0), 0);
 
   return (
     <AuthShell
       step={3}
       total={3}
       eyebrow="Import terminé"
-      headline={<>3 vélos.<br />142 sorties.<br />4 500 km.</>}
-      sub="Tout ton historique Strava est synchronisé. Prochaine étape : déclare le matériel installé sur ton vélo principal pour démarrer le suivi d'usure."
+      headline={
+        loading ? <>C&apos;est prêt.</> :
+        bikes.length > 0
+          ? <>{bikes.length} vélo{bikes.length > 1 ? "s" : ""}.<br />{totalKm.toLocaleString("fr")} km.</>
+          : <>C&apos;est prêt.</>
+      }
+      sub="Tout ton historique Strava est synchronisé. Prochaine étape : configure ton matériel pour démarrer le suivi d'usure."
     >
       <div style={{ width: 56, height: 56, borderRadius: 16, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
@@ -254,31 +275,35 @@ function StepSuccess() {
         C&apos;est prêt.
       </div>
       <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
-        On a détecté 3 vélos. Vérifie qu&apos;ils sont corrects avant de déclarer ton matériel.
+        {loading ? "Chargement de tes vélos…" : `On a détecté ${bikes.length} vélo${bikes.length > 1 ? "s" : ""}. Vérifie qu'ils sont corrects avant de configurer ton matériel.`}
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginTop: 26, marginBottom: 10 }}>
-        Vélos importés
-      </div>
-      <div style={{ background: "var(--bi-card)", borderRadius: 14, border: "1px solid var(--bi-line)", overflow: "hidden" }}>
-        {bikes.map((b, i) => (
-          <div key={b.name} style={{ padding: "14px 18px", borderTop: i > 0 ? "1px solid rgba(14,14,16,0.04)" : "none", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: "#F0EFEA", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="17" r="3" /><circle cx="19" cy="17" r="3" /><path d="M12 7l-3 10h6l-3-10zM12 7V4h3" /></svg>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 600 }}>{b.name}</div>
-              <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{b.model} · {b.sorties} sorties</div>
-            </div>
-            <Mono style={{ fontSize: 12.5, fontWeight: 500 }}>{b.km.toLocaleString("fr")} km</Mono>
+      {!loading && bikes.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)", marginTop: 26, marginBottom: 10 }}>
+            Vélos importés
           </div>
-        ))}
-      </div>
+          <div style={{ background: "var(--bi-card)", borderRadius: 14, border: "1px solid var(--bi-line)", overflow: "hidden" }}>
+            {bikes.map((b, i) => (
+              <div key={b.id} style={{ padding: "14px 18px", borderTop: i > 0 ? "1px solid rgba(14,14,16,0.04)" : "none", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "#F0EFEA", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="17" r="3" /><circle cx="19" cy="17" r="3" /><path d="M12 7l-3 10h6l-3-10zM12 7V4h3" /></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{b.name}</div>
+                  {b.model && <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{b.model}</div>}
+                </div>
+                <Mono style={{ fontSize: 12.5, fontWeight: 500 }}>{(b.total_km ?? 0).toLocaleString("fr")} km</Mono>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <div style={{ marginTop: 24 }}>
-        <Link href="/components/new" style={{ textDecoration: "none" }}>
+        <Link href="/onboarding" style={{ textDecoration: "none" }}>
           <button style={{ width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            Déclarer mon matériel
+            Configurer mon matériel
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
           </button>
         </Link>
