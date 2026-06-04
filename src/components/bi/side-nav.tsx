@@ -7,7 +7,6 @@ export interface SideNavBike {
   id: string;
   name: string;
   is_active: boolean;
-  most_critical_component: string | null;
 }
 
 const NAV_ITEMS = [

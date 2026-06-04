@@ -19,7 +19,7 @@ export async function SideNavLoader() {
       const [{ data: bikesData }, { count }] = await Promise.all([
         supabase
           .from('bike_stats')
-          .select('id, name, is_active, most_critical_component')
+          .select('id, name, is_active')
           .eq('user_id', user.id)
           .order('total_km', { ascending: false }),
         supabase

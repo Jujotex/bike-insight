@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createWearNotifications } from '@/lib/notifications-helper'
 import { getValidStravaToken } from '@/lib/strava'
 
 const FIRST_SYNC_DAYS = 90  // Premier import : 90 derniers jours
@@ -146,6 +147,8 @@ export async function POST() {
   const { error: rpcError } = await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
   if (rpcError) {
     console.error('[sync] recalculate_component_km error:', rpcError)
+  } else {
+    await createWearNotifications(supabase, user.id).catch(e => console.error('[sync] notifications error:', e))
   }
 
   console.log(`[sync] ${isFirstSync ? 'Premier import' : 'Import incrémental'} — ${totalImported} activités, ${page - 1} pages`)

@@ -277,8 +277,8 @@ export default async function ComponentDetailPage({
           </div>
         </div>
 
-        <BiCard pad={24} style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+        <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
                 <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Modelisation depuis l'installation</div>
@@ -287,7 +287,7 @@ export default async function ComponentDetailPage({
             </div>
             {kmMax > 0 && chartPoints.length > 0 ? (
               <>
-                <div style={{ position: "relative", height: 180 }}>
+                <div style={{ position: "relative", height: 200 }}>
                   <svg viewBox={"0 0 600 " + chartH} style={{ width: "100%", height: "100%" }} preserveAspectRatio="none">
                     <defs>
                       <linearGradient id={"wg-" + id} x1="0" y1="0" x2="0" y2="1">
@@ -304,20 +304,20 @@ export default async function ComponentDetailPage({
                     {pathD && <path d={pathD} stroke={statusColor} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
                     {chartPoints.length > 0 && (
                       <>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(wearPct)} r="5" fill={statusColor}/>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(wearPct)} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.3"/>
+                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="5" fill={statusColor}/>
+                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.3"/>
                       </>
                     )}
                   </svg>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 24px 16px", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
                   {[chartPoints[0], chartPoints[Math.floor(chartPoints.length / 2)], chartPoints[chartPoints.length - 1]].map((p, i) => (
                     <span key={i}>{p.label}</span>
                   ))}
                 </div>
               </>
             ) : (
-              <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--bi-muted)", fontSize: 13 }}>
+              <div style={{ height: 200, padding: "0 24px 20px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--bi-muted)", fontSize: 13 }}>
                 Donnees insuffisantes
               </div>
             )}
