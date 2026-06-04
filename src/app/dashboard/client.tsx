@@ -7,17 +7,6 @@ import { OnboardingOverlay } from "@/components/bi/onboarding-overlay";
 
 // ── Helpers ───────────────────────────────────────────────────
 
-function formatLastRide(iso: string | null): string {
-  if (!iso) return "Aucune sortie";
-  const d = new Date(iso);
-  const diffDays = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Aujourd'hui";
-  if (diffDays === 1) return "Hier";
-  if (diffDays < 7) return `Il y a ${diffDays} j`;
-  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} sem.`;
-  return d.toLocaleDateString("fr-FR", { month: "long" });
-}
-
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
   if (w <= 0) return "maintenant";
@@ -57,6 +46,7 @@ interface AttentionItem {
   id: string;
   name: string;
   brand: string | null;
+  category: string;
   bikeName: string;
   bikeId: string;
   status: string;
@@ -69,6 +59,7 @@ interface AttentionItem {
 interface Prediction {
   componentId: string;
   componentName: string;
+  category: string;
   bikeName: string;
   bikeId: string;
   kmRemaining: number;
@@ -77,23 +68,10 @@ interface Prediction {
   urgency: "now" | "soon" | "later";
 }
 
-interface BikeStatusItem {
-  id: string;
-  name: string;
-  totalKm: number;
-  lastRideAt: string | null;
-  status: string;
-  badCount: number;
-  warnCount: number;
-  okCount: number;
-  isActive: boolean;
-}
-
 export interface DashboardClientProps {
   userName: string;
   todayCap: string;
   bikes: Array<Record<string, unknown>>;
-  activityChart: number[];
   kpis: {
     totalKm12m: number;
     totalRides12m: number;
@@ -104,7 +82,6 @@ export interface DashboardClientProps {
   };
   readinessByBike: Record<string, ReadinessScore>;
   attentionItems: AttentionItem[];
-  bikeStatus: BikeStatusItem[];
   predictions: Prediction[];
   budget12m: Record<string, number>;
   budget12mTotal: number;
@@ -114,8 +91,8 @@ export interface DashboardClientProps {
 // ── Component ─────────────────────────────────────────────────
 
 export function DashboardClient({
-  userName, todayCap, bikes, activityChart, kpis,
-  readinessByBike, attentionItems, bikeStatus,
+  userName, todayCap, bikes, kpis,
+  readinessByBike, attentionItems,
   predictions, budget12m, budget12mTotal, wearByCategoryByBike,
 }: DashboardClientProps) {
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
@@ -139,15 +116,10 @@ export function DashboardClient({
     : "Action requise avant de partir.";
 
   const topCritical = filteredAttention[0] ?? null;
-  const scoreIfFixed = topCritical
-    ? Math.min(100, currentReadiness.value + Math.round((100 - currentReadiness.value) * 0.5))
-    : null;
 
   const budget3m = filteredPredictions
     .filter(p => p.weeksUntil !== null && p.weeksUntil <= 13)
     .reduce((s, p) => s + (p.cost ?? 0), 0);
-
-  const maxChart = Math.max(...activityChart, 1);
 
   const budgetEntries = (Object.entries(budget12m) as [string, number][])
     .filter(([, v]) => v > 0)
@@ -188,8 +160,9 @@ export function DashboardClient({
             const bid = b.id as string;
             const bname = b.name as string;
             const isSelected = bid === selectedBikeId;
-            const bikeS = bikeStatus.find(s => s.id === bid);
-            const dotColor = bikeS?.status === "bad" ? "var(--bi-bad)" : bikeS?.status === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
+            const bikeItems = attentionItems.filter(a => a.bikeId === bid);
+            const bikeStatusDerived = bikeItems.some(a => a.status === "bad") ? "bad" : bikeItems.some(a => a.status === "warn") ? "warn" : "ok";
+            const dotColor = bikeStatusDerived === "bad" ? "var(--bi-bad)" : bikeStatusDerived === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
             return (
               <button
                 key={bid}
@@ -239,7 +212,7 @@ export function DashboardClient({
               </div>
               <div style={{ marginTop: 14, fontSize: 14, lineHeight: 1.5, fontWeight: 500 }}>
                 <span style={{ color: readinessColor, fontWeight: 600 }}>{readinessLabel}</span>
-                {topCritical && <> Ta {topCritical.name.toLowerCase()} approche du seuil critique.</>}
+                {topCritical && <> {CATEGORY_LABELS[topCritical.category] ?? topCritical.name} à surveiller.</>}
               </div>
             </div>
           </div>
@@ -331,8 +304,9 @@ export function DashboardClient({
                 return (
                   <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)" }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 3 }}>Prochaine révision estimée</div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{next.componentName}</div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 3 }}>Prochaine révision</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{CATEGORY_LABELS[next.category] ?? next.componentName}</div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{next.componentName}</div>
                       <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>
                         {weeksLabel}{next.cost ? ` · ~${next.cost} €` : ""}
                       </div>
@@ -351,17 +325,15 @@ export function DashboardClient({
               const label = c.status === "bad" ? "CRITIQUE" : "À SURVEILLER";
               const isBad = c.status === "bad";
 
-              // Phrase temporelle humaine
               const urgencyLine = (() => {
                 if (isBad) {
-                  if (c.weeksUntil !== null && c.weeksUntil <= 0) return "Dépassé — remplace maintenant";
-                  if (c.weeksUntil !== null && c.weeksUntil <= 1) return "À ton rythme · remplace cette semaine";
-                  if (c.weeksUntil !== null) return `À ton rythme · remplace dans ${formatWeeks(c.weeksUntil)}`;
-                  return `~${c.kmRemaining.toLocaleString("fr")} km restants`;
+                  if (c.weeksUntil !== null && c.weeksUntil <= 0) return "Dépassé";
+                  if (c.weeksUntil !== null && c.weeksUntil <= 1) return "Cette semaine";
+                  if (c.weeksUntil !== null) return `Dans ${formatWeeks(c.weeksUntil)}`;
+                  return `~${c.kmRemaining.toLocaleString("fr")} km`;
                 } else {
-                  if (c.weeksUntil !== null && c.weeksUntil <= 2) return `À ton rythme · commence à chercher (~${formatWeeks(c.weeksUntil)})`;
-                  if (c.weeksUntil !== null) return `À ton rythme · encore ${formatWeeks(c.weeksUntil)} devant toi`;
-                  return `~${c.kmRemaining.toLocaleString("fr")} km restants`;
+                  if (c.weeksUntil !== null) return `Dans ${formatWeeks(c.weeksUntil)}`;
+                  return `~${c.kmRemaining.toLocaleString("fr")} km`;
                 }
               })();
 
@@ -373,10 +345,10 @@ export function DashboardClient({
                   <div style={{ width: 4, height: 56, background: color, borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 14.5, fontWeight: 600 }}>{c.name}</span>
+                      <span style={{ fontSize: 14.5, fontWeight: 600 }}>{CATEGORY_LABELS[c.category] ?? c.name}</span>
                       <span style={{ fontSize: 9.5, padding: "3px 8px", borderRadius: 999, background: isBad ? "rgba(200,54,46,0.1)" : "rgba(208,132,21,0.1)", color, fontWeight: 700, letterSpacing: 0.5 }}>{label}</span>
                     </div>
-                    {/* Phrase temporelle */}
+                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{c.name}</div>
                     <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{urgencyLine}</div>
                     <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ flex: 1, maxWidth: 200, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
@@ -447,8 +419,8 @@ export function DashboardClient({
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: dotColor, flexShrink: 0, display: "inline-block" }} />
                     <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 60, flexShrink: 0 }}>~{formatWeeks(p.weeksUntil)}</Mono>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.componentName}</div>
-                      <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 1 }}>{p.urgency === "now" ? "à remplacer" : "fin de cycle"}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{CATEGORY_LABELS[p.category] ?? p.componentName}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.componentName}</div>
                     </div>
                     {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 500 }}>{p.cost} €</Mono>}
                   </div>
@@ -459,108 +431,35 @@ export function DashboardClient({
         </BiCard>
       </div>
 
-      {/* ── Statut par vélo ─────────────────────────────────────── */}
-      {bikeStatus.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-            <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.3 }}>Statut par vélo</span>
-            <span style={{ fontSize: 11.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-              {bikeStatus.length} vélo{bikeStatus.length !== 1 ? "s" : ""} · {bikeStatus.reduce((s, b) => s + b.totalKm, 0).toLocaleString("fr")} km cumulés
-            </span>
-          </div>
-          <div className="bi-grid-bikes">
-            {bikeStatus.map(b => {
-              const sc = b.status === "bad" ? "var(--bi-bad)" : b.status === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
-              const statusLabel = b.status === "bad" ? "Action requise" : b.status === "warn" ? "À surveiller" : "Tout OK";
-              return (
-                <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
-                  <BiCard pad={18} style={{ border: b.isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)", cursor: "pointer" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 14.5, fontWeight: 600 }}>{b.name}</span>
-                          {b.isActive && (
-                            <span style={{ fontSize: 9, padding: "3px 7px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontWeight: 700, letterSpacing: 0.4 }}>ACTIF</span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 3 }}>
-                          {b.totalKm.toLocaleString("fr")} km
-                        </div>
-                      </div>
-                      <div style={{ width: 14, height: 14, borderRadius: 999, background: sc, flexShrink: 0, marginTop: 4, boxShadow: `0 0 0 4px ${sc === "var(--bi-bad)" ? "rgba(200,54,46,0.15)" : sc === "var(--bi-warn)" ? "rgba(208,132,21,0.15)" : "rgba(52,211,153,0.15)"}` }} />
-                    </div>
-                    <div style={{ marginTop: 14, padding: "8px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: sc }}>{statusLabel}</span>
-                      <div style={{ display: "flex", gap: 8, fontSize: 11, fontFamily: "var(--font-jetbrains-mono)" }}>
-                        {b.badCount > 0 && <span style={{ color: "var(--bi-bad)", fontWeight: 600 }}>● {b.badCount}</span>}
-                        {b.warnCount > 0 && <span style={{ color: "var(--bi-warn)", fontWeight: 600 }}>● {b.warnCount}</span>}
-                      </div>
-                    </div>
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11.5, color: "var(--bi-muted)" }}>
-                      <span>Dernière sortie : {formatLastRide(b.lastRideAt)}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-                    </div>
-                  </BiCard>
-                </Link>
-              );
-            })}
+      {/* ── Budget composants ───────────────────────────────────── */}
+      <BiCard pad={22}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Budget · composants actifs</div>
+            <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{budget12mTotal} € · par poste</div>
           </div>
         </div>
-      )}
-
-      {/* ── Activité + Budget ───────────────────────────────────── */}
-      <div className="bi-grid-split-lg">
-        <BiCard pad={22}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Activité · 30 derniers jours</div>
-              <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
-                {kpis.totalKm12m.toLocaleString("fr")} km · {kpis.totalRides12m} sortie{kpis.totalRides12m !== 1 ? "s" : ""} · 12 mois
-              </div>
+        {budgetEntries.length > 0 ? (
+          <>
+            <div style={{ marginTop: 18, display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2 }}>
+              {budgetEntries.map(([cat, val]) => (
+                <div key={cat} style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }} />
+              ))}
             </div>
-          </div>
-          <div style={{ marginTop: 18, height: 80, display: "flex", alignItems: "flex-end", gap: 3 }}>
-            {activityChart.map((h, i) => (
-              <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxChart) * 100))}%`, background: h > maxChart * 0.6 ? "var(--bi-accent)" : h > 0 ? "var(--bi-line)" : "transparent", borderRadius: 2, minHeight: h > 0 ? 3 : 0 }} />
-            ))}
-          </div>
-          <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-            {[0, 9, 19, 29].map(i => {
-              const d = new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000);
-              return <span key={i}>{d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>;
-            })}
-          </div>
-        </BiCard>
-
-        <BiCard pad={22}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Budget · composants actifs</div>
-              <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{budget12mTotal} € · par poste</div>
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+              {budgetEntries.map(([cat, val]) => (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)", flexShrink: 0, display: "inline-block" }} />
+                  <span style={{ flex: 1 }}>{CATEGORY_LABELS[cat] ?? cat}</span>
+                  <Mono style={{ fontWeight: 500 }}>{Math.round(val)} €</Mono>
+                </div>
+              ))}
             </div>
-          </div>
-          {budgetEntries.length > 0 ? (
-            <>
-              <div style={{ marginTop: 18, display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2 }}>
-                {budgetEntries.map(([cat, val]) => (
-                  <div key={cat} style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }} />
-                ))}
-              </div>
-              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                {budgetEntries.map(([cat, val]) => (
-                  <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 999, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)", flexShrink: 0, display: "inline-block" }} />
-                    <span style={{ flex: 1 }}>{CATEGORY_LABELS[cat] ?? cat}</span>
-                    <Mono style={{ fontWeight: 500 }}>{Math.round(val)} €</Mono>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div style={{ marginTop: 18, fontSize: 13, color: "var(--bi-muted)" }}>Ajoute des composants pour voir la répartition.</div>
-          )}
-        </BiCard>
-      </div>
+          </>
+        ) : (
+          <div style={{ marginTop: 18, fontSize: 13, color: "var(--bi-muted)" }}>Ajoute des composants pour voir la répartition.</div>
+        )}
+      </BiCard>
     </>
   );
 }

@@ -82,6 +82,7 @@ export async function getDashboardData() {
   type Prediction = {
     componentId: string
     componentName: string
+    category: string
     bikeName: string
     bikeId: string
     kmRemaining: number
@@ -108,6 +109,7 @@ export async function getDashboardData() {
       return {
         componentId: c.id as string,
         componentName: c.name as string,
+        category: (c.category as string) ?? 'autre',
         bikeName: bikeName.get(bikeId) ?? '—',
         bikeId,
         kmRemaining: Math.max(0, Math.round(kmRemaining)),
@@ -168,6 +170,7 @@ export async function getDashboardData() {
         id: c.id as string,
         name: c.name as string,
         brand: (c.brand as string) ?? null,
+        category: (c.category as string) ?? 'autre',
         bikeName: bikeName.get(bikeId) ?? '—',
         bikeId,
         status: c.status as string,
