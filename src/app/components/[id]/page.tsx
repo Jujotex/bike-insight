@@ -277,8 +277,7 @@ export default async function ComponentDetailPage({
           </div>
         </div>
 
-        <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <BiCard pad={24}>
+        <BiCard pad={24} style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
@@ -362,7 +361,6 @@ export default async function ComponentDetailPage({
             )}
           </BiCard>
           )}
-        </div>
 
         <BiCard pad={24}>
           <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
