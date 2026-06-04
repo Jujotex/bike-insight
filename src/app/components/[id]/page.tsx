@@ -112,46 +112,18 @@ export default async function ComponentDetailPage({
   const toY = (pct: number) => chartH - 10 - (pct / chartMaxPct) * (chartH - 20);
   const chartPoints: Array<{ x: number; pct: number; label: string }> = [];
 
-  // Fetch real activity data to build the curve
-  if (installedMs && kmMax > 0 && comp.bike_id && comp.installed_at) {
-    const { data: rideActivities } = await supabase
-      .from("activities")
-      .select("started_at, distance_km")
-      .eq("bike_id", comp.bike_id as string)
-      .gte("started_at", comp.installed_at as string)
-      .order("started_at", { ascending: true });
-
-    const rides = rideActivities ?? [];
+  // Modèle linéaire — correct pour l'usure (proportionnelle aux km)
+  // Les activités par bike_id sont souvent incomplètes, on utilise le km_used réel
+  if (installedMs && kmMax > 0) {
     const nowMs = Date.now();
     const totalMs = nowMs - installedMs;
-    const NUM_POINTS = 14; // plus de points = courbe plus lisse
-
-    // Calculer le total des activités pour calibrer sur le wear réel
-    const activityTotalKm = rides.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
-    const actualKmUsed = (kmMax * rawWearPct) / 100;
-    // Facteur de calibration : ramène le cumul activités sur le km_used réel
-    const scale = activityTotalKm > 0 ? actualKmUsed / activityTotalKm : 1;
+    const NUM_POINTS = 20;
 
     for (let i = 0; i <= NUM_POINTS; i++) {
       const t = i / NUM_POINTS;
       const targetMs = installedMs + totalMs * t;
+      const pct = Math.round(rawWearPct * t);
       const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
-
-      let pct: number;
-      if (i === NUM_POINTS) {
-        // Dernier point toujours épinglé sur le wear réel
-        pct = rawWearPct;
-      } else if (activityTotalKm > 0) {
-        // Points intermédiaires calibrés
-        const cumKm = rides
-          .filter(a => new Date(a.started_at as string).getTime() <= targetMs)
-          .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
-        pct = Math.round((cumKm * scale / kmMax) * 100);
-      } else {
-        // Fallback linéaire si pas d'activités
-        pct = Math.round(rawWearPct * t);
-      }
-
       chartPoints.push({ x: t * 560 + 20, pct, label });
     }
   }
@@ -309,23 +281,40 @@ export default async function ComponentDetailPage({
                   <svg viewBox={"0 0 600 " + chartH} style={{ width: "100%", height: "100%" }} preserveAspectRatio="none">
                     <defs>
                       <linearGradient id={"wg-" + id} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={statusColor} stopOpacity="0.25"/>
+                        <stop offset="0%" stopColor={statusColor} stopOpacity="0.18"/>
                         <stop offset="100%" stopColor={statusColor} stopOpacity="0"/>
                       </linearGradient>
                     </defs>
-                    {[25, 50, 75, 100].map(pct => (
-                      <line key={pct} x1="0" y1={toY(pct)} x2="600" y2={toY(pct)} stroke="var(--bi-line)" strokeDasharray="3 3"/>
-                    ))}
-                    <rect x="0" y="0" width="600" height={toY(80)} fill={statusColor} opacity="0.05"/>
-                    <text x="8" y={toY(80) - 4} textAnchor="start" fontSize="9" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="600">SEUIL 80%</text>
+
+                    {/* Zone critique au-dessus du seuil */}
+                    <rect x="0" y="0" width="600" height={toY(80)} fill={statusColor} opacity="0.04"/>
+
+                    {/* Ligne de seuil 80% */}
+                    <line x1="0" y1={toY(80)} x2="600" y2={toY(80)} stroke={statusColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.4"/>
+                    <text x="8" y={toY(80) - 5} textAnchor="start" fontSize="8.5" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700" opacity="0.7">80%</text>
+
+                    {/* Ligne de référence 0% */}
+                    <line x1="0" y1={toY(0)} x2="600" y2={toY(0)} stroke="var(--bi-line)" strokeWidth="1"/>
+
+                    {/* Remplissage gradient */}
                     {fillD && <path d={fillD} fill={"url(#wg-" + id + ")"}/>}
+
+                    {/* Courbe principale */}
                     {pathD && <path d={pathD} stroke={statusColor} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
-                    {chartPoints.length > 0 && (
-                      <>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="5" fill={statusColor}/>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.3"/>
-                      </>
-                    )}
+
+                    {/* Point final avec label % */}
+                    {chartPoints.length > 0 && (() => {
+                      const last = chartPoints[chartPoints.length - 1];
+                      const ly = toY(last.pct);
+                      const labelY = ly < 20 ? ly + 18 : ly - 8;
+                      return (
+                        <>
+                          <circle cx={last.x} cy={ly} r="5" fill={statusColor}/>
+                          <circle cx={last.x} cy={ly} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.25"/>
+                          <text x={last.x - 6} y={labelY} textAnchor="end" fontSize="10" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700">{rawWearPct}%</text>
+                        </>
+                      );
+                    })()}
                   </svg>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 24px 16px", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
