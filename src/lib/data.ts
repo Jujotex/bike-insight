@@ -214,7 +214,19 @@ export async function getDashboardData() {
     }
   })
 
-  // ── Budget 12 mois par catégorie ─────────────────────────────
+  // ── Budget par catégorie, par vélo ───────────────────────────
+  const budgetByBike: Record<string, Record<string, number>> = {}
+  for (const bike of (bikes ?? [])) {
+    const bid = bike.id as string
+    const bikeComps = allActive.filter(c => c.bike_id === bid)
+    budgetByBike[bid] = bikeComps.reduce((acc, c) => {
+      const cat = (c.category as string) ?? 'autre'
+      const price = (c.purchase_price as number) ?? 0
+      acc[cat] = (acc[cat] ?? 0) + price
+      return acc
+    }, {} as Record<string, number>)
+  }
+  // Garder budget12m global pour compatibilité (budget12mTotal affiché dans l'en-tête)
   const budget12m = allActive.reduce((acc, c) => {
     const cat = (c.category as string) ?? 'autre'
     const price = (c.purchase_price as number) ?? 0
@@ -268,6 +280,7 @@ export async function getDashboardData() {
     budget12m,
     budget12mTotal: Math.round(budget12mTotal),
     readinessByBike,
+    budgetByBike,
     wearByCategoryByBike,
   }
 }
@@ -353,47 +366,6 @@ export async function getComponentsData() {
       totalCost: Math.round(activeCost + replacedCost),
       avgBeat,
     },
-  }
-}
-
-// ── Analysis data ──────────────────────────────────────────────
-
-export async function getAnalysisData() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-
-  const [{ data: components }, { data: bikes }, { data: yearActivities }] = await Promise.all([
-    supabase.from('component_stats').select('*').eq('user_id', user.id).eq('is_active', true).order('wear_pct', { ascending: false }),
-    supabase.from('bike_stats').select('*').eq('user_id', user.id).eq('is_active', true),
-    supabase.from('activities').select('distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()),
-  ])
-
-  const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
-  const totalRides12m = yearActivities?.length ?? 0
-  const totalCost = bikes?.reduce((s, b) => s + ((b.total_cost as number) ?? 0), 0) ?? 0
-  const totalKm = bikes?.reduce((s, b) => s + ((b.total_km as number) ?? 0), 0) ?? 0
-  const costPerKm = totalKm > 0 ? Math.round((totalCost / totalKm) * 100) / 100 : null
-
-  const costByCategory = (components ?? []).reduce((acc, c) => {
-    const cat = (c.category as string) ?? 'autre'
-    acc[cat] = (acc[cat] ?? 0) + ((c.purchase_price as number) ?? 0)
-    return acc
-  }, {} as Record<string, number>)
-
-  return {
-    components: components ?? [],
-    bikes: bikes ?? [],
-    kpis: {
-      totalCost: Math.round(totalCost),
-      costPerKm,
-      totalKm12m: Math.round(totalKm12m),
-      totalRides12m,
-      bikeCount: bikes?.length ?? 0,
-    },
-    costByCategory,
   }
 }
 

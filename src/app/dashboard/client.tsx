@@ -83,8 +83,7 @@ export interface DashboardClientProps {
   readinessByBike: Record<string, ReadinessScore>;
   attentionItems: AttentionItem[];
   predictions: Prediction[];
-  budget12m: Record<string, number>;
-  budget12mTotal: number;
+  budgetByBike: Record<string, Record<string, number>>;
   wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
 }
 
@@ -93,7 +92,7 @@ export interface DashboardClientProps {
 export function DashboardClient({
   userName, todayCap, bikes, kpis,
   readinessByBike, attentionItems,
-  predictions, budget12m, budget12mTotal, wearByCategoryByBike,
+  predictions, budgetByBike, wearByCategoryByBike,
 }: DashboardClientProps) {
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
   const [selectedBikeId, setSelectedBikeId] = useState(primaryBikeId);
@@ -121,7 +120,9 @@ export function DashboardClient({
     .filter(p => p.weeksUntil !== null && p.weeksUntil <= 13)
     .reduce((s, p) => s + (p.cost ?? 0), 0);
 
-  const budgetEntries = (Object.entries(budget12m) as [string, number][])
+  const selectedBudget = budgetByBike[selectedBikeId] ?? {};
+  const selectedBudgetTotal = Object.values(selectedBudget).reduce((s, v) => s + v, 0);
+  const budgetEntries = (Object.entries(selectedBudget) as [string, number][])
     .filter(([, v]) => v > 0)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 4);
@@ -382,8 +383,8 @@ export function DashboardClient({
             <Mono style={{ fontSize: 38, fontWeight: 500, letterSpacing: -1.2, lineHeight: 1 }}>{Math.round(budget3m)}</Mono>
             <span style={{ fontSize: 16, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€</span>
             <span style={{ flex: 1 }} />
-            {budget12mTotal > 0 && (
-              <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{budget12mTotal} € total</span>
+            {selectedBudgetTotal > 0 && (
+              <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{Math.round(selectedBudgetTotal)} € total</span>
             )}
           </div>
 
@@ -440,7 +441,7 @@ export function DashboardClient({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Budget · composants actifs</div>
-            <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{budget12mTotal} € · par poste</div>
+            <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{Math.round(selectedBudgetTotal)} € · par poste</div>
           </div>
         </div>
         {budgetEntries.length > 0 ? (

@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   const {
     user, bikes, kpis,
     readinessByBike, attentionItems,
-    predictions, budget12m, budget12mTotal, wearByCategoryByBike,
+    predictions, budgetByBike, wearByCategoryByBike,
   } = data;
 
   const userName = (user.user_metadata?.full_name as string)?.split(" ")[0] ?? "toi";
@@ -29,8 +29,7 @@ export default async function DashboardPage() {
           readinessByBike={readinessByBike}
           attentionItems={attentionItems}
           predictions={predictions}
-          budget12m={budget12m}
-          budget12mTotal={budget12mTotal}
+          budgetByBike={budgetByBike}
           wearByCategoryByBike={wearByCategoryByBike}
         />
       </div>
