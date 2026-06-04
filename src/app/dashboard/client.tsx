@@ -413,16 +413,20 @@ export function DashboardClient({
             ) : (
               filteredPredictions.slice(0, 4).map((p, i, arr) => {
                 const dotColor = p.urgency === "now" ? "var(--bi-bad)" : p.urgency === "soon" ? "var(--bi-warn)" : "var(--bi-muted)";
-                const isBeyond = p.weeksUntil !== null && p.weeksUntil > 13;
+                const timeLabel = p.urgency === "now"
+                  ? "Maintenant"
+                  : p.weeksUntil !== null ? `Dans ${formatWeeks(p.weeksUntil)}` : null;
                 return (
-                  <div key={i} style={{ padding: "12px 22px", display: "flex", alignItems: "center", gap: 14, borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)", opacity: isBeyond ? 0.6 : 1 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 999, background: dotColor, flexShrink: 0, display: "inline-block" }} />
-                    <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 60, flexShrink: 0 }}>~{formatWeeks(p.weeksUntil)}</Mono>
+                  <div key={i} style={{ padding: "13px 22px", display: "flex", alignItems: "center", gap: 12, borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)" }}>
+                    <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor, flexShrink: 0, display: "inline-block" }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{CATEGORY_LABELS[p.category] ?? p.componentName}</div>
-                      <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.componentName}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{CATEGORY_LABELS[p.category] ?? p.componentName}</div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {p.componentName}
+                        {timeLabel && <span style={{ color: dotColor }}> · {timeLabel}</span>}
+                      </div>
                     </div>
-                    {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 500 }}>{p.cost} €</Mono>}
+                    {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 600 }}>{p.cost} €</Mono>}
                   </div>
                 );
               })
@@ -457,7 +461,7 @@ export function DashboardClient({
             </div>
           </>
         ) : (
-          <div style={{ marginTop: 18, fontSize: 13, color: "var(--bi-muted)" }}>Ajoute des composants pour voir la répartition.</div>
+          <div style={{ marginTop: 18, fontSize: 13, color: "var(--bi-muted)" }}>Ajoute des composants pourvoir la répartition.</div>
         )}
       </BiCard>
     </>

@@ -107,15 +107,33 @@ export default async function ComponentDetailPage({
 
   const installedMs = comp.installed_at ? new Date(comp.installed_at as string).getTime() : null;
   const chartH = 180;
-  const toY = (pct: number) => chartH - 10 - (pct / 100) * (chartH - 20);
+  const rawWearPct = Math.round((comp.wear_pct as number) ?? 0);
+  const chartMaxPct = Math.max(rawWearPct, 100);
+  const toY = (pct: number) => chartH - 10 - (pct / chartMaxPct) * (chartH - 20);
   const chartPoints: Array<{ x: number; pct: number; label: string }> = [];
-  if (installedMs && kmMax > 0) {
-    const totalMs = Date.now() - installedMs;
-    for (let i = 0; i <= 6; i++) {
-      const t = i / 6;
-      const ms = installedMs + totalMs * t;
-      const pct = Math.round(wearPct * t);
-      const label = new Date(ms).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+
+  // Fetch real activity data to build the curve
+  if (installedMs && kmMax > 0 && comp.bike_id && comp.installed_at) {
+    const { data: rideActivities } = await supabase
+      .from("activities")
+      .select("started_at, distance_km")
+      .eq("bike_id", comp.bike_id as string)
+      .gte("started_at", comp.installed_at as string)
+      .order("started_at", { ascending: true });
+
+    const rides = rideActivities ?? [];
+    const now = Date.now();
+    const totalMs = now - installedMs;
+    const NUM_POINTS = 7;
+
+    for (let i = 0; i <= NUM_POINTS; i++) {
+      const t = i / NUM_POINTS;
+      const targetMs = installedMs + totalMs * t;
+      const cumKm = rides
+        .filter(a => new Date(a.started_at).getTime() <= targetMs)
+        .reduce((s, a) => s + (a.distance_km ?? 0), 0);
+      const pct = Math.round((cumKm / kmMax) * 100);
+      const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
       chartPoints.push({ x: t * 560 + 20, pct, label });
     }
   }
@@ -164,7 +182,9 @@ export default async function ComponentDetailPage({
                   componentPrice={comp.purchase_price as number | null}
                 />
               )}
-              <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
+              {(comp.status as string) === "archived" && (
+                <ArchiveButton componentId={id} isArchived={true} />
+              )}
               <DeleteButton componentId={id} componentName={comp.name as string} bikeId={comp.bike_id as string} />
             </div>
           }
@@ -304,20 +324,15 @@ export default async function ComponentDetailPage({
             )}
           </BiCard>
 
+          {maintenanceLogs.length > 0 && (
           <BiCard pad={0}>
             <div style={{ padding: "22px 22px 12px" }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
               <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                {maintenanceLogs.length > 0
-                  ? maintenanceLogs.length + " evenement" + (maintenanceLogs.length !== 1 ? "s" : "")
-                  : "Aucun historique"}
+                {maintenanceLogs.length + " evenement" + (maintenanceLogs.length !== 1 ? "s" : "")}
               </div>
             </div>
-            {maintenanceLogs.length === 0 ? (
-              <div style={{ padding: "24px 22px", color: "var(--bi-muted)", fontSize: 12.5, textAlign: "center" }}>
-                Aucun evenement de maintenance.
-              </div>
-            ) : (
+            {(
               maintenanceLogs.map((log, i) => {
                 const logDate = log.performed_at
                   ? new Date(log.performed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
@@ -346,6 +361,7 @@ export default async function ComponentDetailPage({
               })
             )}
           </BiCard>
+          )}
         </div>
 
         <BiCard pad={24}>
