@@ -182,7 +182,9 @@ export default async function ComponentDetailPage({
                   componentPrice={comp.purchase_price as number | null}
                 />
               )}
-              <ArchiveButton componentId={id} isArchived={(comp.status as string) === "archived"} />
+              {(comp.status as string) === "archived" && (
+                <ArchiveButton componentId={id} isArchived={true} />
+              )}
               <DeleteButton componentId={id} componentName={comp.name as string} bikeId={comp.bike_id as string} />
             </div>
           }
