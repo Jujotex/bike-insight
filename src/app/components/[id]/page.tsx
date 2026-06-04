@@ -122,18 +122,36 @@ export default async function ComponentDetailPage({
       .order("started_at", { ascending: true });
 
     const rides = rideActivities ?? [];
-    const now = Date.now();
-    const totalMs = now - installedMs;
-    const NUM_POINTS = 7;
+    const nowMs = Date.now();
+    const totalMs = nowMs - installedMs;
+    const NUM_POINTS = 14; // plus de points = courbe plus lisse
+
+    // Calculer le total des activités pour calibrer sur le wear réel
+    const activityTotalKm = rides.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+    const actualKmUsed = (kmMax * rawWearPct) / 100;
+    // Facteur de calibration : ramène le cumul activités sur le km_used réel
+    const scale = activityTotalKm > 0 ? actualKmUsed / activityTotalKm : 1;
 
     for (let i = 0; i <= NUM_POINTS; i++) {
       const t = i / NUM_POINTS;
       const targetMs = installedMs + totalMs * t;
-      const cumKm = rides
-        .filter(a => new Date(a.started_at).getTime() <= targetMs)
-        .reduce((s, a) => s + (a.distance_km ?? 0), 0);
-      const pct = Math.round((cumKm / kmMax) * 100);
       const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+
+      let pct: number;
+      if (i === NUM_POINTS) {
+        // Dernier point toujours épinglé sur le wear réel
+        pct = rawWearPct;
+      } else if (activityTotalKm > 0) {
+        // Points intermédiaires calibrés
+        const cumKm = rides
+          .filter(a => new Date(a.started_at as string).getTime() <= targetMs)
+          .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+        pct = Math.round((cumKm * scale / kmMax) * 100);
+      } else {
+        // Fallback linéaire si pas d'activités
+        pct = Math.round(rawWearPct * t);
+      }
+
       chartPoints.push({ x: t * 560 + 20, pct, label });
     }
   }
