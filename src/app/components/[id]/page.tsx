@@ -322,20 +322,15 @@ export default async function ComponentDetailPage({
             )}
           </BiCard>
 
+          {maintenanceLogs.length > 0 && (
           <BiCard pad={0}>
             <div style={{ padding: "22px 22px 12px" }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
               <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                {maintenanceLogs.length > 0
-                  ? maintenanceLogs.length + " evenement" + (maintenanceLogs.length !== 1 ? "s" : "")
-                  : "Aucun historique"}
+                {maintenanceLogs.length + " evenement" + (maintenanceLogs.length !== 1 ? "s" : "")}
               </div>
             </div>
-            {maintenanceLogs.length === 0 ? (
-              <div style={{ padding: "24px 22px", color: "var(--bi-muted)", fontSize: 12.5, textAlign: "center" }}>
-                Aucun evenement de maintenance.
-              </div>
-            ) : (
+            {(
               maintenanceLogs.map((log, i) => {
                 const logDate = log.performed_at
                   ? new Date(log.performed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
@@ -364,6 +359,7 @@ export default async function ComponentDetailPage({
               })
             )}
           </BiCard>
+          )}
         </div>
 
         <BiCard pad={24}>
