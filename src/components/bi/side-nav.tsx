@@ -29,12 +29,6 @@ const NAV_ITEMS = [
     href: "/components",
     icon: "M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8M12 9a3 3 0 100 6 3 3 0 000-6z",
   },
-  {
-    id: "sync",
-    label: "Sync Strava",
-    href: "/sync",
-    icon: "M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3",
-  },
 ];
 
 interface SideNavProps {

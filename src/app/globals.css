@@ -169,3 +169,12 @@ body {
   /* Attention item: tighter on mobile */
   .bi-attention-row { gap: 10px !important; padding: 14px 16px !important; }
 }
+
+/* ── Stats strips (5 colonnes sur desktop) ──────────────────── */
+.bi-stats-5 { display: grid; gap: 1px; grid-template-columns: repeat(5, 1fr); background: var(--bi-line); border-radius: 18px; overflow: hidden; }
+.bi-stats-4 { display: grid; gap: 1px; grid-template-columns: repeat(4, 1fr); background: var(--bi-line); border-radius: 16px; overflow: hidden; }
+
+@media (max-width: 768px) {
+  .bi-stats-5 { grid-template-columns: repeat(2, 1fr); }
+  .bi-stats-4 { grid-template-columns: repeat(2, 1fr); }
+}

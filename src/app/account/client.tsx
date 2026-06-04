@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Mono } from "@/components/bi/ui";
+import { ManualRideButton } from "@/components/bi/manual-ride-button";
+import { SyncButton } from "@/components/bi/sync-button";
 
 interface Props {
   userId: string;
@@ -12,6 +14,7 @@ interface Props {
   lastName: string;
   email: string;
   initials: string;
+  bikes: { id: string; name: string }[];
   stravaConnected: boolean;
   bikeCount: number;
   componentCount: number;
@@ -38,7 +41,7 @@ const row: React.CSSProperties = {
 
 export function AccountClient({
   firstName: initialFirstName, lastName: initialLastName, email, initials: initialInitials,
-  stravaConnected, bikeCount, componentCount,
+  bikes, stravaConnected, bikeCount, componentCount,
   unreadNotifCount, memberSince,
 }: Props) {
   const router = useRouter();
@@ -228,6 +231,18 @@ export function AccountClient({
               Connecter
             </a>
           )}
+        </div>
+
+        {/* Sorties */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid var(--bi-line)" }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Sorties</div>
+            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>Ajouter ou synchroniser des activités</div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {stravaConnected && <SyncButton stravaConnected={stravaConnected} />}
+            <ManualRideButton bikes={bikes} />
+          </div>
         </div>
       </div>
 
