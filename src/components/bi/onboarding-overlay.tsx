@@ -66,7 +66,7 @@ const STEPS = [
     ),
     cta: "Configurer mon vélo en 2 min",
     ctaHref: "/onboarding",
-    skip: true,
+    skip: false,
   },
   {
     n: 3,
@@ -195,7 +195,7 @@ export function OnboardingOverlay() {
             </button>
           )}
           {s.ctaHref ? (
-            <Link href={s.ctaHref} onClick={dismiss} style={{ flex: 2, textDecoration: "none" }}>
+            <Link href={s.ctaHref} style={{ flex: 2, textDecoration: "none" }}>
               <button style={{ width: "100%", padding: "13px 0", background: "var(--bi-accent)", color: "#0E0E10", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {s.cta}
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
