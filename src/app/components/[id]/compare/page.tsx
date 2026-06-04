@@ -22,9 +22,9 @@ function buildGenericOptions(price: number | null, kmMax: number) {
   const basePrice = price ?? 40;
   const baseKm = kmMax > 0 ? kmMax : 3000;
   return [
-    { name: "Option économique", brand: "", price: Math.round(basePrice * 0.7), lifeKm: Math.round(baseKm * 0.85), tier: "budget" as const, note: "Vérifier la compatibilité avec ton groupe" },
-    { name: "Même référence", brand: "", price: basePrice, lifeKm: baseKm, tier: "original" as const, note: "Le modèle que tu connais déjà" },
-    { name: "Gamme supérieure", brand: "", price: Math.round(basePrice * 1.75), lifeKm: Math.round(baseKm * 1.5), tier: "premium" as const, note: "Durée de vie +50%, meilleure finition" },
+    { name: "~" + Math.round(basePrice * 0.7) + " €", brand: "Estimation", price: Math.round(basePrice * 0.7), lifeKm: Math.round(baseKm * 0.85), tier: "budget" as const, note: "Fourchette basse estimée — vérifier la compatibilité avec ton modèle" },
+    { name: "~" + basePrice + " €", brand: "Estimation", price: basePrice, lifeKm: baseKm, tier: "original" as const, note: "Équivalent à ton composant actuel, prix estimé à partir de ton historique" },
+    { name: "~" + Math.round(basePrice * 1.75) + " €", brand: "Estimation", price: Math.round(basePrice * 1.75), lifeKm: Math.round(baseKm * 1.5), tier: "premium" as const, note: "Fourchette haute estimée — durée de vie potentiellement allongée" },
   ];
 }
 
@@ -110,13 +110,21 @@ export default async function ComparePage({
           }
         />
 
-        {/* Banner compatibilité détectée */}
-        {catalogEntry && (
+        {/* Banner compatibilité détectée ou avertissement */}
+        {catalogEntry ? (
           <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
             <div>
               <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Compatibilité détectée — </span>
               <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{catalogEntry.compatNote}</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(208,132,21,0.06)", border: "1px solid rgba(208,132,21,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-warn)" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <div>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Estimations génériques — </span>
+              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>Ce composant n&apos;est pas dans le catalogue. Les prix et durées sont des estimations — consulte ton vélociste.</span>
             </div>
           </div>
         )}

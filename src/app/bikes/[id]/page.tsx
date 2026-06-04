@@ -113,7 +113,7 @@ export default async function BikeDetailPage({
 
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--bi-muted)", marginBottom: 10 }}>
-          <Link href="/dashboard" style={{ textDecoration: "none", color: "var(--bi-muted)" }}>Vue d&apos;ensemble</Link>
+          <Link href="/bikes" style={{ textDecoration: "none", color: "var(--bi-muted)" }}>Mes vélos</Link>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
           <span style={{ color: "var(--bi-ink)" }}>{bike.name}</span>
         </div>
