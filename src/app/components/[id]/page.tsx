@@ -299,7 +299,7 @@ export default async function ComponentDetailPage({
                       <line key={pct} x1="0" y1={toY(pct)} x2="600" y2={toY(pct)} stroke="var(--bi-line)" strokeDasharray="3 3"/>
                     ))}
                     <rect x="0" y="0" width="600" height={toY(80)} fill={statusColor} opacity="0.05"/>
-                    <text x="595" y={toY(80) - 4} textAnchor="end" fontSize="9" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="600">SEUIL 80%</text>
+                    <text x="8" y={toY(80) - 4} textAnchor="start" fontSize="9" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="600">SEUIL 80%</text>
                     {fillD && <path d={fillD} fill={"url(#wg-" + id + ")"}/>}
                     {pathD && <path d={pathD} stroke={statusColor} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
                     {chartPoints.length > 0 && (
