@@ -18,7 +18,7 @@ export default async function AccountPage() {
 
   const { data: bikes } = await supabase
     .from("bikes")
-    .select("id")
+    .select("id, name")
     .eq("user_id", user.id)
     .eq("is_active", true);
 
@@ -60,6 +60,7 @@ export default async function AccountPage() {
           email={email}
           initials={initials}
           stravaConnected={stravaConnected}
+          bikes={(bikes ?? []).map(b => ({ id: b.id as string, name: b.name as string }))}
           bikeCount={bikes?.length ?? 0}
           componentCount={components?.length ?? 0}
           unreadNotifCount={notifCount ?? 0}
