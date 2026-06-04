@@ -124,7 +124,6 @@ export default async function BikesPage() {
               const isActive = b.id === activeBikeId;
               const badCount = (b.bad_count as number) ?? 0;
               const warnCount = (b.warn_count as number) ?? 0;
-              const costPerKm = (b.cost_per_km as number | null);
               const isStrava = !!(b.strava_gear_id as string | null);
               const isConfigured = configuredBikeIds.has(b.id as string);
 
@@ -229,30 +228,6 @@ export default async function BikesPage() {
                         {(b.brand as string | null) ? `${b.brand}${(b.model as string | null) ? ` · ${b.model}` : ""}` : ((b.model as string | null) ?? "Vélo")}
                       </div>
 
-                      {/* Stats: km + coût/km */}
-                      <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <div>
-                          <BiLabel>Kilométrage</BiLabel>
-                          <div style={{ marginTop: 4 }}>
-                            <Mono style={{ fontSize: 18, fontWeight: 500 }}>{((b.total_km as number) ?? 0).toLocaleString("fr")}</Mono>
-                            <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> km</span>
-                          </div>
-                        </div>
-                        <div>
-                          <BiLabel>Coût/km</BiLabel>
-                          <div style={{ marginTop: 4 }}>
-                            {costPerKm !== null && costPerKm !== undefined ? (
-                              <>
-                                <Mono style={{ fontSize: 18, fontWeight: 500 }}>{(costPerKm as number).toFixed(2)}</Mono>
-                                <span style={{ fontSize: 11, color: "var(--bi-muted)" }}> €</span>
-                              </>
-                            ) : (
-                              <Mono style={{ fontSize: 18, fontWeight: 500, color: "var(--bi-muted)" }}>—</Mono>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Status strip */}
                       <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", gap: 8 }}>
@@ -281,7 +256,6 @@ export default async function BikesPage() {
                       {!isConfigured && (
                         <Link
                           href={`/onboarding?bike_id=${b.id}`}
-                          onClick={e => e.stopPropagation()}
                           style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>

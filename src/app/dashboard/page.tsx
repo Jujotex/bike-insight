@@ -9,8 +9,8 @@ export default async function DashboardPage() {
   if (!data) redirect("/login");
 
   const {
-    user, bikes, activityChart, kpis,
-    readinessByBike, attentionItems, bikeStatus,
+    user, bikes, kpis,
+    readinessByBike, attentionItems,
     predictions, budget12m, budget12mTotal, wearByCategoryByBike,
   } = data;
 
@@ -25,11 +25,9 @@ export default async function DashboardPage() {
           userName={userName}
           todayCap={todayCap}
           bikes={bikes as unknown as Array<Record<string, unknown>>}
-          activityChart={activityChart}
           kpis={kpis}
           readinessByBike={readinessByBike}
           attentionItems={attentionItems}
-          bikeStatus={bikeStatus}
           predictions={predictions}
           budget12m={budget12m}
           budget12mTotal={budget12mTotal}
