@@ -304,8 +304,8 @@ export default async function ComponentDetailPage({
                     {pathD && <path d={pathD} stroke={statusColor} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>}
                     {chartPoints.length > 0 && (
                       <>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(wearPct)} r="5" fill={statusColor}/>
-                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(wearPct)} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.3"/>
+                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="5" fill={statusColor}/>
+                        <circle cx={chartPoints[chartPoints.length - 1].x} cy={toY(chartPoints[chartPoints.length - 1].pct)} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.3"/>
                       </>
                     )}
                   </svg>
