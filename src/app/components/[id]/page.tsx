@@ -364,7 +364,7 @@ export default async function ComponentDetailPage({
 
         <BiCard pad={24}>
           <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+          <div className="bi-stats-4" style={{ gap: 20, background: "transparent", borderRadius: 0 }}>
             {[
               ["Velo", bike?.name ?? "-"],
               ["Categorie", CATEGORY_LABELS[comp.category as string] ?? String(comp.category)],

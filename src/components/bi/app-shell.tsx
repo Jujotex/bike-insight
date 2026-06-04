@@ -41,7 +41,7 @@ export function AppShell({ children, nav }: AppShellProps) {
           overflow: "hidden",
         }}
       >
-        <main style={{ flex: 1, overflow: "auto" }}>
+        <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {children}
         </main>
 

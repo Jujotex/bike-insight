@@ -143,7 +143,7 @@ export default async function BikeDetailPage({
         </div>
 
         {/* Hero stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 14 }}>
+        <div className="bi-stats-5" style={{ marginBottom: 14 }}>
           {[
             ["Kilométrage total", fmt(bike.total_km ?? 0), "km"],
             ["Coût total", fmt(Math.round((bike.total_cost as number) ?? 0)), "€"],
@@ -166,6 +166,8 @@ export default async function BikeDetailPage({
 
           {/* Components table */}
           <BiCard pad={0}>
+            <div className="bi-table-scroll">
+            <div style={{ minWidth: 580 }}>
             <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>Composants · {components.length}</div>
@@ -221,6 +223,7 @@ export default async function BikeDetailPage({
                 );
               })
             )}
+            </div></div>
           </BiCard>
 
           {/* Right column */}
