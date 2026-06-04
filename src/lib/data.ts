@@ -27,6 +27,7 @@ export async function getDashboardData() {
     { data: yearActivities },
     { data: allComponents },
     { data: ninetyDaysActivities },
+    { data: yearActivitiesByBike },
   ] = await Promise.all([
     primaryBike
       ? supabase.from('component_stats').select('*').eq('bike_id', primaryBike.id).eq('is_active', true).order('wear_pct', { ascending: false })
@@ -35,8 +36,9 @@ export async function getDashboardData() {
     supabase.from('activities').select('started_at, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()).order('started_at', { ascending: true }),
     // Tous les composants actifs de tous les vélos pour les prédictions
     supabase.from('component_stats').select('*').eq('user_id', user.id).eq('is_active', true).not('km_remaining', 'is', null),
-    // Activités 90j par vélo pour calculer le rythme km/semaine
+    // Activités 90j + 12m par vélo pour calculer le rythme km/semaine (avec fallback)
     supabase.from('activities').select('bike_id, distance_km, started_at').eq('user_id', user.id).gte('started_at', ninetyDaysAgo.toISOString()),
+    supabase.from('activities').select('bike_id, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()),
   ])
 
   const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
@@ -74,7 +76,15 @@ export async function getDashboardData() {
     const bikeKm90d = (ninetyDaysActivities ?? [])
       .filter(a => a.bike_id === bike.id)
       .reduce((s, a) => s + (a.distance_km ?? 0), 0)
-    kmPerWeekByBike.set(bike.id as string, bikeKm90d / 13) // 90j ≈ 13 semaines
+    if (bikeKm90d > 0) {
+      kmPerWeekByBike.set(bike.id as string, bikeKm90d / 13) // 90j ≈ 13 semaines
+    } else {
+      // Fallback: utiliser le rythme sur 12 mois si 90j est vide (période creuse)
+      const bikeKm12m = (yearActivitiesByBike ?? [])
+        .filter(a => a.bike_id === bike.id)
+        .reduce((s, a) => s + (a.distance_km ?? 0), 0)
+      kmPerWeekByBike.set(bike.id as string, bikeKm12m / 52)
+    }
   }
 
   const bikeName = new Map((bikes ?? []).map(b => [b.id as string, b.name as string]))
@@ -155,7 +165,7 @@ export async function getDashboardData() {
     const _cScore = _bad
       ? Math.max(30, Math.round(100 - _avgW * 1.3))
       : _warn ? Math.max(60, Math.round(100 - _avgW * 0.9)) : Math.max(75, Math.round(100 - _avgW * 0.5))
-    readinessByBike[_bid] = { value: _cScore, components: _cScore }
+    readinessByBike[_bid] = { value: _cScore, components: _comps.length }
   }
 
   // ── Attention items (bad + warn, tous vélos) ─────────────────

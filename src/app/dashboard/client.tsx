@@ -194,6 +194,22 @@ export function DashboardClient({
 
       {/* ── Readiness hero ──────────────────────────────────────── */}
       <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
+        {currentReadiness.components === 0 ? (
+          <div style={{ padding: "32px 32px", display: "flex", alignItems: "center", gap: 24 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>Aucun composant configuré</div>
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 4 }}>Ajoute tes composants pour suivre l'usure et recevoir des alertes.</div>
+            </div>
+            <Link href="/components/new">
+              <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap" }}>
+                Ajouter un composant
+              </button>
+            </Link>
+          </div>
+        ) : (
         <div className="bi-grid-readiness">
           {/* Score */}
           <div className="bi-readiness-divider" style={{ padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -252,6 +268,7 @@ export function DashboardClient({
             })()}
           </div>
         </div>
+      )}
       </BiCard>
 
       {/* ── Attention + Prévisions ──────────────────────────────── */}
