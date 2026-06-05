@@ -183,8 +183,11 @@ body {
 .bi-bike-title { font-size: 32px; }
 
 @media (max-width: 768px) {
-  .bi-bike-title { font-size: 24px; letter-spacing: -0.5px; }
+  /* Titre vélo plus compact */
+  .bi-bike-title { font-size: 22px !important; letter-spacing: -0.3px; }
+  /* Header vélo : titre au-dessus, boutons en dessous */
+  .bi-bike-header { flex-direction: column !important; gap: 12px !important; }
   /* Dernière cellule seule sur sa ligne → pleine largeur */
-  .bi-stats-5 > *:last-child:nth-child(odd),
+  .bi-stats-5 > *:last-child:nth-child(5) { grid-column: span 2; }
   .bi-stats-4 > *:last-child:nth-child(odd) { grid-column: span 2; }
 }

@@ -217,9 +217,9 @@ export default async function ComponentDetailPage({
               </Mono>
             </div>
             <div style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
-              <Mono style={{ fontSize: 100, fontWeight: 400, letterSpacing: -4, lineHeight: 1 }}>
+              <span style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
                 {kmMax > 0 ? wearPct : "-"}
-              </Mono>
+              </span>
               {kmMax > 0 && <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>}
               <div style={{ flex: 1 }} />
               {kmMax > 0 && (
