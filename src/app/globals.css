@@ -109,8 +109,18 @@ body {
 
 /* ── PageHead responsive ─────────────────────────────────────── */
 @media (max-width: 768px) {
-  .bi-pagehead-title { font-size: 26px !important; }
-  .bi-pagehead-row > *:last-child { flex-shrink: 0; }
+  .bi-pagehead-title { font-size: 22px !important; }
+  .bi-pagehead-row { flex-direction: column !important; }
+  .bi-pagehead-row > *:last-child {
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .bi-pagehead-row > *:last-child > div {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .bi-pagehead-row > *:last-child button,
+  .bi-pagehead-row > *:last-child a > button { flex: 1; min-width: 120px; justify-content: center; }
 }
 /* ── Shadcn/Tailwind radius token ───────────────────────────── */
 @theme inline {
@@ -181,13 +191,73 @@ body {
 
 /* ── Bike detail header mobile ──────────────────────────────── */
 .bi-bike-title { font-size: 32px; }
+.bi-bike-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
 @media (max-width: 768px) {
   /* Titre vélo plus compact */
   .bi-bike-title { font-size: 22px !important; letter-spacing: -0.3px; }
   /* Header vélo : titre au-dessus, boutons en dessous */
   .bi-bike-header { flex-direction: column !important; gap: 12px !important; }
+  /* Boutons header : pleine largeur, wrappables */
+  .bi-bike-header-actions { flex-wrap: wrap; width: 100%; flex-shrink: 0; }
+  .bi-bike-header-actions > * { flex: 1; min-width: 130px; }
+  .bi-bike-header-actions button,
+  .bi-bike-header-actions a > button { width: 100%; justify-content: center; }
   /* Dernière cellule seule sur sa ligne → pleine largeur */
   .bi-stats-5 > *:last-child:nth-child(5) { grid-column: span 2; }
   .bi-stats-4 > *:last-child:nth-child(odd) { grid-column: span 2; }
+}
+
+/* ── Components table mobile ─────────────────────────────────── */
+.bi-comp-table-inner { min-width: 580px; }
+.bi-comp-table-header-row {
+  padding: 8px 22px 6px;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr;
+  gap: 14px;
+  font-size: 10.5px;
+  color: var(--bi-muted);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bi-line);
+}
+.bi-comp-table-data-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--bi-line);
+  text-decoration: none;
+  color: inherit;
+}
+
+@media (max-width: 768px) {
+  .bi-comp-table-inner { min-width: 0; }
+  .bi-comp-table-header-row,
+  .bi-comp-table-data-row { grid-template-columns: 2fr 1.5fr; gap: 10px; }
+  .bi-comp-col-installed,
+  .bi-comp-col-km,
+  .bi-comp-col-cost,
+  .bi-comp-col-cpm { display: none !important; }
+}
+
+/* ── Compare page responsive ─────────────────────────────────── */
+.bi-compare-context {
+  display: grid;
+  grid-template-columns: 1.4fr 1px 1fr 1px 1fr;
+  align-items: center;
+}
+.bi-compare-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 768px) {
+  .bi-compare-context { grid-template-columns: 1fr; }
+  .bi-compare-context-divider { display: none !important; }
+  .bi-compare-options { grid-template-columns: 1fr; }
 }

@@ -131,7 +131,7 @@ export default async function ComparePage({
 
         {/* Context card */}
         <div style={{ background: "var(--bi-card)", borderRadius: 16, border: "1px solid var(--bi-line)", overflow: "hidden", marginBottom: 22 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1px 1fr 1px 1fr", alignItems: "center" }}>
+          <div className="bi-compare-context">
             <div style={{ padding: "18px 22px" }}>
               <BiLabel>Composant actuel</BiLabel>
               <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
@@ -144,7 +144,7 @@ export default async function ComparePage({
                 </div>
               </div>
             </div>
-            <div style={{ height: 56, background: "var(--bi-line)" }} />
+            <div className="bi-compare-context-divider" style={{ height: 56, background: "var(--bi-line)" }} />
             <div style={{ padding: "18px 22px" }}>
               <BiLabel>Usure</BiLabel>
               <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 4 }}>
@@ -156,7 +156,7 @@ export default async function ComparePage({
                 <span style={{ fontSize: 10.5, fontWeight: 700, color: statusColor, letterSpacing: 0.6 }}>{urgencyLabel} · {wearPct}%</span>
               </div>
             </div>
-            <div style={{ height: 56, background: "var(--bi-line)" }} />
+            <div className="bi-compare-context-divider" style={{ height: 56, background: "var(--bi-line)" }} />
             <div style={{ padding: "18px 22px" }}>
               <BiLabel>Vie restante</BiLabel>
               <div style={{ marginTop: 8 }}>
@@ -170,7 +170,7 @@ export default async function ComparePage({
         </div>
 
         {/* 3 option cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 22 }}>
+        <div className="bi-compare-options">
           {options.map((o, idx) => {
             const isReco = idx === 1;
             const costPerKm = o.price / o.lifeKm;
@@ -259,39 +259,6 @@ export default async function ComparePage({
           })}
         </div>
 
-        {/* Tableau comparatif */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.4 }}>Comparaison détaillée</div>
-          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>Basé sur ton rythme réel de {kmPerYear.toLocaleString("fr")} km/an</div>
-        </div>
-
-        <BiCard pad={0} style={{ marginBottom: 22 }}>
-          <div style={{ padding: "14px 22px 12px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: "1px solid var(--bi-line)" }}>
-            <span></span>
-            {options.map((o, i) => (
-              <span key={o.tier} style={{ textAlign: "center", color: i === 1 ? "var(--bi-ink)" : "var(--bi-muted)" }}>
-                {TIER_LABELS[o.tier]}
-              </span>
-            ))}
-          </div>
-          {[
-            ["Produit", options.map(o => o.name)],
-            ["Marque", options.map(o => o.brand || "—")],
-            ["Durée estimée", options.map(o => o.lifeKm.toLocaleString("fr") + " km")],
-            ["Prix", options.map(o => o.price + " €")],
-            ["Coût / km", options.map(o => (o.price / o.lifeKm).toFixed(3) + " €")],
-            ["Coût / an", options.map(o => Math.round((o.price / o.lifeKm) * kmPerYear) + " €")],
-          ].map(([label, vals], i, arr) => (
-            <div key={i} style={{ padding: "13px 22px", display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, alignItems: "center", borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)" }}>
-              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{label as string}</span>
-              {(vals as string[]).map((v, j) => (
-                <span key={j} style={{ fontSize: 12.5, fontWeight: j === 1 ? 600 : 500, textAlign: "center", fontFamily: "var(--bi-font-mono)", background: j === 1 ? "rgba(14,14,16,0.03)" : "transparent", padding: "5px 0", borderRadius: 6 }}>
-                  {v}
-                </span>
-              ))}
-            </div>
-          ))}
-        </BiCard>
 
         {/* Raisonnement + prochaines étapes */}
         <div className="bi-grid-split">

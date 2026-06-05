@@ -158,7 +158,7 @@ export default async function BikeDetailPage({
               {bike.brand ? `${bike.brand} · ` : ""}{totalRides12m} sortie{totalRides12m !== 1 ? "s" : ""} enregistrée{totalRides12m !== 1 ? "s" : ""} · 12 mois
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <div className="bi-bike-header-actions">
             <ManualRideButton bikes={[{ id: bike.id as string, name: bike.name as string }]} defaultBikeId={bike.id as string} />
             <Link href={`/components/new`}>
               <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
@@ -193,21 +193,20 @@ export default async function BikeDetailPage({
 
           {/* Components table */}
           <BiCard pad={0}>
-            <div className="bi-table-scroll">
-            <div style={{ minWidth: 580 }}>
+            <div className="bi-comp-table-inner">
             <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>Composants · {components.length}</div>
                 <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par taux d&apos;usure</div>
               </div>
             </div>
-            <div style={{ padding: "8px 22px 6px", display: "grid", gridTemplateColumns: "1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr", gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
+            <div className="bi-comp-table-header-row">
               <span>Composant</span>
-              <span>Installé</span>
+              <span className="bi-comp-col-installed">Installé</span>
               <span>Usure</span>
-              <span style={{ textAlign: "right" }}>Km</span>
-              <span style={{ textAlign: "right" }}>Coût</span>
-              <span style={{ textAlign: "right" }}>€/km</span>
+              <span className="bi-comp-col-km" style={{ textAlign: "right" }}>Km</span>
+              <span className="bi-comp-col-cost" style={{ textAlign: "right" }}>Coût</span>
+              <span className="bi-comp-col-cpm" style={{ textAlign: "right" }}>€/km</span>
             </div>
             {components.length === 0 ? (
               <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
@@ -222,7 +221,7 @@ export default async function BikeDetailPage({
                   ? new Date(c.installed_at as string).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
                   : "—";
                 return (
-                  <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row" style={{ textDecoration: "none", color: "inherit", display: "grid", gridTemplateColumns: "1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr", gap: 14, alignItems: "center", padding: "14px 22px", borderBottom: "1px solid var(--bi-line)" }}>
+                  <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row bi-comp-table-data-row">
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div>
@@ -230,7 +229,9 @@ export default async function BikeDetailPage({
                         <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
                       </div>
                     </div>
-                    <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{installedDate}</Mono>
+                    <div className="bi-comp-col-installed">
+                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{installedDate}</Mono>
+                    </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ flex: 1 }}>
                         <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={3} />
@@ -239,18 +240,24 @@ export default async function BikeDetailPage({
                         {c.wear_pct !== null ? `${Math.round(wearPct)}%` : "—"}
                       </Mono>
                     </div>
-                    <Mono style={{ fontSize: 12, textAlign: "right" }}>{fmt(c.km_used ?? 0)}</Mono>
-                    <Mono style={{ fontSize: 12, textAlign: "right" }}>
-                      {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                    </Mono>
-                    <Mono style={{ fontSize: 11, color: "var(--bi-muted)", textAlign: "right" }}>
-                      {costPerKmVal !== null ? costPerKmVal.toFixed(3) : "—"}
-                    </Mono>
+                    <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
+                      <Mono style={{ fontSize: 12 }}>{fmt(c.km_used ?? 0)}</Mono>
+                    </div>
+                    <div className="bi-comp-col-cost" style={{ textAlign: "right" }}>
+                      <Mono style={{ fontSize: 12 }}>
+                        {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
+                      </Mono>
+                    </div>
+                    <div className="bi-comp-col-cpm" style={{ textAlign: "right" }}>
+                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>
+                        {costPerKmVal !== null ? costPerKmVal.toFixed(3) : "—"}
+                      </Mono>
+                    </div>
                   </Link>
                 );
               })
             )}
-            </div></div>
+            </div>
           </BiCard>
 
           {/* Right column */}
