@@ -102,7 +102,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
   // ── Tabs config ─────────────────────────────────────────────
   const TAB_LABELS: Record<Tab, string> = {
     actifs: "Actifs",
-    historique: "Historique des remplacements",
+    historique: "Remplacements",
     tous: "Tous",
   };
   const TAB_COUNTS: Record<Tab, number> = {
@@ -154,7 +154,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
       </div>
 
       {/* ── Tabs ──────────────────────────────────────────────── */}
-      <div style={{ display: "flex", gap: 0, marginBottom: 14, borderBottom: "1px solid var(--bi-line)", overflowX: "auto" }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 14, borderBottom: "1px solid var(--bi-line)" }}>
         {(["actifs", "historique", "tous"] as Tab[]).map(t => {
           const on = tab === t;
           return (
@@ -484,56 +484,6 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
         </>
       )}
 
-      {/* ── Footer insight ────────────────────────────────────── */}
-      {kpis.replacedCount > 0 && (
-        <div style={{
-          marginTop: 14, padding: "16px 22px",
-          background: "var(--bi-card)", border: "1px solid var(--bi-line)",
-          borderRadius: 14, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap",
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8, background: "var(--bi-accent)",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="2">
-              <path d="M4 20V10M10 20V4M16 20v-6M22 20H2"/>
-            </svg>
-          </div>
-          <div style={{ flex: 1, fontSize: 13, lineHeight: 1.55, minWidth: 200 }}>
-            {kpis.avgBeat !== null ? (
-              <>
-                Sur tes {kpis.replacedCount} dernier{kpis.replacedCount !== 1 ? "s" : ""} remplacement{kpis.replacedCount !== 1 ? "s" : ""},
-                tes composants durent en moyenne{" "}
-                <Mono style={{ fontWeight: 600, color: kpis.avgBeat >= 0 ? "var(--bi-ok)" : "var(--bi-bad)" }}>
-                  {kpis.avgBeat >= 0 ? "+" : ""}{Math.abs(kpis.avgBeat).toLocaleString("fr")} km
-                </Mono>{" "}
-                {kpis.avgBeat >= 0 ? "de plus" : "de moins"} que prévu.
-                {worstLog && worstLog.beat !== null && worstLog.beat < -300 && (
-                  <>
-                    {" "}
-                    {worstLog.reason === "crevaison" ? "La crevaison" : worstLog.reason === "casse" ? "La casse" : "Ce remplacement"}
-                    {worstLog.performedAt ? ` de ${formatDate(worstLog.performedAt, { month: "long", year: "numeric" })}` : ""}
-                    {" "}pèse pour{" "}
-                    <Mono style={{ fontWeight: 600 }}>{Math.abs(worstLog.beat).toLocaleString("fr")} km</Mono>.
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                {kpis.replacedCount} remplacement{kpis.replacedCount !== 1 ? "s" : ""} enregistré{kpis.replacedCount !== 1 ? "s" : ""}.{" "}
-                Ajoute les kilométrages max de tes composants pour obtenir des insights sur leur durée de vie.
-              </>
-            )}
-          </div>
-          <Link
-            href="/analysis"
-            style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, textDecoration: "none", whiteSpace: "nowrap" }}
-          >
-            Voir l'analyse
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
-          </Link>
-        </div>
-      )}
 
     </div>
   );
