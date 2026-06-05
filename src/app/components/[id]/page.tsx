@@ -277,8 +277,8 @@ export default async function ComponentDetailPage({
             </div>
             {kmMax > 0 && chartPoints.length > 0 ? (
               <>
-                <div style={{ position: "relative", height: 200 }}>
-                  <svg viewBox={"0 0 600 " + chartH} style={{ width: "100%", height: "100%" }} preserveAspectRatio="none">
+                <div style={{ position: "relative" }}>
+                  <svg viewBox={"0 0 600 " + chartH} style={{ width: "100%", display: "block" }}>
                     <defs>
                       <linearGradient id={"wg-" + id} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={statusColor} stopOpacity="0.18"/>
