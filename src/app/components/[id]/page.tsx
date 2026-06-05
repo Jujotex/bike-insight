@@ -112,18 +112,39 @@ export default async function ComponentDetailPage({
   const toY = (pct: number) => chartH - 10 - (pct / chartMaxPct) * (chartH - 20);
   const chartPoints: Array<{ x: number; pct: number; label: string }> = [];
 
-  // Modèle linéaire — correct pour l'usure (proportionnelle aux km)
-  // Les activités par bike_id sont souvent incomplètes, on utilise le km_used réel
-  if (installedMs && kmMax > 0) {
+  // Vraies activités Strava — endpoint épinglé sur le wear réel pour cohérence
+  if (installedMs && kmMax > 0 && comp.bike_id && comp.installed_at) {
+    const { data: rideActivities } = await supabase
+      .from("activities")
+      .select("started_at, distance_km")
+      .eq("bike_id", comp.bike_id as string)
+      .gte("started_at", comp.installed_at as string)
+      .order("started_at", { ascending: true });
+
+    const rides = rideActivities ?? [];
     const nowMs = Date.now();
     const totalMs = nowMs - installedMs;
     const NUM_POINTS = 20;
 
+    const activityTotalKm = rides.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+    const actualKmUsed = (kmMax * rawWearPct) / 100;
+    const scale = activityTotalKm > 0 ? actualKmUsed / activityTotalKm : 1;
+
     for (let i = 0; i <= NUM_POINTS; i++) {
       const t = i / NUM_POINTS;
       const targetMs = installedMs + totalMs * t;
-      const pct = Math.round(rawWearPct * t);
       const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+      let pct: number;
+      if (i === NUM_POINTS) {
+        pct = rawWearPct;
+      } else if (activityTotalKm > 0) {
+        const cumKm = rides
+          .filter(a => new Date(a.started_at as string).getTime() <= targetMs)
+          .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+        pct = Math.round((cumKm * scale / kmMax) * 100);
+      } else {
+        pct = Math.round(rawWearPct * t);
+      }
       chartPoints.push({ x: t * 560 + 20, pct, label });
     }
   }
