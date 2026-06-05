@@ -291,7 +291,7 @@ export default async function ComponentDetailPage({
 
                     {/* Ligne de seuil 80% */}
                     <line x1="0" y1={toY(80)} x2="600" y2={toY(80)} stroke={statusColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.4"/>
-                    <text x="8" y={toY(80) - 5} textAnchor="start" fontSize="8.5" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700" opacity="0.7">80%</text>
+                    <text x="8" y={toY(80) - 5} textAnchor="start" fontSize="9" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700" opacity="0.7">80%</text>
 
                     {/* Ligne de référence 0% */}
                     <line x1="0" y1={toY(0)} x2="600" y2={toY(0)} stroke="var(--bi-line)" strokeWidth="1"/>
@@ -311,7 +311,7 @@ export default async function ComponentDetailPage({
                         <>
                           <circle cx={last.x} cy={ly} r="5" fill={statusColor}/>
                           <circle cx={last.x} cy={ly} r="10" fill="none" stroke={statusColor} strokeWidth="1.5" opacity="0.25"/>
-                          <text x={last.x - 6} y={labelY} textAnchor="end" fontSize="10" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700">{rawWearPct}%</text>
+                          <text x={last.x - 6} y={labelY} textAnchor="end" fontSize="9" fill={statusColor} fontFamily="var(--font-jetbrains-mono)" fontWeight="700">{rawWearPct}%</text>
                         </>
                       );
                     })()}
