@@ -178,3 +178,13 @@ body {
   .bi-stats-5 { grid-template-columns: repeat(2, 1fr); }
   .bi-stats-4 { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Bike detail header mobile ──────────────────────────────── */
+.bi-bike-title { font-size: 32px; }
+
+@media (max-width: 768px) {
+  .bi-bike-title { font-size: 24px; letter-spacing: -0.5px; }
+  /* Dernière cellule seule sur sa ligne → pleine largeur */
+  .bi-stats-5 > *:last-child:nth-child(odd),
+  .bi-stats-4 > *:last-child:nth-child(odd) { grid-column: span 2; }
+}
