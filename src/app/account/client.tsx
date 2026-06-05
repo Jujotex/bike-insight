@@ -116,9 +116,7 @@ export function AccountClient({
             )}
           </div>
         </div>
-        <div style={{ fontSize: 10.5, color: "var(--bi-muted)", textAlign: "right", flexShrink: 0 }}>
-          Membre<br />depuis {memberSince}
-        </div>
+
       </div>
 
       {/* Profil */}
