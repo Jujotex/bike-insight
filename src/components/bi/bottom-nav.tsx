@@ -8,27 +8,15 @@ import { supabase } from "@/lib/supabase";
 const NAV_ITEMS = [
   {
     id: "dashboard",
-    label: "Vue",
+    label: "Accueil",
     href: "/dashboard",
     icon: "M3 12L12 4l9 8M5 10v10h14V10",
   },
   {
     id: "bikes",
-    label: "Vélos",
+    label: "Mes vélos",
     href: "/bikes",
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
-  },
-  {
-    id: "parts",
-    label: "Pièces",
-    href: "/components",
-    icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z",
-  },
-  {
-    id: "notifications",
-    label: "Alertes",
-    href: "/notifications",
-    icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0",
   },
   {
     id: "account",
@@ -54,7 +42,7 @@ export function BottomNav() {
       setUnreadCount(count ?? 0);
     }
     fetchUnread();
-  }, [pathname]); // re-fetch quand on navigue
+  }, [pathname]);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -73,8 +61,8 @@ export function BottomNav() {
     >
       {NAV_ITEMS.map((item) => {
         const active = isActive(item.href);
-        const isNotif = item.id === "notifications";
-        const badge = isNotif && unreadCount > 0 ? unreadCount : 0;
+        const isDashboard = item.id === "dashboard";
+        const badge = isDashboard && unreadCount > 0 ? unreadCount : 0;
 
         return (
           <Link
@@ -85,7 +73,7 @@ export function BottomNav() {
               flexDirection: "column",
               alignItems: "center",
               gap: 4,
-              padding: "6px 10px",
+              padding: "6px 20px",
               borderRadius: 12,
               textDecoration: "none",
               color: active ? "var(--bi-ink)" : "var(--bi-muted)",

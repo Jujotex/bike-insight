@@ -12,7 +12,7 @@ export interface SideNavBike {
 const NAV_ITEMS = [
   {
     id: "dashboard",
-    label: "Vue d'ensemble",
+    label: "Accueil",
     href: "/dashboard",
     icon: "M3 12L12 4l9 8M5 10v10h14V10",
   },
@@ -21,12 +21,6 @@ const NAV_ITEMS = [
     label: "Mes vélos",
     href: "/bikes",
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
-  },
-  {
-    id: "parts",
-    label: "Composants",
-    href: "/components",
-    icon: "M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8M12 9a3 3 0 100 6 3 3 0 000-6z",
   },
 ];
 
@@ -94,35 +88,6 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
           );
         })}
 
-        {/* Notifications */}
-        <Link
-          href="/notifications"
-          style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "10px 12px", borderRadius: 10, textDecoration: "none",
-            background: isActive("/notifications") ? "rgba(14,14,16,0.05)" : "transparent",
-            color: isActive("/notifications") ? "var(--bi-ink)" : "var(--bi-muted)",
-            fontSize: 13.5, fontWeight: isActive("/notifications") ? 600 : 500,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-          <span style={{ flex: 1 }}>Alertes</span>
-          {unreadCount > 0 && (
-            <span style={{
-              fontSize: 10, fontWeight: 700, lineHeight: 1,
-              padding: "2px 6px", borderRadius: 999,
-              background: "var(--bi-bad)", color: "#fff",
-              fontFamily: "var(--font-jetbrains-mono)",
-            }}>
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-          {isActive("/notifications") && unreadCount === 0 && (
-            <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "var(--bi-accent)", flexShrink: 0 }} />
-          )}
-        </Link>
       </div>
 
       <div style={{ flex: 1 }} />
