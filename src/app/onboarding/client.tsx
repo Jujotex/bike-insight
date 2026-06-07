@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, type TemplateComponent } from "@/lib/bike-templates";
+import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
 
 type Bike = {
   id: string;
@@ -72,6 +73,7 @@ export function OnboardingWizard({
   const [templateId, setTemplateId] = useState("");
   const [brakeType, setBrakeType] = useState<"disc" | "rim">("disc");
   const [components, setComponents] = useState<ComponentRow[]>([]);
+  const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
 
   const selectedBike = bikes.find(b => b.id === selectedBikeId);
   const availableTemplates = getTemplatesForType(bikeType);
@@ -122,6 +124,11 @@ export function OnboardingWizard({
 
     const { error: insertErr } = await supabase.from("components").insert(rows);
     if (insertErr) { setError("Erreur : " + insertErr.message); setSaving(false); return; }
+
+    // Save groupset template on bike
+    if (templateId && templateId !== "custom") {
+      await supabase.from("bikes").update({ groupset_template_id: templateId }).eq("id", selectedBikeId).eq("user_id", userId);
+    }
 
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
     const newConfigured = [...configuredThisSession, selectedBikeId];
@@ -331,8 +338,58 @@ export function OnboardingWizard({
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{c.name}</div>
                       <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km max</div>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: T.muted, fontFamily: "var(--bi-font-mono)", flexShrink: 0 }}>{c.purchase_price} €</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: T.muted, fontFamily: "var(--bi-font-mono)" }}>{c.purchase_price} €</div>
+                      {c.enabled && selectedTemplate && selectedTemplate.id !== "custom" && (() => {
+                        const entry: CatalogEntry | null = getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds);
+                        if (!entry) return null;
+                        return (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSwappingIdx(swappingIdx === idx ? null : idx); }}
+                            style={{ fontSize: 11, padding: "3px 9px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}
+                          >
+                            Changer
+                          </button>
+                        );
+                      })()}
+                    </div>
                   </div>
+                  {c.enabled && swappingIdx === idx && selectedTemplate && (() => {
+                    const entry: CatalogEntry | null = getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds);
+                    if (!entry) return null;
+                    return (
+                      <div style={{ padding: "0 14px 12px" }}>
+                        <div style={{ fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+                          Alternatives compatibles
+                        </div>
+                        {entry.products.map((p, pi) => (
+                          <button key={pi} onClick={() => {
+                            updateComponent(idx, "name", p.name);
+                            updateComponent(idx, "brand", p.brand);
+                            updateComponent(idx, "purchase_price", p.price);
+                            updateComponent(idx, "km_max", p.lifeKm);
+                            setSwappingIdx(null);
+                          }} style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            width: "100%", padding: "10px 12px", borderRadius: 10,
+                            border: `1.5px solid ${T.line}`,
+                            background: "transparent",
+                            cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                            marginBottom: pi < entry.products.length - 1 ? 6 : 0,
+                          }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{p.name}</div>
+                              <div style={{ fontSize: 11, color: T.muted }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km</div>
+                            </div>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{p.price} €</div>
+                              <div style={{ fontSize: 9.5, color: T.muted, textTransform: "uppercase" as const, letterSpacing: 0.4 }}>{TIER_LABELS[p.tier]}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   {c.enabled && (
                     <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
