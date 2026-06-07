@@ -392,19 +392,46 @@ export function OnboardingWizard({
                   })()}
                   {c.enabled && (
                     <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                      {/* Nom + marque modifiables */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
+                          <input
+                            value={c.name}
+                            onChange={e => updateComponent(idx, "name", e.target.value)}
+                            style={{ ...inputStyle, fontSize: 13 }}
+                            placeholder="ex. Shimano HG601"
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>
+                          <input
+                            value={c.brand}
+                            onChange={e => updateComponent(idx, "brand", e.target.value)}
+                            style={{ ...inputStyle, fontSize: 13 }}
+                            placeholder="ex. Shimano"
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
+                          <input type="number" value={c.purchase_price} onChange={e => updateComponent(idx, "purchase_price", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km max</div>
+                          <input type="number" value={c.km_max} onChange={e => updateComponent(idx, "km_max", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                        </div>
+                      </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                         <div>
                           <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km installé</div>
                           <input type="number" value={c.installedKm} onChange={e => updateComponent(idx, "installedKm", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
                         </div>
                         <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
-                          <input type="number" value={c.purchase_price} onChange={e => updateComponent(idx, "purchase_price", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Date d installation</div>
+                          <input type="date" value={c.installedDate} onChange={e => updateComponent(idx, "installedDate", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} />
                         </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Date d&apos;installation</div>
-                        <input type="date" value={c.installedDate} onChange={e => updateComponent(idx, "installedDate", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} />
                       </div>
                     </div>
                   )}
