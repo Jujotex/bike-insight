@@ -327,116 +327,121 @@ export function OnboardingWizard({
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Vérifie les composants</div>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>Basé sur <strong style={{ color: T.ink }}>{selectedTemplate?.label ?? "ton groupe"}</strong>.</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {components.map((c, idx) => (
-                <div key={idx} style={{ borderRadius: 12, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
-                    <button onClick={() => updateComponent(idx, "enabled", !c.enabled)}
-                      style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, border: `2px solid ${c.enabled ? T.ink : T.line}`, background: c.enabled ? T.ink : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                      {c.enabled && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
-                    </button>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{c.name}</div>
-                      <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km max</div>
+              {components.map((c, idx) => {
+                const catalogEntry: CatalogEntry | null = (selectedTemplate && selectedTemplate.id !== "custom")
+                  ? getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds)
+                  : null;
+                return (
+                  <div key={idx} style={{ borderRadius: 12, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
+                    {/* Header row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
+                      <button onClick={() => { updateComponent(idx, "enabled", !c.enabled); if (!c.enabled) setSwappingIdx(null); }}
+                        style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, border: `2px solid ${c.enabled ? T.ink : T.line}`, background: c.enabled ? T.ink : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        {c.enabled && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
+                      </button>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{c.name}</div>
+                        <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km · {c.purchase_price} €</div>
+                      </div>
+                      {c.enabled && (
+                        <button
+                          onClick={() => setSwappingIdx(swappingIdx === idx ? null : idx)}
+                          style={{ fontSize: 11.5, padding: "5px 12px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, flexShrink: 0 }}
+                        >
+                          {swappingIdx === idx ? "Fermer" : "Modifier"}
+                        </button>
+                      )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: T.muted, fontFamily: "var(--bi-font-mono)" }}>{c.purchase_price} €</div>
-                      {c.enabled && selectedTemplate && selectedTemplate.id !== "custom" && (() => {
-                        const entry: CatalogEntry | null = getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds);
-                        if (!entry) return null;
-                        return (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setSwappingIdx(swappingIdx === idx ? null : idx); }}
-                            style={{ fontSize: 11, padding: "3px 9px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}
-                          >
-                            Changer
-                          </button>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  {c.enabled && swappingIdx === idx && selectedTemplate && (() => {
-                    const entry: CatalogEntry | null = getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds);
-                    if (!entry) return null;
-                    return (
-                      <div style={{ padding: "0 14px 12px" }}>
-                        <div style={{ fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
-                          Alternatives compatibles
-                        </div>
-                        {entry.products.map((p, pi) => (
-                          <button key={pi} onClick={() => {
-                            updateComponent(idx, "name", p.name);
-                            updateComponent(idx, "brand", p.brand);
-                            updateComponent(idx, "purchase_price", p.price);
-                            updateComponent(idx, "km_max", p.lifeKm);
-                            setSwappingIdx(null);
-                          }} style={{
-                            display: "flex", alignItems: "center", gap: 10,
-                            width: "100%", padding: "10px 12px", borderRadius: 10,
-                            border: `1.5px solid ${T.line}`,
-                            background: "transparent",
-                            cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                            marginBottom: pi < entry.products.length - 1 ? 6 : 0,
-                          }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{p.name}</div>
-                              <div style={{ fontSize: 11, color: T.muted }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km</div>
+
+                    {/* Panel Modifier */}
+                    {c.enabled && swappingIdx === idx && (
+                      <div style={{ borderTop: `1px solid ${T.line}`, padding: "14px 14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+                        {/* Alternatives catalogue */}
+                        {catalogEntry && (
+                          <div>
+                            <div style={{ fontSize: 10.5, color: T.muted, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8 }}>
+                              Suggestions compatibles
                             </div>
-                            <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{p.price} €</div>
-                              <div style={{ fontSize: 9.5, color: T.muted, textTransform: "uppercase" as const, letterSpacing: 0.4 }}>{TIER_LABELS[p.tier]}</div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              {catalogEntry.products.map((p, pi) => {
+                                const isActive = c.name === p.name;
+                                return (
+                                  <button key={pi} onClick={() => {
+                                    updateComponent(idx, "name", p.name);
+                                    updateComponent(idx, "brand", p.brand);
+                                    updateComponent(idx, "purchase_price", p.price);
+                                    updateComponent(idx, "km_max", p.lifeKm);
+                                  }} style={{
+                                    display: "flex", alignItems: "center", gap: 10,
+                                    width: "100%", padding: "10px 12px", borderRadius: 10,
+                                    border: `1.5px solid ${isActive ? T.ink : T.line}`,
+                                    background: isActive ? "rgba(14,14,16,0.04)" : "transparent",
+                                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                                  }}>
+                                    {isActive && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{p.name}</div>
+                                      <div style={{ fontSize: 11, color: T.muted }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
+                                    </div>
+                                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                      <div style={{ fontSize: 13.5, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>{p.price} €</div>
+                                      <div style={{ fontSize: 9.5, color: T.muted, textTransform: "uppercase" as const, letterSpacing: 0.4 }}>{TIER_LABELS[p.tier]}</div>
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                  {c.enabled && (
-                    <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                      {/* Nom + marque modifiables */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
-                          <input
-                            value={c.name}
-                            onChange={e => updateComponent(idx, "name", e.target.value)}
-                            style={{ ...inputStyle, fontSize: 13 }}
-                            placeholder="ex. Shimano HG601"
-                          />
+                          </div>
+                        )}
+
+                        {/* Separateur */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ flex: 1, height: 1, background: T.line }} />
+                          <span style={{ fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase" }}>Personnaliser</span>
+                          <div style={{ flex: 1, height: 1, background: T.line }} />
                         </div>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>
-                          <input
-                            value={c.brand}
-                            onChange={e => updateComponent(idx, "brand", e.target.value)}
-                            style={{ ...inputStyle, fontSize: 13 }}
-                            placeholder="ex. Shimano"
-                          />
+
+                        {/* Champs libres */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
+                            <input value={c.name} onChange={e => updateComponent(idx, "name", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} placeholder="ex. Shimano HG601" />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>
+                            <input value={c.brand} onChange={e => updateComponent(idx, "brand", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} placeholder="ex. Shimano" />
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
-                          <input type="number" value={c.purchase_price} onChange={e => updateComponent(idx, "purchase_price", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km max</div>
-                          <input type="number" value={c.km_max} onChange={e => updateComponent(idx, "km_max", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
+                            <input type="number" value={c.purchase_price} onChange={e => updateComponent(idx, "purchase_price", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km max</div>
+                            <input type="number" value={c.km_max} onChange={e => updateComponent(idx, "km_max", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    )}
+
+                    {/* Champs installation (toujours visibles si coché) */}
+                    {c.enabled && (
+                      <div style={{ borderTop: swappingIdx === idx ? "none" : `1px solid ${T.line}`, padding: "10px 14px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                         <div>
                           <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km installé</div>
                           <input type="number" value={c.installedKm} onChange={e => updateComponent(idx, "installedKm", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
                         </div>
                         <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Date d installation</div>
+                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Date</div>
                           <input type="date" value={c.installedDate} onChange={e => updateComponent(idx, "installedDate", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} />
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "rgba(14,14,16,0.03)", fontSize: 12, color: T.muted }}>
               💡 Km installé = kilométrage actuel de ton vélo ({selectedBike?.totalKm.toLocaleString("fr")} km)

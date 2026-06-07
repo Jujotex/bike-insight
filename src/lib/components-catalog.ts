@@ -327,7 +327,7 @@ export function checkBrandCompatibility(
   }
   if (isShimanoBike && hasCampag) {
     return { compatible: false, warning: "Composant Campagnolo non compatible avec un groupe Shimano." };
-  }
+    }
   if (isSramBike && hasShimano) {
     return { compatible: false, warning: "Composant Shimano non compatible avec un groupe SRAM." };
   }
