@@ -13,7 +13,7 @@ export default async function NewComponentPage() {
 
   const { data: bikes } = await supabase
     .from("bikes")
-    .select("id, name, total_km")
+    .select("id, name, total_km, groupset_template_id")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("total_km", { ascending: false });

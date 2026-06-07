@@ -246,3 +246,94 @@ export const TIER_DESC: Record<string, string> = {
   original: "Le choix le plus cohérent",
   premium: "Durée de vie maximale",
 };
+
+// ── Lookup par template (brand + speeds) ─────────────────────
+
+export function getCatalogForTemplate(
+  componentName: string,
+  componentCategory: string,
+  templateBrand: string,
+  templateSpeeds: number
+): CatalogEntry | null {
+  const brand = templateBrand.toLowerCase();
+  const name = componentName.toLowerCase();
+  const cat = componentCategory.toLowerCase();
+  const sv = `${templateSpeeds}v`;
+
+  const isChain = name.includes("cha") || (cat === "transmission" && (name.includes("chain") || name.includes("kmc") || name.includes("hg")));
+  const isCassette = name.includes("cassette") || name.includes("cs-");
+  const isDiscBrake = cat === "freinage" && (name.includes("plaquette") || name.includes("disque") || name.includes("disc") || name.includes("m0"));
+  const isRimBrake = cat === "freinage" && (name.includes("patin"));
+  const isTire = cat === "roues";
+
+  if (isChain) {
+    return CATALOG.find(e => e.id === `chain-${brand}-${sv}`)
+      ?? CATALOG.find(e => e.id === `chain-generic-${sv}`)
+      ?? CATALOG.find(e => e.id === "chain-generic")
+      ?? null;
+  }
+  if (isCassette) {
+    return CATALOG.find(e => e.id === `cassette-${brand}-${sv}-road`)
+      ?? CATALOG.find(e => e.id === `cassette-${brand}-${sv}`)
+      ?? null;
+  }
+  if (isDiscBrake) {
+    return CATALOG.find(e => e.id === `brake-disc-${brand}`)
+      ?? CATALOG.find(e => e.id === "brake-disc-shimano")
+      ?? null;
+  }
+  if (isRimBrake) {
+    return CATALOG.find(e => e.id === "brake-rim") ?? null;
+  }
+  if (isTire) {
+    return CATALOG.find(e => e.id === "tire-road-700c") ?? null;
+  }
+
+  return findCatalogEntry(componentName, componentCategory);
+}
+
+// ── Validation de compatibilite de marque ────────────────────
+
+export function checkBrandCompatibility(
+  componentName: string,
+  componentBrand: string,
+  templateBrand: string
+): { compatible: boolean; warning: string | null } {
+  if (!templateBrand || !componentBrand) return { compatible: true, warning: null };
+
+  const tBrand = templateBrand.toLowerCase();
+  const cBrand = componentBrand.toLowerCase();
+  const cName = componentName.toLowerCase();
+
+  // KMC est compatible avec tout
+  if (cBrand.includes("kmc") || cName.includes("kmc")) {
+    return { compatible: true, warning: null };
+  }
+
+  // Pneus, cockpit, eclairage toujours compatibles
+  if (!cName.includes("cha") && !cName.includes("cassette") && !cName.includes("plaquette") && !cName.includes("disque")) {
+    return { compatible: true, warning: null };
+  }
+
+  const isShimanoBike = tBrand === "shimano";
+  const isSramBike = tBrand === "sram";
+
+  const hasSram = cBrand.includes("sram") || cName.includes("sram") || cName.includes("eagle");
+  const hasShimano = cBrand.includes("shimano") || cName.includes("shimano") || cName.includes("hg");
+  const hasCampag = cBrand.includes("campagnolo") || cName.includes("campagnolo");
+
+  if (isShimanoBike && hasSram) {
+    return { compatible: false, warning: "Composant SRAM non compatible avec un groupe Shimano." };
+  }
+  if (isShimanoBike && hasCampag) {
+    return { compatible: false, warning: "Composant Campagnolo non compatible avec un groupe Shimano." };
+  }
+  if (isSramBike && hasShimano) {
+    return { compatible: false, warning: "Composant Shimano non compatible avec un groupe SRAM." };
+  }
+  if (isSramBike && hasCampag) {
+    return { compatible: false, warning: "Composant Campagnolo non compatible avec un groupe SRAM." };
+  }
+
+  return { compatible: true, warning: null };
+}

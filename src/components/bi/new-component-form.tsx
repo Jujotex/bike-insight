@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
+import { getCatalogForTemplate, checkBrandCompatibility, type CatalogEntry } from "@/lib/components-catalog";
+import { BIKE_TEMPLATES } from "@/lib/bike-templates";
 
 export interface FormBike {
   id: string;
   name: string;
   total_km: number | null;
+  groupset_template_id?: string | null;
 }
 
 const COMPONENT_TYPES = [
@@ -70,6 +73,22 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     const bike = bikes.find(b => b.id === id);
     if (bike) setInstalledKm(String(bike.total_km ?? 0));
   }
+
+  // Template du velo selectionne
+  const currentBike = bikes.find(b => b.id === bikeId);
+  const currentTemplate = currentBike?.groupset_template_id
+    ? BIKE_TEMPLATES.find(t => t.id === currentBike.groupset_template_id)
+    : null;
+
+  // Suggestions catalog pour le type selectionne
+  const catalogEntry: CatalogEntry | null = currentTemplate
+    ? getCatalogForTemplate(selectedType.name, selectedType.category, currentTemplate.brand, currentTemplate.speeds)
+    : null;
+
+  // Verification compatibilite
+  const compatCheck = currentTemplate && brand
+    ? checkBrandCompatibility(selectedType.name, brand, currentTemplate.brand)
+    : { compatible: true, warning: null };
 
   async function handleSave() {
     if (!bikeId) { setError("Sélectionne un vélo"); return; }
@@ -162,8 +181,46 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
               onChange={e => setBrand(e.target.value)}
               placeholder="ex. Shimano Ultegra"
             />
+            {/* Compatibility warning */}
+            {!compatCheck.compatible && compatCheck.warning && (
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "rgba(208,132,21,0.07)", border: "1px solid rgba(208,132,21,0.25)" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-warn)" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                <span style={{ fontSize: 12, color: "var(--bi-warn)", fontWeight: 500 }}>{compatCheck.warning}</span>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Catalog suggestions for selected type + bike template */}
+        {catalogEntry && (
+          <div style={{ marginBottom: 20 }}>
+            <BiLabel style={{ marginBottom: 10 }}>Suggestions compatibles avec ton groupe</BiLabel>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {catalogEntry.products.map((p, i) => (
+                <button key={i} onClick={() => {
+                  setBrand(p.brand);
+                  setPrice(String(p.price));
+                  setKmMax(String(p.lifeKm));
+                }} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "12px 14px", borderRadius: 12,
+                  border: `1px solid var(--bi-line)`,
+                  background: "var(--bi-bg)",
+                  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bi-ink)" }}>{p.name}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>{p.price} €</div>
+                    <div style={{ fontSize: 10, color: "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Price + Date + Installed km */}
         <div className="bi-grid-3" style={{ marginBottom: 24 }}>
