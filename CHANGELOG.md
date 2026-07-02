@@ -1,5 +1,20 @@
 # Changelog
 
+## [Non publié] — audit UX P1 : CTA contextuels
+
+### Modifié
+- Tous les CTA « ajouter un composant » deviennent contextuels : tant que le vélo n'a aucun composant, ils mènent au wizard guidé (`/onboarding?bike_id=…`) au lieu du formulaire technique. Concerné : bouton header du dashboard, bouton header et empty state du détail vélo, CTA de la page Composants. Les CTA passent aussi le `bike_id` au formulaire quand le vélo est déjà configuré.
+
+## [Non publié] — enrichissement des données composants
+
+### Ajouté
+- **10 nouveaux groupes** dans `bike-templates.ts` (25 au total) : Shimano 105 12v mécanique, Ultegra Di2 12v, Dura-Ace Di2 12v, SLX 12v, CUES 10v ; SRAM Red AXS, Apex AXS, X01 Eagle ; Campagnolo Chorus 12v et Ekar 13v.
+- **16 nouvelles entrées catalogue** dans `components-catalog.ts` (34 au total) : chaînes 8/9/10v et Flattop SRAM AXS, chaînes/cassettes Campagnolo 12v et 13v, cassettes route 12v Shimano/SRAM, cassettes 8/9/10v, rotors de disque, plaquettes Campagnolo, câbles/gaines, pneus VTT 27,5".
+- **Base de modèles de vélos** (`bike-models.ts`, ~38 modèles populaires) : le wizard d'onboarding pré-remplit type / groupe / freins d'après le nom du vélo Strava, avec bannière « Pré-rempli d'après ton vélo » que l'utilisateur peut corriger.
+
+### Modifié
+- `getCatalogForTemplate` : les chaînes Flattop (SRAM AXS route) sont désormais correctement distinguées des chaînes Eagle VTT.
+
 ## [Non publié] — simplification gestion des composants
 
 ### Modifié

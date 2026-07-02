@@ -123,7 +123,7 @@ export function DashboardClient({
             Bonjour, {userName}
           </div>
         </div>
-        <Link href="/components/new" className="bi-desktop">
+        <Link href={hasNoComponents ? (selectedBikeId ? `/onboarding?bike_id=${selectedBikeId}` : "/onboarding") : `/components/new?bike_id=${selectedBikeId}`} className="bi-desktop">
           <button style={{ padding: "8px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
             Composant

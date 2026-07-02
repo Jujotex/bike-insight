@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, type TemplateComponent } from "@/lib/bike-templates";
 import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
+import { matchBikeModel } from "@/lib/bike-models";
 
 type Bike = {
   id: string;
@@ -91,11 +92,28 @@ export function OnboardingWizard({
   const [wearState, setWearState] = useState<WearState | null>(null);
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
+  const [modelHint, setModelHint] = useState("");
 
   const selectedBike = bikes.find(b => b.id === selectedBikeId);
   const availableTemplates = getTemplatesForType(bikeType);
   const selectedTemplate = BIKE_TEMPLATES.find(t => t.id === templateId);
   const showBikePicker = !preselectedBikeId && bikes.filter(b => !b.isConfigured).length > 1;
+
+  // Pré-remplissage automatique d'après le modèle du vélo (base bike-models)
+  useEffect(() => {
+    const b = bikes.find(x => x.id === selectedBikeId);
+    if (!b) return;
+    const m = matchBikeModel(`${b.brand ?? ""} ${b.model ?? ""} ${b.name}`);
+    if (m && !templateId) {
+      setBikeType(m.bikeType);
+      setTemplateId(m.templateId);
+      setBrakeType(m.brakeType);
+      setModelHint(m.label);
+    } else if (!m) {
+      setModelHint("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBikeId]);
 
   function buildComponents(tmplId: string, brake: "disc" | "rim"): ComponentRow[] {
     const tmpl = BIKE_TEMPLATES.find(t => t.id === tmplId);
@@ -302,6 +320,12 @@ export function OnboardingWizard({
             ) : (
               <div style={{ fontSize: 13, color: T.muted, marginBottom: 18 }}>
                 Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong> · {selectedBike?.totalKm.toLocaleString("fr")} km
+              </div>
+            )}
+
+            {modelHint && (
+              <div style={{ marginBottom: 18, padding: "10px 14px", borderRadius: 10, background: "rgba(199,255,63,0.10)", border: "1px solid rgba(199,255,63,0.35)", fontSize: 12.5, color: T.ink }}>
+                Pré-rempli d&apos;après ton vélo (<strong>{modelHint}</strong>) — vérifie que ça correspond à ta monte réelle.
               </div>
             )}
 
