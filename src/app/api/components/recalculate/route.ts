@@ -19,4 +19,5 @@ export async function POST() {
   // 2. Notifications
   await createWearNotifications(supabase, user.id)
 
-  return NextResponse.
+  return NextResponse.json({ ok: true })
+}

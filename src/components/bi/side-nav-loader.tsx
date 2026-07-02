@@ -55,4 +55,8 @@ export async function SideNavLoader() {
       bikes={bikes}
       userInitials={userInitials}
       userName={userName}
-      bikeCount=
+      bikeCount={bikeCount}
+      unreadCount={unreadCount}
+    />
+  )
+}

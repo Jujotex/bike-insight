@@ -153,4 +153,10 @@ export async function POST() {
 
   console.log(`[sync] ${isFirstSync ? 'Premier import' : 'Import incrémental'} — ${totalImported} activités, ${page - 1} pages`)
 
-  return Ne
+  return NextResponse.json({
+    imported: totalImported,
+    pages: page - 1,
+    incremental: !isFirstSync,
+    since: new Date(after * 1000).toISOString(),
+  })
+}

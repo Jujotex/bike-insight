@@ -360,4 +360,18 @@ export function DashboardClient({
                       </div>
                       <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {p.componentName}
-                        {timeLabel && <span sty
+                        {timeLabel && <span style={{ color: dotColor }}> - {timeLabel}</span>}
+                      </div>
+                    </div>
+                    {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{p.cost}</Mono>}
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </BiCard>
+
+      </div>
+    </>
+  );
+}

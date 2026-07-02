@@ -470,4 +470,17 @@ function LandingFooter() {
   );
 }
 
-// ── Main ────────�
+// ── Main ───────────────────────────────────────────────────────
+export default function Home() {
+  return (
+    <main style={{ minHeight: "100dvh", background: T.bg, color: T.ink, fontFamily: "var(--bi-font-ui)" }}>
+      <LandingNav />
+      <LandingHero />
+      <LandingMetrics />
+      <LandingHow />
+      <LandingInsights />
+      <LandingCTA />
+      <LandingFooter />
+    </main>
+  );
+}

@@ -109,4 +109,12 @@ export function BottomNav() {
                 </span>
               )}
             </div>
-            <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, letterSpacing: 0
+            <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, letterSpacing: 0.2 }}>
+              {item.label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

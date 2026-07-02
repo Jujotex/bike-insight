@@ -32,4 +32,7 @@ export default async function DashboardPage() {
           budgetByBike={budgetByBike}
           wearByCategoryByBike={wearByCategoryByBike}
         />
-  
+      </div>
+    </AppShell>
+  );
+}

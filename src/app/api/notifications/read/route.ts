@@ -21,4 +21,5 @@ export async function POST(req: Request) {
   const { error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextRespons
+  return NextResponse.json({ ok: true })
+}

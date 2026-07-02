@@ -256,4 +256,10 @@ export default function SignupPage() {
       </div>
       <div style={{ marginTop: 16, fontSize: 11, color: "var(--bi-muted)", textAlign: "center", lineHeight: 1.5 }}>
         En continuant, tu acceptes nos{" "}
-        <span style={{ color: "var(--bi-ink)", textDecor
+        <span style={{ color: "var(--bi-ink)", textDecoration: "underline", cursor: "pointer" }}>Conditions</span>
+        {" "}et notre{" "}
+        <span style={{ color: "var(--bi-ink)", textDecoration: "underline", cursor: "pointer" }}>Politique de confidentialité</span>.
+      </div>
+    </AuthShell>
+  );
+}

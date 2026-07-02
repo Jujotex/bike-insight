@@ -52,4 +52,9 @@ export default async function NotificationsPage() {
             notify_bad:     settings?.notify_bad     ?? true,
             warn_threshold: settings?.warn_threshold ?? 80,
             bad_threshold:  settings?.bad_threshold  ?? 100,
-      
+          }}
+        />
+      </div>
+    </AppShell>
+  );
+}

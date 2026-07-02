@@ -207,4 +207,14 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                style={{ flex: 2, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacit
+                style={{ flex: 2, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
+              >
+                {loading ? "Enregistrement…" : "Ajouter la sortie"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

@@ -372,4 +372,13 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
           <BiLabel style={{ marginBottom: 10 }}>Comment ça marche ?</BiLabel>
           <div style={{ fontSize: 12.5, color: "var(--bi-muted)", lineHeight: 1.55 }}>
             L&apos;usure est calculée automatiquement à chaque synchronisation Strava.{" "}
-            <strong style={{ colo
+            <strong style={{ color: "var(--bi-ink)" }}>Km à l&apos;installation</strong> = kilométrage de ton vélo au moment où tu poses le composant.
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+            Usure = km actuels du vélo − km à l&apos;installation
+          </div>
+        </BiCard>
+      </div>
+    </div>
+  );
+}

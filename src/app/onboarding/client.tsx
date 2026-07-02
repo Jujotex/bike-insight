@@ -18,11 +18,18 @@ type Bike = {
 
 type ComponentRow = TemplateComponent & {
   enabled: boolean;
-  installedKm: number;
-  installedDate: string;
 };
 
-const STEPS = ["Vélo", "Groupe", "Freins", "Composants", "Confirmation"] as const;
+// État initial des pièces — une seule question globale au lieu de km/date par pièce
+type WearState = "new" | "original" | "unknown";
+
+const STEPS = ["Vélo & groupe", "Pièces", "Confirmation"] as const;
+
+const WEAR_OPTIONS: { value: WearState; label: string; sub: string }[] = [
+  { value: "new", label: "Neuves", sub: "Posées récemment — usure zéro" },
+  { value: "original", label: "D'origine du vélo", sub: "Jamais changées depuis l'achat" },
+  { value: "unknown", label: "Je ne sais pas", sub: "On part sur une usure moyenne (50 %), tu pourras affiner" },
+];
 
 const T = {
   card: "var(--bi-card)",
@@ -48,6 +55,15 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box" as const,
 };
 
+const sectionLabel: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--bi-muted)",
+  letterSpacing: "0.06em",
+  textTransform: "uppercase" as const,
+  marginBottom: 10,
+};
+
 export function OnboardingWizard({
   userId,
   bikes,
@@ -58,7 +74,7 @@ export function OnboardingWizard({
   preselectedBikeId?: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState(preselectedBikeId ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [phase, setPhase] = useState<"wizard" | "next-bike">("wizard");
@@ -72,25 +88,45 @@ export function OnboardingWizard({
   const [bikeType, setBikeType] = useState<"route" | "gravel" | "vtt">("route");
   const [templateId, setTemplateId] = useState("");
   const [brakeType, setBrakeType] = useState<"disc" | "rim">("disc");
+  const [wearState, setWearState] = useState<WearState | null>(null);
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
 
   const selectedBike = bikes.find(b => b.id === selectedBikeId);
   const availableTemplates = getTemplatesForType(bikeType);
   const selectedTemplate = BIKE_TEMPLATES.find(t => t.id === templateId);
+  const showBikePicker = !preselectedBikeId && bikes.filter(b => !b.isConfigured).length > 1;
 
-  function buildComponents(tmplId: string, brake: "disc" | "rim", bikeKm: number): ComponentRow[] {
+  function buildComponents(tmplId: string, brake: "disc" | "rim"): ComponentRow[] {
     const tmpl = BIKE_TEMPLATES.find(t => t.id === tmplId);
     if (!tmpl) return [];
-    const today = new Date().toISOString().slice(0, 10);
-    return tmpl.components[brake].map(c => ({
-      ...c, enabled: true, installedKm: bikeKm, installedDate: today,
-    }));
+    return tmpl.components[brake].map(c => ({ ...c, enabled: true }));
+  }
+
+  // Traduit la réponse globale "état des pièces" en km d'installation par pièce
+  function computeInstall(c: ComponentRow): { installedKm: number; installedDate: string | null } {
+    const bikeKm = selectedBike?.totalKm ?? 0;
+    if (wearState === "new") {
+      return { installedKm: bikeKm, installedDate: new Date().toISOString().slice(0, 10) };
+    }
+    if (wearState === "original") {
+      return { installedKm: 0, installedDate: null };
+    }
+    // unknown → usure moyenne : la pièce a déjà consommé ~50% de sa vie
+    return { installedKm: Math.max(0, bikeKm - Math.round(c.km_max / 2)), installedDate: null };
+  }
+
+  function initialWearPct(c: ComponentRow): number {
+    const bikeKm = selectedBike?.totalKm ?? 0;
+    const { installedKm } = computeInstall(c);
+    if (c.km_max <= 0) return 0;
+    return Math.min(100, Math.max(0, Math.round(((bikeKm - installedKm) / c.km_max) * 100)));
   }
 
   function goNext() {
-    if (step === 2) setComponents(buildComponents(templateId, brakeType, selectedBike?.totalKm ?? 0));
+    if (step === 0) setComponents(buildComponents(templateId, brakeType));
     setStep(s => s + 1);
+    setSwappingIdx(null);
   }
 
   function updateComponent(idx: number, field: keyof ComponentRow, value: unknown) {
@@ -102,9 +138,10 @@ export function OnboardingWizard({
     setBikeType("route");
     setTemplateId("");
     setBrakeType("disc");
+    setWearState(null);
     setComponents([]);
     setError("");
-    setStep(1);
+    setStep(0);
     setPhase("wizard");
   }
 
@@ -114,13 +151,16 @@ export function OnboardingWizard({
     setSaving(true);
     setError("");
 
-    const rows = toCreate.map(c => ({
-      user_id: userId, bike_id: selectedBikeId, name: c.name,
-      category: c.category, brand: c.brand || null,
-      purchase_price: c.purchase_price, km_max: c.km_max,
-      installed_km: c.installedKm, installed_at: c.installedDate || null,
-      is_active: true, status: "ok",
-    }));
+    const rows = toCreate.map(c => {
+      const { installedKm, installedDate } = computeInstall(c);
+      return {
+        user_id: userId, bike_id: selectedBikeId, name: c.name,
+        category: c.category, brand: c.brand || null,
+        purchase_price: c.purchase_price, km_max: c.km_max,
+        installed_km: installedKm, installed_at: installedDate,
+        is_active: true, status: "ok",
+      };
+    });
 
     const { error: insertErr } = await supabase.from("components").insert(rows);
     if (insertErr) { setError("Erreur : " + insertErr.message); setSaving(false); return; }
@@ -222,7 +262,7 @@ export function OnboardingWizard({
             <span style={{ fontSize: 16, fontWeight: 600 }}>Bike Insight</span>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6 }}>Configure ton vélo</div>
-          <div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}>2 minutes et tout est prêt</div>
+          <div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}>3 étapes, 2 minutes</div>
         </div>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
@@ -235,34 +275,83 @@ export function OnboardingWizard({
           Étape {step + 1} · {STEPS[step]}
         </div>
 
-        {/* ÉTAPE 0 */}
+        {/* ÉTAPE 0 — Vélo & groupe */}
         {step === 0 && (
           <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
-            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Quel vélo tu veux configurer ?</div>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>Tu pourras configurer les autres ensuite.</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {bikes.map(b => (
-                <button key={b.id} onClick={() => !b.isConfigured && setSelectedBikeId(b.id)} disabled={b.isConfigured}
-                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 12, border: `1.5px solid ${selectedBikeId === b.id ? T.ink : T.line}`, background: b.isConfigured ? "rgba(14,14,16,0.02)" : selectedBikeId === b.id ? "rgba(14,14,16,0.04)" : "transparent", cursor: b.isConfigured ? "default" : "pointer", textAlign: "left", fontFamily: "inherit", opacity: b.isConfigured ? 0.6 : 1 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{b.name}</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{b.totalKm.toLocaleString("fr")} km · {b.isStrava ? "Strava" : "Manuel"}</div>
-                  </div>
-                  {b.isConfigured
-                    ? <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "rgba(14,143,90,0.1)", color: "var(--bi-ok)", fontWeight: 600 }}>Configuré</span>
-                    : selectedBikeId === b.id
-                      ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
-                      : null}
-                </button>
-              ))}
-            </div>
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: T.muted, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Type de vélo</div>
+
+            {showBikePicker ? (
+              <div style={{ marginBottom: 24 }}>
+                <div style={sectionLabel}>Quel vélo ?</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {bikes.map(b => (
+                    <button key={b.id} onClick={() => !b.isConfigured && setSelectedBikeId(b.id)} disabled={b.isConfigured}
+                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, border: `1.5px solid ${selectedBikeId === b.id ? T.ink : T.line}`, background: b.isConfigured ? "rgba(14,14,16,0.02)" : selectedBikeId === b.id ? "rgba(14,14,16,0.04)" : "transparent", cursor: b.isConfigured ? "default" : "pointer", textAlign: "left", fontFamily: "inherit", opacity: b.isConfigured ? 0.6 : 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{b.name}</div>
+                        <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{b.totalKm.toLocaleString("fr")} km · {b.isStrava ? "Strava" : "Manuel"}</div>
+                      </div>
+                      {b.isConfigured
+                        ? <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "rgba(14,143,90,0.1)", color: "var(--bi-ok)", fontWeight: 600 }}>Configuré</span>
+                        : selectedBikeId === b.id
+                          ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
+                          : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: T.muted, marginBottom: 18 }}>
+                Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong> · {selectedBike?.totalKm.toLocaleString("fr")} km
+              </div>
+            )}
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={sectionLabel}>Type de vélo</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {(["route", "gravel", "vtt"] as const).map(type => (
-                  <button key={type} onClick={() => setBikeType(type)}
-                    style={{ flex: "1 1 80px", padding: "11px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${bikeType === type ? T.ink : T.line}`, background: bikeType === type ? "rgba(14,14,16,0.04)" : "transparent", fontSize: 13, fontWeight: bikeType === type ? 600 : 400 }}>
+                  <button key={type} onClick={() => { setBikeType(type); setTemplateId(""); }}
+                    style={{ flex: "1 1 80px", padding: "10px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${bikeType === type ? T.ink : T.line}`, background: bikeType === type ? "rgba(14,14,16,0.04)" : "transparent", fontSize: 13, fontWeight: bikeType === type ? 600 : 400 }}>
                     {bikeType === type ? "✓ " : ""}{BIKE_TYPE_LABELS[type]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={sectionLabel}>Quel groupe as-tu ? <span style={{ textTransform: "none", fontWeight: 400 }}>(regarde sur ta manette ou ton dérailleur)</span></div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {availableTemplates.map(tmpl => (
+                  <button key={tmpl.id} onClick={() => setTemplateId(tmpl.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === tmpl.id ? T.ink : T.line}`, background: templateId === tmpl.id ? "rgba(14,14,16,0.04)" : "transparent" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{tmpl.label}</div>
+                      <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{tmpl.level} · {tmpl.speeds} vitesses</div>
+                    </div>
+                    {templateId === tmpl.id && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
+                  </button>
+                ))}
+                <button onClick={() => setTemplateId("custom")}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>Je ne sais pas / Autre</div>
+                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Composants génériques proposés</div>
+                  </div>
+                  {templateId === "custom" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style={sectionLabel}>Type de freins</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {([{ value: "disc", label: "Disque", sub: "Métal au centre de la roue" }, { value: "rim", label: "Patins", sub: "Caoutchouc sur la jante" }] as const).map(opt => (
+                  <button key={opt.value} onClick={() => setBrakeType(opt.value)}
+                    style={{ padding: "12px 14px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${brakeType === opt.value ? T.ink : T.line}`, background: brakeType === opt.value ? "rgba(14,14,16,0.04)" : "transparent", display: "flex", alignItems: "center", gap: 10 }}>
+                    {brakeType === opt.value && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M4 12l5 5L20 7"/></svg>}
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{opt.label}</div>
+                      <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{opt.sub}</div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -270,61 +359,27 @@ export function OnboardingWizard({
           </div>
         )}
 
-        {/* ÉTAPE 1 */}
+        {/* ÉTAPE 1 — Pièces */}
         {step === 1 && (
           <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
-            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Quel groupe as-tu ?</div>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>Regarde sur ta manette ou ton dérailleur.</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {availableTemplates.map(tmpl => (
-                <button key={tmpl.id} onClick={() => setTemplateId(tmpl.id)}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === tmpl.id ? T.ink : T.line}`, background: templateId === tmpl.id ? "rgba(14,14,16,0.04)" : "transparent" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Ces pièces sont-elles neuves ?</div>
+            <div style={{ fontSize: 13, color: T.muted, marginBottom: 16 }}>Une seule question pour calibrer l&apos;usure de départ — pas de saisie de km.</div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+              {WEAR_OPTIONS.map(opt => (
+                <button key={opt.value} onClick={() => setWearState(opt.value)}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${wearState === opt.value ? T.ink : T.line}`, background: wearState === opt.value ? "rgba(14,14,16,0.04)" : "transparent" }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{tmpl.label}</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{tmpl.level} · {tmpl.speeds} vitesses</div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{opt.label}</div>
+                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{opt.sub}</div>
                   </div>
-                  {templateId === tmpl.id && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
-                </button>
-              ))}
-              <button onClick={() => setTemplateId("custom")}
-                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>Je ne sais pas / Autre</div>
-                  <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Composants génériques proposés</div>
-                </div>
-                {templateId === "custom" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ÉTAPE 2 */}
-        {step === 2 && (
-          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
-            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Quel type de freins ?</div>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>Disque = métal au centre de la roue. Patins = caoutchouc sur la jante.</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {([{ value: "disc", label: "Freins à disque", sub: "Disque sur la roue", emoji: "💿" }, { value: "rim", label: "Freins à patins", sub: "Patins sur la jante", emoji: "⭕" }] as const).map(opt => (
-                <button key={opt.value} onClick={() => setBrakeType(opt.value)}
-                  style={{ padding: "18px 14px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "center", border: `1.5px solid ${brakeType === opt.value ? T.ink : T.line}`, background: brakeType === opt.value ? "rgba(14,14,16,0.04)" : "transparent", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 28 }}>{opt.emoji}</span>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{opt.label}</div>
-                  <div style={{ fontSize: 11.5, color: T.muted }}>{opt.sub}</div>
-                  {brakeType === opt.value && <div style={{ width: 20, height: 20, borderRadius: 999, background: T.ok, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg></div>}
+                  {wearState === opt.value && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                 </button>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* ÉTAPE 3 */}
-        {step === 3 && (
-          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
-            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Vérifie les composants</div>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>Basé sur <strong style={{ color: T.ink }}>{selectedTemplate?.label ?? "ton groupe"}</strong>.</div>
+            <div style={sectionLabel}>Pièces suivies <span style={{ textTransform: "none", fontWeight: 400 }}>— basées sur {selectedTemplate?.label ?? "ton groupe"}</span></div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {components.map((c, idx) => {
                 const catalogEntry: CatalogEntry | null = (selectedTemplate && selectedTemplate.id !== "custom")
@@ -424,44 +479,34 @@ export function OnboardingWizard({
                         </div>
                       </div>
                     )}
-
-                    {/* Champs installation (toujours visibles si coché) */}
-                    {c.enabled && (
-                      <div style={{ borderTop: swappingIdx === idx ? "none" : `1px solid ${T.line}`, padding: "10px 14px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km installé</div>
-                          <input type="number" value={c.installedKm} onChange={e => updateComponent(idx, "installedKm", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Date</div>
-                          <input type="date" value={c.installedDate} onChange={e => updateComponent(idx, "installedDate", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
-            <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "rgba(14,14,16,0.03)", fontSize: 12, color: T.muted }}>
-              💡 Km installé = kilométrage actuel de ton vélo ({selectedBike?.totalKm.toLocaleString("fr")} km)
-            </div>
           </div>
         )}
 
-        {/* ÉTAPE 4 */}
-        {step === 4 && (
+        {/* ÉTAPE 2 — Confirmation */}
+        {step === 2 && (
           <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Tout est prêt !</div>
-            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>{components.filter(c => c.enabled).length} composant{components.filter(c => c.enabled).length > 1 ? "s" : ""} vont être créés.</div>
+            <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>
+              {components.filter(c => c.enabled).length} pièce{components.filter(c => c.enabled).length > 1 ? "s" : ""} suivie{components.filter(c => c.enabled).length > 1 ? "s" : ""} — l&apos;usure évoluera automatiquement avec tes sorties Strava.
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {components.filter(c => c.enabled).map((c, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: T.bg }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{c.name}</span>
-                  <span style={{ fontSize: 12, color: T.muted, fontFamily: "var(--bi-font-mono)" }}>{c.purchase_price} €</span>
-                </div>
-              ))}
+              {components.filter(c => c.enabled).map((c, i) => {
+                const wear = initialWearPct(c);
+                const wearColor = wear >= 80 ? "var(--bi-bad)" : wear >= 50 ? "var(--bi-warn)" : "var(--bi-ok)";
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: T.bg }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{c.name}</span>
+                    <span style={{ fontSize: 11.5, color: wearColor, fontWeight: 600 }}>usure {wear} %</span>
+                    <span style={{ fontSize: 12, color: T.muted, fontFamily: "var(--bi-font-mono)" }}>{c.purchase_price} €</span>
+                  </div>
+                );
+              })}
             </div>
             {error && <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>{error}</div>}
           </div>
@@ -477,21 +522,21 @@ export function OnboardingWizard({
           )}
           {step < STEPS.length - 1 ? (
             <button onClick={goNext}
-              disabled={(step === 0 && !selectedBikeId) || (step === 1 && !templateId)}
-              style={{ flex: 2, padding: "13px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", opacity: ((step === 0 && !selectedBikeId) || (step === 1 && !templateId)) ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              disabled={(step === 0 && (!selectedBikeId || !templateId)) || (step === 1 && !wearState)}
+              style={{ flex: 2, padding: "13px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", opacity: ((step === 0 && (!selectedBikeId || !templateId)) || (step === 1 && !wearState)) ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               Continuer
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </button>
           ) : (
             <button onClick={handleConfirm} disabled={saving}
               style={{ flex: 2, padding: "13px 0", background: "var(--bi-ok)", color: "#fff", border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 700, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {saving ? "Création en cours…" : "Créer mes composants"}
+              {saving ? "Création en cours…" : "Démarrer le suivi"}
               {!saving && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>}
             </button>
           )}
         </div>
 
-        {step < 4 && (
+        {step < STEPS.length - 1 && (
           <div style={{ textAlign: "center", marginTop: 12 }}>
             <button onClick={() => router.push("/dashboard")}
               style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: T.muted, fontFamily: "inherit" }}>
