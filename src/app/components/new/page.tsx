@@ -29,7 +29,4 @@ export default async function NewComponentPage() {
         <Suspense fallback={null}>
           <NewComponentForm bikes={bikes ?? []} />
         </Suspense>
-      </div>
-    </AppShell>
-  );
-}
+     

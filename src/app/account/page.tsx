@@ -64,9 +64,4 @@ export default async function AccountPage() {
           bikeCount={bikes?.length ?? 0}
           componentCount={components?.length ?? 0}
           unreadNotifCount={notifCount ?? 0}
-          memberSince={memberSince}
-        />
-      </div>
-    </AppShell>
-  );
-}
+          memberS

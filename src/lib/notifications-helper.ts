@@ -69,7 +69,4 @@ export async function createWearNotifications(supabase: SupabaseClient, userId: 
       read:           false,
     }))
 
-  if (toInsert.length > 0) {
-    await supabase.from('notifications').insert(toInsert)
-  }
-}
+  if (toInsert.length 

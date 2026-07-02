@@ -143,7 +143,6 @@ export function OnboardingWizard({
     if (remaining.length > 0) {
       setPhase("next-bike");
     } else {
-      localStorage.setItem("bi_onboarding_done", "1");
       router.push("/dashboard");
     }
   }
@@ -200,7 +199,7 @@ export function OnboardingWizard({
           )}
 
           <button
-            onClick={() => { localStorage.setItem("bi_onboarding_done", "1"); router.push("/dashboard"); }}
+            onClick={() => router.push("/dashboard")}
             style={{ width: "100%", padding: "13px 0", background: remaining.length > 0 ? "transparent" : T.ink, color: remaining.length > 0 ? T.muted : T.bg, border: `1px solid ${T.line}`, borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
           >
             {remaining.length > 0 ? "Terminer et aller au dashboard" : "Accéder au dashboard →"}
@@ -494,7 +493,7 @@ export function OnboardingWizard({
 
         {step < 4 && (
           <div style={{ textAlign: "center", marginTop: 12 }}>
-            <button onClick={() => { localStorage.setItem("bi_onboarding_done", "1"); router.push("/dashboard"); }}
+            <button onClick={() => router.push("/dashboard")}
               style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: T.muted, fontFamily: "inherit" }}>
               Passer et configurer plus tard
             </button>

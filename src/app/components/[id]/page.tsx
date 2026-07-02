@@ -397,17 +397,4 @@ export default async function ComponentDetailPage({
               ["Velo", bike?.name ?? "-"],
               ["Categorie", CATEGORY_LABELS[comp.category as string] ?? String(comp.category)],
               ["Installe le", installedDate],
-              ["Km velo install.", comp.installed_km !== null ? Math.round(comp.installed_km as number).toLocaleString("fr") + " km" : "-"],
-            ].map(([k, v]) => (
-              <div key={String(k)}>
-                <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
-                <div style={{ fontSize: 13.5, fontWeight: 500, marginTop: 6 }}>{v as string}</div>
-              </div>
-            ))}
-          </div>
-        </BiCard>
-
-      </div>
-    </AppShell>
-  );
-}
+              ["Km velo install.", comp.installed_km !== null ? Math.round(comp.in

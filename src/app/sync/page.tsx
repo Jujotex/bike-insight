@@ -149,14 +149,4 @@ export default async function SyncPage() {
                   </Mono>
                   <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
                     {a.elevation_m ? `${Math.round(a.elevation_m)} m` : "—"}
-                  </Mono>
-                </div>
-              ))}
-            </div></div>
-            </>
-          )}
-        </BiCard>
-      </div>
-    </AppShell>
-  );
-}
+                  </Mono

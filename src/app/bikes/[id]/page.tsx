@@ -404,14 +404,4 @@ export default async function BikeDetailPage({
             })}
           </div>
           <div style={{ padding: "4px 24px 16px", display: "flex", justifyContent: "space-between", fontSize: 9.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-            <span>{new Date(spendingEntries[0][0] + "-01").toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })}</span>
-            <span>{new Date(spendingEntries[5][0] + "-01").toLocaleDateString("fr-FR", { month: "short" })}</span>
-            <span>{new Date(spendingEntries[11][0] + "-01").toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })}</span>
-          </div>
-        </BiCard>
-      )}
-
-      </div>
-    </AppShell>
-  );
-}
+            <span>{new Date(spendingEntries[0][0] + "-0

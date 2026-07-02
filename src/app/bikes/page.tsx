@@ -276,15 +276,4 @@ export default async function BikesPage() {
                   </BiCard>
                 </Link>
               );
-            })}
-
-            {/* Add bike slot */}
-            <div style={{ borderRadius: 18, border: "1px dashed var(--bi-line)", minHeight: 320, overflow: "hidden" }}>
-              <AddBikeButton />
-            </div>
-          </div>
-        )}
-      </div>
-    </AppShell>
-  );
-}
+        

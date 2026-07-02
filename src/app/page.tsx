@@ -65,7 +65,7 @@ function MiniDashPreview() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Dot color={T.warn} size={6} />
-            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Pret a rouler</span>
+            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Prêt à rouler</span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 4 }}>
             <Mono style={{ fontSize: 42, fontWeight: 400, letterSpacing: -1.4, lineHeight: 1, color: T.warn }}>62</Mono>
@@ -470,17 +470,4 @@ function LandingFooter() {
   );
 }
 
-// ── Main ───────────────────────────────────────────────────────
-export default function Home() {
-  return (
-    <main style={{ minHeight: "100dvh", background: T.bg, color: T.ink, fontFamily: "var(--bi-font-ui)" }}>
-      <LandingNav />
-      <LandingHero />
-      <LandingMetrics />
-      <LandingHow />
-      <LandingInsights />
-      <LandingCTA />
-      <LandingFooter />
-    </main>
-  );
-}
+// ── Main ────────�

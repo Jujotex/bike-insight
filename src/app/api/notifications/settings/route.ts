@@ -37,5 +37,4 @@ export async function POST(req: Request) {
 
   const { error } = await supabase.from('notification_settings').upsert(payload)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
-}
+  re

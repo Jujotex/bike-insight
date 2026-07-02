@@ -47,9 +47,4 @@ export function AppShell({ children, nav }: AppShellProps) {
 
         {/* Mobile bottom nav */}
         <div className="md:hidden">
-          <BottomNav />
-        </div>
-      </div>
-    </div>
-  );
-}
+          <BottomNav 

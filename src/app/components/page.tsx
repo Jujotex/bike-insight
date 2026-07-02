@@ -17,6 +17,4 @@ export default async function ComponentsPage() {
         replacementLogs={data.replacementLogs}
         kpis={data.kpis}
       />
-    </AppShell>
-  );
-}
+    

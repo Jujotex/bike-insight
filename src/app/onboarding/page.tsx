@@ -44,7 +44,4 @@ export default async function OnboardingPage({
     <OnboardingWizard
       userId={user.id}
       bikes={bikeList}
-      preselectedBikeId={preselectedBikeId}
-    />
-  );
-}
+      presel

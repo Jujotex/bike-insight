@@ -470,21 +470,4 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
                           </Link>
                         ) : (
-                          <div style={{ justifySelf: "end", display: "flex", alignItems: "center" }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-line)" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </BiCard>
-          )}
-        </>
-      )}
-
-
-    </div>
-  );
-}
+                          <div style={{ ju

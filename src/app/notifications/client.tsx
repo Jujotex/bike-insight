@@ -295,16 +295,4 @@ export function NotificationsClient({
                     )}
                     {!n.read && (
                       <button onClick={() => markOne(n.id)} title="Marquer comme lu" style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", padding: 0, display: "flex", alignItems: "center" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill=

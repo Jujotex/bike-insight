@@ -297,14 +297,4 @@ export function AccountClient({
             <div style={{ fontSize: 12, color: "var(--bi-muted)", marginBottom: 12 }}>Toutes tes données (vélos, composants, historique) seront supprimées définitivement.</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "8px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>Annuler</button>
-              <a href="mailto:support@bikeinsight.app?subject=Suppression de compte" style={{ flex: 2, padding: "8px 0", background: "var(--bi-bad)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", fontWeight: 600, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                Contacter le support
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-
-    </div>
-  );
-}
+              <a href="mailto:support@bikeinsight.app?subject=Suppression de compte" style={{ flex: 2, padding: "8px 0", background: "var(--bi-bad)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12.5, fontFami

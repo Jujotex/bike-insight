@@ -87,7 +87,4 @@ export function SyncButton({ stravaConnected }: Props) {
         </svg>
         {status === "loading" ? "Sync en cours…" : "Resynchroniser"}
       </button>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-}
+      <style>{`@keyframes spin { from { tr

@@ -301,16 +301,4 @@ export default async function ComparePage({
                 currentBikeKm={bike?.total_km ?? 0}
                 componentPrice={recommended.price}
                 label="Marquer comme remplacé (recommandé)"
-                fullWidth
-                newComponentName={recommended.name}
-                newComponentBrand={recommended.brand || undefined}
-                newComponentKmMax={recommended.lifeKm}
-              />
-            </div>
-          </BiCard>
-        </div>
-
-      </div>
-    </AppShell>
-  );
-}
+     

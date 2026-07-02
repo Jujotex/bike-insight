@@ -100,9 +100,9 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
 
   {
     id: "shimano-105-11v",
-    label: "Shimano 105",
+    label: "Shimano 105 Mécanique",
     brand: "Shimano",
-    level: "Milieu de gamme",
+    level: "Milieu de gamme · 11v",
     speeds: 11,
     bikeTypes: ["route", "gravel"],
     components: {
@@ -123,9 +123,9 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
 
   {
     id: "shimano-105-12v",
-    label: "Shimano 105 Di2 12v",
+    label: "Shimano 105 Di2",
     brand: "Shimano",
-    level: "Milieu de gamme",
+    level: "Milieu de gamme · 12v électronique",
     speeds: 12,
     bikeTypes: ["route", "gravel"],
     components: {
@@ -383,14 +383,4 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
   },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────
-
-export const BIKE_TYPE_LABELS = {
-  route: "Route",
-  gravel: "Gravel",
-  vtt: "VTT",
-};
-
-export function getTemplatesForType(bikeType: "route" | "gravel" | "vtt"): BikeTemplate[] {
-  return BIKE_TEMPLATES.filter(t => t.bikeTypes.includes(bikeType));
-}
+// ── Helpers ───────�

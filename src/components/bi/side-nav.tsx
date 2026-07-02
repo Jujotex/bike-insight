@@ -103,8 +103,4 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
             {bikeCount !== undefined ? `${bikeCount} vélo${bikeCount !== 1 ? "s" : ""} actif${bikeCount !== 1 ? "s" : ""}` : ""}
           </div>
         </div>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-      </Link>
-    </nav>
-  );
-}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" 
