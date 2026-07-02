@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BiCard, Mono } from "@/components/bi/ui";
-import { OnboardingOverlay } from "@/components/bi/onboarding-overlay";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -98,10 +97,10 @@ export function DashboardClient({
     : warnItems.length > 0 ? "rgba(208,132,21,0.18)"
     : "rgba(14,143,90,0.18)";
   const statusMsg = badItems.length > 0
-    ? `${badItems.length} composant${badItems.length > 1 ? "s" : ""} a remplacer`
+    ? `${badItems.length} composant${badItems.length > 1 ? "s" : ""} à remplacer`
     : warnItems.length > 0
-    ? `${warnItems.length} composant${warnItems.length > 1 ? "s" : ""} a surveiller`
-    : "Pret a rouler";
+    ? `${warnItems.length} composant${warnItems.length > 1 ? "s" : ""} à surveiller`
+    : "Prêt à rouler";
   const statusSub = badItems.length === 0 && warnItems.length === 0 && filteredPredictions.length > 0
     ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} - ${formatWeeks(filteredPredictions[0].weeksUntil)}`
     : badItems.length > 0 ? "Remplace ce composant avant de rouler."
@@ -114,8 +113,6 @@ export function DashboardClient({
 
   return (
     <>
-      <OnboardingOverlay />
-
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12, flexWrap: "wrap" }}>
         <div>
@@ -126,7 +123,7 @@ export function DashboardClient({
             Bonjour, {userName}
           </div>
         </div>
-        <Link href="/components/new" className="bi-desktop">
+        <Link href={hasNoComponents ? (selectedBikeId ? `/onboarding?bike_id=${selectedBikeId}` : "/onboarding") : `/components/new?bike_id=${selectedBikeId}`} className="bi-desktop">
           <button style={{ padding: "8px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
             Composant
@@ -177,10 +174,10 @@ export function DashboardClient({
           </div>
         </div>
         <div style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>cout moyen</div>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>coût moyen</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
             <span style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.5, fontFamily: "var(--font-jetbrains-mono)" }}>{costPerKmFormatted}</span>
-            <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>eu/km</span>
+            <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€/km</span>
           </div>
         </div>
       </div>
@@ -193,10 +190,10 @@ export function DashboardClient({
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>Aucun composant configure</div>
-              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 4 }}>Ajoute tes composants pour suivre l usure et recevoir des alertes.</div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>Aucun composant configuré</div>
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 4 }}>Configure ton vélo en 2 minutes pour suivre l&apos;usure et recevoir des alertes.</div>
             </div>
-            <Link href="/components/new">
+            <Link href={selectedBikeId ? `/onboarding?bike_id=${selectedBikeId}` : "/onboarding"}>
               <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap" }}>
                 Ajouter
               </button>
@@ -253,12 +250,12 @@ export function DashboardClient({
                     {filteredAttention.length}
                   </div>
                 )}
-                <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>A traiter</span>
+                <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>À traiter</span>
               </div>
               <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, marginLeft: filteredAttention.length > 0 ? 30 : 0 }}>
                 {filteredAttention.length === 0
                   ? "Tous tes composants sont OK"
-                  : `${badItems.length} a remplacer - ${warnItems.length} a surveiller`}
+                  : `${badItems.length} à remplacer · ${warnItems.length} à surveiller`}
               </div>
             </div>
             {filteredAttention.length > 0 && (
@@ -276,7 +273,7 @@ export function DashboardClient({
                 </div>
                 <div>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bi-ok)" }}>Tout est en ordre.</div>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucun composant ne necessite d attention.</div>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucun composant ne nécessite d&apos;attention.</div>
                 </div>
               </div>
             </div>
@@ -284,7 +281,7 @@ export function DashboardClient({
             filteredAttention.map((c, i) => {
               const color = c.status === "bad" ? "var(--bi-bad)" : "var(--bi-warn)";
               const isBad = c.status === "bad";
-              const urgencyLine = c.weeksUntil !== null && c.weeksUntil <= 0 ? "Depasse"
+              const urgencyLine = c.weeksUntil !== null && c.weeksUntil <= 0 ? "Dépassé"
                 : c.weeksUntil !== null ? `Dans ${formatWeeks(c.weeksUntil)}`
                 : `~${c.kmRemaining.toLocaleString("fr")} km`;
               return (
@@ -335,14 +332,14 @@ export function DashboardClient({
             <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Prochains remplacements</div>
             <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>
               {budget3m > 0
-                ? `Budget estime 3 mois - ${Math.round(budget3m)} EUR`
-                : "Base sur ton rythme actuel"}
+                ? `Budget estimé 3 mois · ${Math.round(budget3m)} €`
+                : "Basé sur ton rythme actuel"}
             </div>
           </div>
           <div style={{ borderTop: "1px solid var(--bi-line)" }}>
             {filteredPredictions.length === 0 ? (
               <div style={{ padding: "16px 22px 20px", fontSize: 13, color: "var(--bi-muted)" }}>
-                Aucun remplacement prevu prochainement.
+                Aucun remplacement prévu prochainement.
               </div>
             ) : (
               filteredPredictions.slice(0, 5).map((p, i, arr) => {

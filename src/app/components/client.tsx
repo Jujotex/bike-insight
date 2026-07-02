@@ -119,7 +119,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
         title="Composants"
         sub={`${kpis.activeCount} composant${kpis.activeCount !== 1 ? "s" : ""} actif${kpis.activeCount !== 1 ? "s" : ""} · ${kpis.replacedCount} remplacé${kpis.replacedCount !== 1 ? "s" : ""} · suivi sur ${bikes.length} vélo${bikes.length !== 1 ? "s" : ""}`}
         actions={
-          <Link href="/components/new">
+          <Link href={kpis.activeCount === 0 ? "/onboarding" : "/components/new"}>
             <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
               Déclarer un composant

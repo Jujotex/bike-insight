@@ -5,7 +5,8 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { findCatalogEntry, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
+import { findCatalogEntry, getCatalogForTemplate, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
+import { BIKE_TEMPLATES } from "@/lib/bike-templates";
 
 const CATEGORY_LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -49,7 +50,7 @@ export default async function ComparePage({
 
   const { data: bike } = await supabase
     .from("bikes")
-    .select("name, total_km")
+    .select("name, total_km, groupset_template_id")
     .eq("id", comp.bike_id)
     .single();
 
@@ -80,7 +81,14 @@ export default async function ComparePage({
   }
 
   // ── Catalogue ──────────────────────────────────────────────
-  const catalogEntry = findCatalogEntry(comp.name as string, comp.category as string);
+  // Priorité au groupe enregistré du vélo (fiable), fallback sur la détection par mots-clés
+  const bikeTemplate = bike?.groupset_template_id
+    ? BIKE_TEMPLATES.find(t => t.id === bike.groupset_template_id) ?? null
+    : null;
+  const catalogEntry = bikeTemplate
+    ? getCatalogForTemplate(comp.name as string, comp.category as string, bikeTemplate.brand, bikeTemplate.speeds)
+      ?? findCatalogEntry(comp.name as string, comp.category as string)
+    : findCatalogEntry(comp.name as string, comp.category as string);
   const products: CatalogProduct[] = catalogEntry
     ? catalogEntry.products
     : buildGenericOptions(comp.purchase_price as number | null, kmMax);
@@ -115,7 +123,9 @@ export default async function ComparePage({
           <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
             <div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Compatibilité détectée — </span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>
+                {bikeTemplate ? `Basé sur ton groupe ${bikeTemplate.label} — ` : "Compatibilité détectée — "}
+              </span>
               <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{catalogEntry.compatNote}</span>
             </div>
           </div>

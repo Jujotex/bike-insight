@@ -216,6 +216,208 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Swiss Stop Flash Pro", brand: "Swiss Stop", price: 22, lifeKm: 5000, tier: "premium", note: "Excellentes performances toutes conditions" },
     ],
   },
+  // ── CHAÎNES 8/9/10V ────────────────────────────────────────
+
+  {
+    id: "chain-shimano-8v",
+    compatNote: "Chaîne 8 vitesses (Claris / Altus / Acera)",
+    keywords: [["chaîne", "chain", "chaine", "z8", "hg40"], ["8v", "8-speed", "8s", "8 vitesse"]],
+    products: [
+      { name: "KMC Z8", brand: "KMC", reference: "Z8.3", price: 12, lifeKm: 2500, tier: "budget", note: "Référence économique 8v, compatible Shimano et SRAM" },
+      { name: "Shimano CN-HG40", brand: "Shimano", reference: "CN-HG40", price: 14, lifeKm: 3000, tier: "original", note: "Chaîne d'origine 6/7/8v" },
+      { name: "Shimano CN-HG71", brand: "Shimano", reference: "CN-HG71", price: 20, lifeKm: 4000, tier: "premium", note: "Renforcée, très durable, idéale usage quotidien" },
+    ],
+  },
+
+  {
+    id: "chain-shimano-9v",
+    compatNote: "Chaîne 9 vitesses (Sora / Alivio / Deore 9v)",
+    keywords: [["chaîne", "chain", "chaine", "x9", "hg53"], ["9v", "9-speed", "9s", "9 vitesse"]],
+    products: [
+      { name: "KMC X9", brand: "KMC", reference: "X9.93", price: 14, lifeKm: 2500, tier: "budget", note: "Compatible universelle 9v" },
+      { name: "Shimano CN-HG53", brand: "Shimano", reference: "CN-HG53", price: 18, lifeKm: 3000, tier: "original", note: "Chaîne de série Sora / Alivio" },
+      { name: "Shimano CN-HG93", brand: "Shimano", reference: "CN-HG93", price: 25, lifeKm: 3500, tier: "premium", note: "Qualité supérieure, rivets renforcés" },
+    ],
+  },
+
+  {
+    id: "chain-shimano-10v",
+    compatNote: "Chaîne 10 vitesses (Tiagra / Deore 10v / CUES)",
+    keywords: [["chaîne", "chain", "chaine", "x10", "hg54", "lg500"], ["10v", "10-speed", "10s", "10 vitesse"]],
+    products: [
+      { name: "KMC X10", brand: "KMC", reference: "X10.93", price: 18, lifeKm: 3000, tier: "budget", note: "Compatible universelle 10v" },
+      { name: "Shimano CN-HG54", brand: "Shimano", reference: "CN-HG54", price: 22, lifeKm: 3000, tier: "original", note: "Chaîne de série Tiagra / Deore" },
+      { name: "Shimano CN-HG95", brand: "Shimano", reference: "CN-HG95", price: 28, lifeKm: 4000, tier: "premium", note: "Qualité XT/Ultegra 10v, traitement SIL-TEC" },
+    ],
+  },
+
+  // ── CHAÎNES SRAM AXS ROUTE (FLATTOP) ───────────────────────
+
+  {
+    id: "chain-sram-axs-road",
+    compatNote: "Compatible SRAM AXS route 12v (Red / Force / Rival / Apex) — chaîne Flattop uniquement",
+    keywords: [["flattop"]],
+    products: [
+      { name: "SRAM Apex Flattop", brand: "SRAM", reference: "CN-APX-E1", price: 35, lifeKm: 4000, tier: "budget", note: "Flattop entrée de gamme, PowerLock inclus" },
+      { name: "SRAM Rival Flattop", brand: "SRAM", reference: "CN-RVL-D1", price: 50, lifeKm: 4500, tier: "original", note: "Flattop de série Rival/Force AXS" },
+      { name: "SRAM Red Flattop D1", brand: "SRAM", reference: "CN-RED-D1", price: 75, lifeKm: 5000, tier: "premium", note: "Flattop compétition, traitement Hard Chrome" },
+    ],
+  },
+
+  // ── CAMPAGNOLO ─────────────────────────────────────────────
+
+  {
+    id: "chain-campagnolo-12v",
+    compatNote: "Compatible Campagnolo 12 vitesses (Chorus / Record / Super Record)",
+    keywords: [["campagnolo", "c12"], ["12v", "12-speed", "12s", "12 vitesse"]],
+    products: [
+      { name: "KMC X12", brand: "KMC", reference: "X12", price: 25, lifeKm: 3000, tier: "budget", note: "Compatibilité Campagnolo 12v à vérifier selon le groupe" },
+      { name: "Campagnolo C12 Chorus", brand: "Campagnolo", reference: "CN21-CH1214", price: 55, lifeKm: 4500, tier: "original", note: "Chaîne d'origine Chorus 12v" },
+      { name: "Campagnolo C12 Record", brand: "Campagnolo", reference: "CN21-RE1212", price: 70, lifeKm: 5000, tier: "premium", note: "Finition Record, traitement Ni-PTFE" },
+    ],
+  },
+
+  {
+    id: "chain-campagnolo-13v",
+    compatNote: "Compatible Campagnolo Ekar 13 vitesses — chaîne C13 uniquement",
+    keywords: [["ekar", "c13"], ["13v", "13-speed", "13s", "13 vitesse", "chaîne", "chain", "chaine"]],
+    products: [
+      { name: "Campagnolo C13 Ekar GT", brand: "Campagnolo", reference: "CN21-EKG13", price: 50, lifeKm: 4000, tier: "budget", note: "Version GT, seule alternative 13v" },
+      { name: "Campagnolo C13 Ekar", brand: "Campagnolo", reference: "CN21-EK1312", price: 62, lifeKm: 4500, tier: "original", note: "Chaîne d'origine Ekar 13v" },
+      { name: "Campagnolo C13 Ekar + C-Link", brand: "Campagnolo", reference: "CN21-EK1312-CL", price: 68, lifeKm: 4500, tier: "premium", note: "Avec maillon rapide C-Link inclus" },
+    ],
+  },
+
+  // ── CASSETTES ROUTE 12V ────────────────────────────────────
+
+  {
+    id: "cassette-shimano-12v-road",
+    compatNote: "Compatible Shimano 12v route (105 / Ultegra / Dura-Ace)",
+    keywords: [["shimano", "105", "ultegra", "dura-ace", "r7101", "r8101", "r9200"], ["12v", "12-speed", "12s", "cassette"]],
+    products: [
+      { name: "Shimano 105 CS-R7101", brand: "Shimano", reference: "CS-R7101-12", price: 60, lifeKm: 18000, tier: "budget", note: "Cassette 105 12v, excellent rapport qualité/prix" },
+      { name: "Shimano Ultegra CS-R8101", brand: "Shimano", reference: "CS-R8101-12", price: 110, lifeKm: 22000, tier: "original", note: "Aluminium usiné, compatible Di2" },
+      { name: "Shimano Dura-Ace CS-R9200", brand: "Shimano", reference: "CS-R9200-12", price: 380, lifeKm: 25000, tier: "premium", note: "Titane/alu, la plus légère de la gamme" },
+    ],
+  },
+
+  {
+    id: "cassette-sram-12v-road",
+    compatNote: "Compatible SRAM AXS route 12v (corps de roue libre XDR requis)",
+    keywords: [["sram", "xg-12", "xdr"], ["12v", "12-speed", "12s", "cassette"]],
+    products: [
+      { name: "SRAM Rival XG-1250", brand: "SRAM", reference: "XG-1250", price: 75, lifeKm: 18000, tier: "budget", note: "Acier, robuste, corps XDR" },
+      { name: "SRAM Force XG-1270", brand: "SRAM", reference: "XG-1270", price: 130, lifeKm: 20000, tier: "original", note: "Alu/acier, bon compromis poids/durabilité" },
+      { name: "SRAM Red XG-1290", brand: "SRAM", reference: "XG-1290", price: 260, lifeKm: 22000, tier: "premium", note: "Monobloc X-Dome, ultra légère" },
+    ],
+  },
+
+  {
+    id: "cassette-campagnolo-12v",
+    compatNote: "Compatible Campagnolo 12v (corps de roue libre Campagnolo)",
+    keywords: [["campagnolo"], ["12v", "12-speed", "12s", "cassette"]],
+    products: [
+      { name: "Campagnolo Chorus 12v", brand: "Campagnolo", reference: "CS20-CH1212", price: 165, lifeKm: 18000, tier: "original", note: "Cassette d'origine Chorus" },
+      { name: "Campagnolo Record 12v", brand: "Campagnolo", reference: "CS20-RE1212", price: 240, lifeKm: 20000, tier: "premium", note: "Pignons titane sur les grandes couronnes" },
+    ],
+  },
+
+  {
+    id: "cassette-campagnolo-13v",
+    compatNote: "Compatible Campagnolo Ekar 13v (corps de roue libre N3W)",
+    keywords: [["ekar", "n3w"], ["13v", "13-speed", "13s", "cassette"]],
+    products: [
+      { name: "Campagnolo Ekar GT 13v", brand: "Campagnolo", reference: "CS22-EKG13", price: 120, lifeKm: 16000, tier: "budget", note: "Version GT, acier, plus abordable" },
+      { name: "Campagnolo Ekar 13v", brand: "Campagnolo", reference: "CS21-EK1312", price: 190, lifeKm: 18000, tier: "original", note: "Cassette d'origine Ekar 9-36 ou 9-42" },
+    ],
+  },
+
+  // ── CASSETTES 8/9/10V ──────────────────────────────────────
+
+  {
+    id: "cassette-shimano-8v",
+    compatNote: "Cassette Shimano 8 vitesses (Claris / Altus)",
+    keywords: [["shimano", "hg31", "hg41"], ["8v", "8-speed", "8s", "cassette"]],
+    products: [
+      { name: "Shimano CS-HG31-8", brand: "Shimano", reference: "CS-HG31-8", price: 18, lifeKm: 12000, tier: "budget", note: "Cassette de série Claris" },
+      { name: "Shimano CS-HG41-8", brand: "Shimano", reference: "CS-HG41-8", price: 22, lifeKm: 12000, tier: "original", note: "Acier renforcé" },
+      { name: "Shimano CS-HG50-8", brand: "Shimano", reference: "CS-HG50-8", price: 30, lifeKm: 15000, tier: "premium", note: "Pignons nickelés, plus durable" },
+    ],
+  },
+
+  {
+    id: "cassette-shimano-9v",
+    compatNote: "Cassette Shimano 9 vitesses (Sora / Alivio)",
+    keywords: [["shimano", "hg400"], ["9v", "9-speed", "9s", "cassette"]],
+    products: [
+      { name: "SunRace CSM99 9v", brand: "SunRace", reference: "CSM99", price: 18, lifeKm: 10000, tier: "budget", note: "Alternative économique compatible Shimano" },
+      { name: "Shimano CS-HG400-9", brand: "Shimano", reference: "CS-HG400-9", price: 25, lifeKm: 12000, tier: "original", note: "Cassette de série Sora / Alivio" },
+      { name: "Shimano CS-HG50-9", brand: "Shimano", reference: "CS-HG50-9", price: 30, lifeKm: 15000, tier: "premium", note: "Finition supérieure, plus durable" },
+    ],
+  },
+
+  {
+    id: "cassette-shimano-10v",
+    compatNote: "Cassette Shimano 10 vitesses (Tiagra / Deore 10v / CUES)",
+    keywords: [["shimano", "hg500", "lg400"], ["10v", "10-speed", "10s", "cassette"]],
+    products: [
+      { name: "SunRace CSMS3 10v", brand: "SunRace", reference: "CSMS3", price: 22, lifeKm: 12000, tier: "budget", note: "Alternative économique compatible Shimano" },
+      { name: "Shimano Tiagra CS-HG500-10", brand: "Shimano", reference: "CS-HG500-10", price: 28, lifeKm: 15000, tier: "original", note: "Cassette de série Tiagra" },
+      { name: "Shimano Deore CS-M4100-10", brand: "Shimano", reference: "CS-M4100-10", price: 35, lifeKm: 16000, tier: "premium", note: "Large plage, très robuste" },
+    ],
+  },
+
+  // ── ROTORS DE FREIN À DISQUE ───────────────────────────────
+
+  {
+    id: "rotor-disc",
+    compatNote: "Rotor de frein à disque — vérifier la fixation (Centerlock / 6 trous) et le diamètre (140/160/180 mm)",
+    keywords: [["rotor", "rt-", "centerlock", "disque de frein"]],
+    products: [
+      { name: "Shimano SM-RT54", brand: "Shimano", reference: "SM-RT54", price: 18, lifeKm: 15000, tier: "budget", note: "Centerlock, usage route/gravel courant" },
+      { name: "Shimano SM-RT70", brand: "Shimano", reference: "SM-RT70", price: 30, lifeKm: 18000, tier: "original", note: "Niveau 105/SLX, Ice-Tech" },
+      { name: "Shimano RT-MT800", brand: "Shimano", reference: "RT-MT800", price: 45, lifeKm: 20000, tier: "premium", note: "Ice-Tech Freeza, meilleure dissipation thermique" },
+    ],
+  },
+
+  // ── PLAQUETTES CAMPAGNOLO ──────────────────────────────────
+
+  {
+    id: "brake-disc-campagnolo",
+    compatNote: "Plaquettes disque Campagnolo (Ekar / Chorus / Record)",
+    keywords: [["campagnolo"], ["plaquette", "frein", "brake", "disc", "disque"]],
+    products: [
+      { name: "Comprex compatible Campagnolo", brand: "Comprex", price: 10, lifeKm: 2000, tier: "budget", note: "Organique — vérifier la référence de l'étrier" },
+      { name: "Campagnolo organiques", brand: "Campagnolo", reference: "DB-310", price: 25, lifeKm: 3000, tier: "original", note: "Plaquettes d'origine, silencieuses" },
+      { name: "Campagnolo Race", brand: "Campagnolo", reference: "DB-350", price: 30, lifeKm: 4000, tier: "premium", note: "Composé renforcé, meilleure endurance" },
+    ],
+  },
+
+  // ── CÂBLES ET GAINES ───────────────────────────────────────
+
+  {
+    id: "cable-kit",
+    compatNote: "Câbles et gaines de dérailleur / frein",
+    keywords: [["câble", "cable", "gaine"]],
+    products: [
+      { name: "Kit câbles + gaines générique", brand: "Générique", price: 12, lifeKm: 8000, tier: "budget", note: "Kit complet dérailleur ou frein" },
+      { name: "Shimano OT-SP41", brand: "Shimano", reference: "OT-SP41", price: 25, lifeKm: 10000, tier: "original", note: "Gaine de référence, glisse optimale" },
+      { name: "Jagwire Road Elite", brand: "Jagwire", reference: "Road-Elite", price: 45, lifeKm: 12000, tier: "premium", note: "Câbles polis, gaines compressionless" },
+    ],
+  },
+
+  // ── PNEUS VTT 27,5" ────────────────────────────────────────
+
+  {
+    id: "tire-mtb-275",
+    compatNote: "Pneu VTT 27,5 pouces (650b)",
+    keywords: [["pneu", "tire", "tyre"], ["27.5", "27,5", "650b"]],
+    products: [
+      { name: "Kenda Booster 27.5", brand: "Kenda", reference: "Booster-275", price: 25, lifeKm: 3000, tier: "budget", note: "Bon compromis XC/trail" },
+      { name: "Maxxis Ardent 27.5", brand: "Maxxis", reference: "Ardent-275", price: 40, lifeKm: 4000, tier: "original", note: "Polyvalent trail, roulant" },
+      { name: "Maxxis Minion DHF 27.5", brand: "Maxxis", reference: "DHF-275", price: 55, lifeKm: 4500, tier: "premium", note: "Référence enduro, grip maximal" },
+    ],
+  },
 ];
 
 // ── Détection automatique ─────────────────────────────────────
@@ -267,6 +469,9 @@ export function getCatalogForTemplate(
   const isTire = cat === "roues";
 
   if (isChain) {
+    if (name.includes("flattop")) {
+      return CATALOG.find(e => e.id === "chain-sram-axs-road") ?? null;
+    }
     return CATALOG.find(e => e.id === `chain-${brand}-${sv}`)
       ?? CATALOG.find(e => e.id === `chain-generic-${sv}`)
       ?? CATALOG.find(e => e.id === "chain-generic")

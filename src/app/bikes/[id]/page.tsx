@@ -160,7 +160,7 @@ export default async function BikeDetailPage({
           </div>
           <div className="bi-bike-header-actions">
             <ManualRideButton bikes={[{ id: bike.id as string, name: bike.name as string }]} defaultBikeId={bike.id as string} />
-            <Link href={`/components/new`}>
+            <Link href={components.length === 0 ? `/onboarding?bike_id=${bike.id}` : `/components/new?bike_id=${bike.id}`}>
               <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
                 Composant
@@ -210,7 +210,7 @@ export default async function BikeDetailPage({
             </div>
             {components.length === 0 ? (
               <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
-                Aucun composant — <Link href="/components/new" style={{ color: "var(--bi-ink)", fontWeight: 600 }}>en ajouter un</Link>
+                Aucun composant — <Link href={`/onboarding?bike_id=${bike.id}`} style={{ color: "var(--bi-ink)", fontWeight: 600 }}>configurer ce vélo en 2 min</Link>
               </div>
             ) : (
               components.map((c) => {
