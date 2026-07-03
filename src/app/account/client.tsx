@@ -219,12 +219,7 @@ export function AccountClient({
               </div>
             </div>
           </div>
-          {stravaConnected ? (
-            <Link href="/sync" style={{ fontSize: 12, color: "var(--bi-ink)", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 4, padding: "7px 14px", border: "1px solid var(--bi-line)", borderRadius: 8 }}>
-              Gérer
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-            </Link>
-          ) : (
+          {stravaConnected ? null : (
             <a href="/api/strava/auth" style={{ fontSize: 12, color: "#fff", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "#FC4C02", border: "none", borderRadius: 8 }}>
               Connecter
             </a>
@@ -250,7 +245,7 @@ export function AccountClient({
         {[
           { label: "Mes vélos", href: "/bikes", icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3" },
           { label: "Pièces", href: "/components", icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z" },
-          { label: "Alertes", href: "/notifications", icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0", badge: unreadNotifCount },
+          { label: "Alertes", href: "/dashboard", icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0", badge: unreadNotifCount },
         ].map((item, i, arr) => (
           <Link key={item.href} href={item.href} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--bi-line)" : "none", textDecoration: "none", color: "var(--bi-ink)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">

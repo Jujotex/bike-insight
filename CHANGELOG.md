@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — fin de la boucle multi-vélos + pages orphelines
+
+### Modifié
+- **Wizard** : après la configuration du vélo, écran de succès simple avec CTA unique vers le dashboard (fin de la boucle « vélo suivant » qui poussait à tout configurer d'affilée). Les autres vélos se configurent depuis Mes vélos (lien discret « Configurer un autre vélo maintenant »).
+
+### Supprimé
+- **`/sync`** → redirige vers Compte (statut Strava + synchronisation y vivent déjà) ; lien « Gérer » du compte retiré.
+- **`/notifications`** → redirige vers le dashboard (les alertes vivent dans « À traiter » et « Entretien à prévoir ») ; le lien « Alertes » du compte pointe vers le dashboard. `notifications/client.tsx` vidé (à `git rm`).
+
 ## [Non publié] — fluidité et polissage UX
 
 ### Ajouté
