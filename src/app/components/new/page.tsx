@@ -22,8 +22,8 @@ export default async function NewComponentPage() {
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page" style={{ maxWidth: 900 }}>
         <PageHead
-          title="Déclarer un composant"
-          breadcrumb={["Composants", "Nouveau"]}
+          title="Ajouter une pièce"
+          breadcrumb={["Pièces", "Nouvelle"]}
           sub="L'usure sera calculée automatiquement à partir de tes sorties Strava."
         />
         <Suspense fallback={null}>

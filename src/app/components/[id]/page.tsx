@@ -16,7 +16,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  ok: "En bon etat",
+  ok: "En bon état",
   warn: "A surveiller",
   bad: "A remplacer",
   archived: "Archive",
@@ -100,8 +100,8 @@ export default async function ComponentDetailPage({
   if (kmUsed > 0 && comp.installed_at) {
     const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
     const kmPerMonth = (kmUsed / ageDays) * 30;
-    if (kmPerMonth > 400) intensity = "Elevee";
-    else if (kmPerMonth > 150) intensity = "Moderee";
+    if (kmPerMonth > 400) intensity = "Élevée";
+    else if (kmPerMonth > 150) intensity = "Modérée";
     else intensity = "Faible";
   }
 
@@ -112,40 +112,48 @@ export default async function ComponentDetailPage({
   const toY = (pct: number) => chartH - 10 - (pct / chartMaxPct) * (chartH - 20);
   const chartPoints: Array<{ x: number; pct: number; label: string }> = [];
 
-  // Vraies activités Strava — endpoint épinglé sur le wear réel pour cohérence
-  if (installedMs && kmMax > 0 && comp.bike_id && comp.installed_at) {
-    const { data: rideActivities } = await supabase
+  // Vraies activités Strava — endpoint épinglé sur le wear réel pour cohérence.
+  // Si la date d'installation est inconnue (pièces "d'origine du vélo" ou
+  // "je ne sais pas"), le graphe démarre à la première activité connue du vélo,
+  // avec l'usure déjà accumulée à ce moment-là comme point de départ.
+  if (kmMax > 0 && comp.bike_id) {
+    let ridesQuery = supabase
       .from("activities")
       .select("started_at, distance_km")
-      .eq("bike_id", comp.bike_id as string)
-      .gte("started_at", comp.installed_at as string)
-      .order("started_at", { ascending: true });
+      .eq("bike_id", comp.bike_id as string);
+    if (comp.installed_at) ridesQuery = ridesQuery.gte("started_at", comp.installed_at as string);
+    const { data: rideActivities } = await ridesQuery.order("started_at", { ascending: true });
 
     const rides = rideActivities ?? [];
-    const nowMs = Date.now();
-    const totalMs = nowMs - installedMs;
-    const NUM_POINTS = 20;
+    const chartStartMs = installedMs
+      ?? (rides.length > 0 ? new Date(rides[0].started_at as string).getTime() : null);
 
-    const activityTotalKm = rides.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
-    const actualKmUsed = (kmMax * rawWearPct) / 100;
-    const scale = activityTotalKm > 0 ? actualKmUsed / activityTotalKm : 1;
+    if (chartStartMs) {
+      const nowMs = Date.now();
+      const totalMs = Math.max(1, nowMs - chartStartMs);
+      const NUM_POINTS = 20;
 
-    for (let i = 0; i <= NUM_POINTS; i++) {
-      const t = i / NUM_POINTS;
-      const targetMs = installedMs + totalMs * t;
-      const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
-      let pct: number;
-      if (i === NUM_POINTS) {
-        pct = rawWearPct;
-      } else if (activityTotalKm > 0) {
-        const cumKm = rides
-          .filter(a => new Date(a.started_at as string).getTime() <= targetMs)
-          .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
-        pct = Math.round((cumKm * scale / kmMax) * 100);
-      } else {
-        pct = Math.round(rawWearPct * t);
+      const activityTotalKm = rides.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+      // Usure déjà accumulée avant la première donnée disponible
+      const startPct = Math.max(0, rawWearPct - (activityTotalKm / kmMax) * 100);
+
+      for (let i = 0; i <= NUM_POINTS; i++) {
+        const t = i / NUM_POINTS;
+        const targetMs = chartStartMs + totalMs * t;
+        const label = new Date(targetMs).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+        let pct: number;
+        if (i === NUM_POINTS) {
+          pct = rawWearPct;
+        } else if (activityTotalKm > 0) {
+          const cumKm = rides
+            .filter(a => new Date(a.started_at as string).getTime() <= targetMs)
+            .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+          pct = Math.round(Math.min(rawWearPct, startPct + (cumKm / kmMax) * 100));
+        } else {
+          pct = Math.round(rawWearPct * t);
+        }
+        chartPoints.push({ x: t * 560 + 20, pct, label });
       }
-      chartPoints.push({ x: t * 560 + 20, pct, label });
     }
   }
   const pathD = chartPoints.map((p, i) => (i === 0 ? "M" : "L") + p.x + "," + toY(p.pct)).join(" ");
@@ -167,7 +175,7 @@ export default async function ComponentDetailPage({
         <PageHead
           title={comp.name as string}
           breadcrumb={["Composants", comp.name as string]}
-          sub={(CATEGORY_LABELS[comp.category as string] ?? String(comp.category)) + " - installe le " + installedDate}
+          sub={(CATEGORY_LABELS[comp.category as string] ?? String(comp.category)) + " · installé le " + installedDate}
           actions={
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <Link href={"/components/" + id + "/edit"}>
@@ -202,28 +210,28 @@ export default async function ComponentDetailPage({
         />
 
         <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <div style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
+          <div className="bi-comp-hero" style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                   <Dot color={statusColor} size={6} /> {statusLabel}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
-                  {bike?.name ?? "Velo inconnu"}
+                  {bike?.name ?? "Vélo inconnu"}
                 </div>
               </div>
               <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
                 {CATEGORY_LABELS[comp.category as string] ?? String(comp.category)}
               </Mono>
             </div>
-            <div style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
-              <span style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
+            <div className="bi-wear-hero" style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
+              <span className="bi-wear-num" style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
                 {kmMax > 0 ? wearPct : "-"}
               </span>
               {kmMax > 0 && <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>}
               <div style={{ flex: 1 }} />
               {kmMax > 0 && (
-                <div style={{ textAlign: "right" }}>
+                <div className="bi-wear-side" style={{ textAlign: "right" }}>
                   <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>
                     {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")}
                   </Mono>
@@ -260,23 +268,23 @@ export default async function ComponentDetailPage({
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35, marginBottom: 6 }}>
                 {(comp.status as string) === "bad" && "Remplacer maintenant."}
-                {(comp.status as string) === "warn" && "A surveiller de pres."}
-                {(comp.status as string) === "ok" && "Composant en bon etat."}
-                {(comp.status as string) === "archived" && "Composant archive."}
+                {(comp.status as string) === "warn" && "À surveiller de près."}
+                {(comp.status as string) === "ok" && "Pièce en bon état."}
+                {(comp.status as string) === "archived" && "Pièce archivée."}
               </div>
               <div style={{ fontSize: 12.5, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-                {(comp.status as string) === "bad" && "Continuer risque d'endommager les pieces adjacentes."}
-                {(comp.status as string) === "warn" && "Surveille ce composant - il approche de sa limite."}
+                {(comp.status as string) === "bad" && "Continuer risque d'endommager les pièces adjacentes."}
+                {(comp.status as string) === "warn" && "Surveille cette pièce — elle approche de sa limite."}
                 {(comp.status as string) === "ok" && "Aucune action requise pour l'instant."}
-                {(comp.status as string) === "archived" && "Ce composant a ete retire du suivi actif."}
+                {(comp.status as string) === "archived" && "Cette pièce a été retirée du suivi actif."}
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
               {[
-                ["Prix achat", comp.purchase_price !== null ? comp.purchase_price + " EUR" : "-"],
-                ["Cout / km", costPerKm !== null ? (costPerKm as number).toFixed(3) + " EUR" : "-"],
-                ["Intensite", intensity],
+                ["Prix achat", comp.purchase_price !== null ? comp.purchase_price + " €" : "-"],
+                ["Coût / km", costPerKm !== null ? (costPerKm as number).toFixed(3) + " €" : "-"],
+                ["Intensité", intensity],
                 ["Vie restante", daysRemaining],
               ].map(([k, v]) => (
                 <div key={String(k)} style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
@@ -292,7 +300,7 @@ export default async function ComponentDetailPage({
             <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Modelisation depuis l'installation</div>
+                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation depuis l'installation</div>
               </div>
               <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>% usure</Mono>
             </div>
@@ -346,7 +354,7 @@ export default async function ComponentDetailPage({
               </>
             ) : (
               <div style={{ height: 200, padding: "0 24px 20px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--bi-muted)", fontSize: 13 }}>
-                Donnees insuffisantes
+                Données insuffisantes
               </div>
             )}
           </BiCard>
@@ -356,7 +364,7 @@ export default async function ComponentDetailPage({
             <div style={{ padding: "22px 22px 12px" }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
               <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                {maintenanceLogs.length + " evenement" + (maintenanceLogs.length !== 1 ? "s" : "")}
+                {maintenanceLogs.length + " événement" + (maintenanceLogs.length !== 1 ? "s" : "")}
               </div>
             </div>
             {(
@@ -394,10 +402,10 @@ export default async function ComponentDetailPage({
           <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
           <div className="bi-stats-4" style={{ gap: 20, background: "transparent", borderRadius: 0 }}>
             {[
-              ["Velo", bike?.name ?? "-"],
+              ["Vélo", bike?.name ?? "-"],
               ["Categorie", CATEGORY_LABELS[comp.category as string] ?? String(comp.category)],
               ["Installe le", installedDate],
-              ["Km velo install.", comp.installed_km !== null ? Math.round(comp.installed_km as number).toLocaleString("fr") + " km" : "-"],
+              ["Km vélo à la pose", comp.installed_km !== null ? Math.round(comp.installed_km as number).toLocaleString("fr") + " km" : "-"],
             ].map(([k, v]) => (
               <div key={String(k)}>
                 <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>

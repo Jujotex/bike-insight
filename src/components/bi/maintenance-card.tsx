@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BiCard, Mono } from "@/components/bi/ui";
+import { showToast } from "@/components/bi/toast";
 import {
   MAINTENANCE_TYPES,
   computeMaintenanceStatus,
@@ -76,6 +77,7 @@ export function MaintenanceCard({
 
     setSaving(false);
     setOpenId(null);
+    showToast("Entretien enregistré");
     router.refresh();
   }
 

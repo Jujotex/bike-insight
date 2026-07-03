@@ -134,7 +134,7 @@ export default async function ComparePage({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-warn)" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             <div>
               <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Estimations génériques — </span>
-              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>Ce composant n&apos;est pas dans le catalogue. Les prix et durées sont des estimations — consulte ton vélociste.</span>
+              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>Cette pièce n&apos;est pas dans le catalogue. Les prix et durées sont des estimations — consulte ton vélociste.</span>
             </div>
           </div>
         )}
@@ -143,7 +143,7 @@ export default async function ComparePage({
         <div style={{ background: "var(--bi-card)", borderRadius: 16, border: "1px solid var(--bi-line)", overflow: "hidden", marginBottom: 22 }}>
           <div className="bi-compare-context">
             <div style={{ padding: "18px 22px" }}>
-              <BiLabel>Composant actuel</BiLabel>
+              <BiLabel>Pièce actuelle</BiLabel>
               <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 4, height: 32, background: statusColor, borderRadius: 2 }} />
                 <div>

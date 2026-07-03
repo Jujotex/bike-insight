@@ -453,28 +453,29 @@ export async function getBikeData(bikeId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: bike } = await supabase
-    .from('bike_stats')
-    .select('*')
-    .eq('id', bikeId)
-    .eq('user_id', user.id)
-    .single()
+  // Trois requêtes indépendantes → en parallèle
+  const [{ data: bike }, { data: components }, { data: activities }] = await Promise.all([
+    supabase
+      .from('bike_stats')
+      .select('*')
+      .eq('id', bikeId)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('component_stats')
+      .select('*')
+      .eq('bike_id', bikeId)
+      .eq('is_active', true)
+      .order('wear_pct', { ascending: false }),
+    supabase
+      .from('activities')
+      .select('started_at, distance_km')
+      .eq('bike_id', bikeId)
+      .order('started_at', { ascending: false })
+      .limit(90),
+  ])
 
   if (!bike) return null
-
-  const { data: components } = await supabase
-    .from('component_stats')
-    .select('*')
-    .eq('bike_id', bikeId)
-    .eq('is_active', true)
-    .order('wear_pct', { ascending: false })
-
-  const { data: activities } = await supabase
-    .from('activities')
-    .select('started_at, distance_km')
-    .eq('bike_id', bikeId)
-    .order('started_at', { ascending: false })
-    .limit(90)
 
   return { bike, components: components ?? [], activities: activities ?? [] }
 }

@@ -79,10 +79,7 @@ export function OnboardingWizard({
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [phase, setPhase] = useState<"wizard" | "next-bike">("wizard");
-
-  const [skippedBikeIds, setSkippedBikeIds] = useState<Set<string>>(new Set());
-  const [configuredThisSession, setConfiguredThisSession] = useState<string[]>([]);
+  const [phase, setPhase] = useState<"wizard" | "done">("wizard");
 
   const [selectedBikeId, setSelectedBikeId] = useState(
     preselectedBikeId ?? bikes.find(b => !b.isConfigured)?.id ?? bikes[0]?.id ?? ""
@@ -156,21 +153,9 @@ export function OnboardingWizard({
     setComponents(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
   }
 
-  function resetForNextBike(bikeId: string) {
-    setSelectedBikeId(bikeId);
-    setBikeType("route");
-    setTemplateId("");
-    setBrakeType("disc");
-    setWearState(null);
-    setComponents([]);
-    setError("");
-    setStep(0);
-    setPhase("wizard");
-  }
-
   async function handleConfirm() {
     const toCreate = components.filter(c => c.enabled);
-    if (toCreate.length === 0) { setError("Sélectionne au moins un composant."); return; }
+    if (toCreate.length === 0) { setError("Sélectionne au moins une pièce."); return; }
     setSaving(true);
     setError("");
 
@@ -194,79 +179,49 @@ export function OnboardingWizard({
     }
 
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
-    const newConfigured = [...configuredThisSession, selectedBikeId];
-    setConfiguredThisSession(newConfigured);
     setSaving(false);
-
-    const remaining = bikes.filter(b =>
-      !b.isConfigured && !skippedBikeIds.has(b.id) &&
-      b.id !== selectedBikeId && !newConfigured.includes(b.id)
-    );
-
-    if (remaining.length > 0) {
-      setPhase("next-bike");
-    } else {
-      router.push("/dashboard");
-    }
+    setPhase("done");
   }
 
-  // ── Écran "vélo suivant" ──────────────────────────────────────
-  if (phase === "next-bike") {
-    const remaining = bikes.filter(b =>
-      !b.isConfigured && !skippedBikeIds.has(b.id) && !configuredThisSession.includes(b.id)
-    );
-    const totalConfigured = configuredThisSession.length + bikes.filter(b => b.isConfigured).length;
+  // ── Écran de succès ──────────────────────────────────────
+  if (phase === "done") {
+    // On ne pousse plus à configurer les autres vélos à la chaîne :
+    // le dashboard d'abord, les autres vélos se configurent depuis Mes vélos.
+    const remaining = bikes.filter(b => !b.isConfigured && b.id !== selectedBikeId);
 
     return (
-      <div style={{ minHeight: "100dvh", background: T.bg, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px" }}>
-        <div style={{ width: "100%", maxWidth: 560 }}>
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
+      <div style={{ minHeight: "100dvh", background: T.bg, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px" }}>
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{ width: 56, height: 56, borderRadius: 16, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5 }}>{selectedBike?.name} est configuré !</div>
-            <div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}>
-              {totalConfigured} vélo{totalConfigured > 1 ? "s" : ""} configuré{totalConfigured > 1 ? "s" : ""} au total
+            <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.55 }}>
+              L&apos;usure de tes pièces évolue maintenant automatiquement avec tes sorties Strava.
+              {remaining.length > 0 && (
+                <> Tu pourras configurer {remaining.length > 1 ? `tes ${remaining.length} autres vélos` : "ton autre vélo"} plus tard depuis Mes vélos.</>
+              )}
             </div>
           </div>
 
-          {remaining.length > 0 && (
-            <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 24, marginBottom: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Tu as encore {remaining.length} vélo{remaining.length > 1 ? "s" : ""} à configurer</div>
-              <div style={{ fontSize: 13, color: T.muted, marginBottom: 18 }}>Tu peux le faire maintenant ou plus tard depuis la page Mes Vélos.</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {remaining.map(b => (
-                  <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, background: T.bg, border: `1px solid ${T.line}` }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{b.name}</div>
-                      <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{b.totalKm.toLocaleString("fr")} km</div>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                      <button
-                        onClick={() => setSkippedBikeIds(prev => new Set([...prev, b.id]))}
-                        style={{ fontSize: 12, color: T.muted, background: "transparent", border: `1px solid ${T.line}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "inherit" }}
-                      >
-                        Passer
-                      </button>
-                      <button
-                        onClick={() => resetForNextBike(b.id)}
-                        style={{ fontSize: 12, color: T.bg, fontWeight: 600, background: T.ink, border: "none", borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontFamily: "inherit" }}
-                      >
-                        Configurer →
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <button
             onClick={() => router.push("/dashboard")}
-            style={{ width: "100%", padding: "13px 0", background: remaining.length > 0 ? "transparent" : T.ink, color: remaining.length > 0 ? T.muted : T.bg, border: `1px solid ${T.line}`, borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+            style={{ width: "100%", padding: "14px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
           >
-            {remaining.length > 0 ? "Terminer et aller au dashboard" : "Accéder au dashboard →"}
+            Accéder au dashboard →
           </button>
+
+          {remaining.length > 0 && (
+            <div style={{ textAlign: "center", marginTop: 12 }}>
+              <button
+                onClick={() => router.push("/bikes")}
+                style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: T.muted, fontFamily: "inherit" }}
+              >
+                Configurer un autre vélo maintenant
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -363,7 +318,7 @@ export function OnboardingWizard({
                   style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>Je ne sais pas / Autre</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Composants génériques proposés</div>
+                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Pièces génériques proposées</div>
                   </div>
                   {templateId === "custom" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                 </button>

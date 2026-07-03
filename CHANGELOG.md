@@ -1,5 +1,39 @@
 # Changelog
 
+## [Non publié] — passe responsive mobile
+
+### Corrigé
+- **Filet global** : `overflow-x: hidden` sur le body (fin du scroll horizontal parasite).
+- **Page pièce** : le « 100 % » géant du héros d'usure (100px) passait hors écran — réduit à 56px sur mobile, bloc km repositionné, padding resserré.
+- **Landing** : héros 2 colonnes, grilles 3-4 colonnes, footer et paddings 48px adaptés au mobile ; tableau comparatif en scroll horizontal contenu. Accents corrigés au passage (Chaîne, Prévision, Régularité, € au lieu de EUR…).
+- **Toasts** : ne débordent plus sur petit écran (largeur max = écran − 32px, retour à la ligne).
+- **Barre de navigation mobile** : respecte la safe area iOS (`env(safe-area-inset-bottom)`) au lieu d'un padding fixe.
+
+## [Non publié] — fin de la boucle multi-vélos + pages orphelines
+
+### Modifié
+- **Wizard** : après la configuration du vélo, écran de succès simple avec CTA unique vers le dashboard (fin de la boucle « vélo suivant » qui poussait à tout configurer d'affilée). Les autres vélos se configurent depuis Mes vélos (lien discret « Configurer un autre vélo maintenant »).
+
+### Supprimé
+- **`/sync`** → redirige vers Compte (statut Strava + synchronisation y vivent déjà) ; lien « Gérer » du compte retiré.
+- **`/notifications`** → redirige vers le dashboard (les alertes vivent dans « À traiter » et « Entretien à prévoir ») ; le lien « Alertes » du compte pointe vers le dashboard. `notifications/client.tsx` vidé (à `git rm`).
+
+## [Non publié] — fluidité et polissage UX
+
+### Ajouté
+- **Skeletons de chargement** (`loading.tsx`) sur les 5 routes principales (dashboard, vélos, détail vélo, pièces, détail pièce) : plus d'écran figé pendant les requêtes serveur.
+- **Toasts de confirmation** après chaque écriture (entretien enregistré, pièce remplacée/ajoutée/modifiée), avec relais via sessionStorage pour survivre aux navigations. Monté dans `AppShell`.
+
+### Modifié
+- **Requêtes parallélisées** : `getBikeData` (3 requêtes) et la page détail vélo (4 requêtes) passent en `Promise.all` — temps de chargement divisé d'autant.
+- **Vocabulaire** : « composant » → « pièce » et « Déclarer » → « Ajouter » dans toute l'interface (dashboard, listes, formulaires, wizard, compte, notifications).
+- **Accents** : passe complète sur la page détail pièce (état, intensité, événements…) et remplacement des « EUR » restants par €.
+
+## [Non publié] — fix : graphe « Usure dans le temps » vide
+
+### Corrigé
+- Le graphe de la page composant affichait « Données insuffisantes » pour les pièces sans date d'installation (créées via le wizard avec « d'origine du vélo » ou « je ne sais pas »). Il démarre désormais à la première activité connue du vélo, avec l'usure déjà accumulée comme point de départ de la courbe (fin de l'étirement artificiel depuis 0 %).
+
 ## [Non publié] — suivi des pièces à usure lente
 
 ### Ajouté

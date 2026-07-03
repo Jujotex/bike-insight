@@ -26,7 +26,7 @@ function Mono({ children, style }: { children: React.ReactNode; style?: React.CS
 // ── Nav ────────────────────────────────────────────────────────
 function LandingNav() {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${T.line}` }}>
+    <div className="bi-land-pad" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${T.line}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
@@ -52,7 +52,7 @@ function MiniDashPreview() {
     <div style={{ background: T.bg, borderRadius: 18, border: `1px solid ${T.line}`, padding: 18, boxShadow: "0 40px 80px -30px rgba(14,14,16,0.25), 0 0 0 1px rgba(14,14,16,0.04)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 14, borderBottom: `1px solid ${T.soft}` }}>
         <div>
-          <div style={{ fontSize: 9, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>Canyon Aeroad · velo actif</div>
+          <div style={{ fontSize: 9, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>Canyon Aeroad · vélo actif</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>Bonjour, Leo</div>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "4px 8px", border: `1px solid ${T.line}`, borderRadius: 999, fontSize: 9.5, color: T.muted }}>
@@ -76,7 +76,7 @@ function MiniDashPreview() {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {[["Composants", 55, T.warn], ["Regularite", 95, T.ok], ["Maintenance", 80, T.ok]].map(([k, v, c]) => (
+          {[["Composants", 55, T.warn], ["Régularité", 95, T.ok], ["Maintenance", 80, T.ok]].map(([k, v, c]) => (
             <div key={String(k)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 10, width: 64, color: T.muted }}>{k as string}</span>
               <div style={{ flex: 1, height: 3, background: T.line, borderRadius: 999, overflow: "hidden" }}>
@@ -92,11 +92,11 @@ function MiniDashPreview() {
       <div style={{ marginTop: 12, background: T.card, borderRadius: 12, border: `1px solid ${T.line}`, overflow: "hidden" }}>
         <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 16, height: 16, borderRadius: 999, background: T.bad, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>2</div>
-          <span style={{ fontSize: 11, fontWeight: 600 }}>Ce qui necessite ton attention</span>
+          <span style={{ fontSize: 11, fontWeight: 600 }}>Ce qui nécessite ton attention</span>
         </div>
         {[
-          { name: "Chaine · Ultegra HG701", life: 0.94, status: "bad", remain: "~ 160 km", cost: "38 EUR" },
-          { name: "Pneus AR · GP5000", life: 0.71, status: "warn", remain: "~ 1 160 km", cost: "52 EUR" },
+          { name: "Chaîne · Ultegra HG701", life: 0.94, status: "bad", remain: "~ 160 km", cost: "38 €" },
+          { name: "Pneus AR · GP5000", life: 0.71, status: "warn", remain: "~ 1 160 km", cost: "52 €" },
         ].map((c) => {
           const color = c.status === "bad" ? T.bad : T.warn;
           return (
@@ -120,14 +120,14 @@ function MiniDashPreview() {
       {/* Forecast */}
       <div style={{ marginTop: 12, background: T.ink, color: "#fff", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Prevision 3 mois</div>
+          <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Prévision 3 mois</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginTop: 3 }}>
             <Mono style={{ fontSize: 24, fontWeight: 500, letterSpacing: -0.6, lineHeight: 1 }}>90</Mono>
             <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>EUR</Mono>
           </div>
         </div>
         <div style={{ textAlign: "right", fontSize: 10.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
-          Chaine <span style={{ color: "#fff", fontWeight: 600 }}>~3 sem.</span><br/>
+          Chaîne <span style={{ color: "#fff", fontWeight: 600 }}>~3 sem.</span><br/>
           Pneus AR <span style={{ color: "#fff", fontWeight: 600 }}>~10 sem.</span>
         </div>
       </div>
@@ -138,7 +138,7 @@ function MiniDashPreview() {
 // ── Hero ───────────────────────────────────────────────────────
 function LandingHero() {
   return (
-    <div style={{ padding: "64px 48px 48px", display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: 64, alignItems: "center" }}>
+    <div className="bi-land-pad bi-land-hero" style={{ padding: "64px 48px 48px", display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: 64, alignItems: "center" }}>
       <div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: `1px solid ${T.line}`, background: T.card }}>
           <Dot color={T.accent} size={6} />
@@ -158,7 +158,7 @@ function LandingHero() {
 
         <div style={{ marginTop: 24, fontSize: 17, color: T.muted, lineHeight: 1.55, maxWidth: 480 }}>
           Bike Insight branche tes activites Strava et calcule en temps reel l&apos;usure et le{" "}
-          <Mono style={{ color: T.ink, fontWeight: 600 }}>EUR/km</Mono> de chaque composant. Tu sais quand remplacer, combien ca va te couter, et combien tu peux eviter de gaspiller.
+          <Mono style={{ color: T.ink, fontWeight: 600 }}>€/km</Mono> de chaque composant. Tu sais quand remplacer, combien ça va te coûter, et combien tu peux éviter de gaspiller.
         </div>
 
         <div style={{ marginTop: 36, display: "flex", alignItems: "center", gap: 12 }}>
@@ -186,10 +186,10 @@ function LandingHero() {
 // ── Metrics strip ──────────────────────────────────────────────
 function LandingMetrics() {
   return (
-    <div style={{ padding: "32px 48px", borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.card }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 48 }}>
+    <div className="bi-land-pad" style={{ padding: "32px 48px", borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.card }}>
+      <div className="bi-land-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 48 }}>
         {[
-          ["180 EUR", "evites en moyenne par utilisateur sur une chaine usee trop tard"],
+          ["180 €", "evites en moyenne par utilisateur sur une chaine usee trop tard"],
           ["2,1x", "de duree de vie en plus quand on respecte le seuil critique"],
           ["142", "sorties Strava analysees en moyenne par cycliste"],
           ["< 1 min", "pour synchroniser ton historique complet"],
@@ -237,10 +237,10 @@ function LandingHow() {
     },
     {
       n: "02", title: "Declare ton materiel",
-      sub: "Chaine, pneus, cassette. Prix et date d'installation. On gere le reste.",
+      sub: "Chaîne, pneus, cassette. Prix et date d'installation. On gere le reste.",
       visual: (
         <div style={{ padding: 20, display: "flex", flexDirection: "column" as const, gap: 8 }}>
-          {[["Chaine", "Shimano Ultegra", "38 EUR"], ["Pneus AR", "Continental GP5000", "52 EUR"], ["Cassette", "Ultegra 11-30", "85 EUR"]].map(([n, m, p], i) => (
+          {[["Chaîne", "Shimano Ultegra", "38 €"], ["Pneus AR", "Continental GP5000", "52 €"], ["Cassette", "Ultegra 11-30", "85 €"]].map(([n, m, p], i) => (
             <div key={i} style={{ padding: "10px 12px", background: T.bg, borderRadius: 10, border: `1px solid ${T.line}`, display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 18, height: 18, borderRadius: 999, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
@@ -273,7 +273,7 @@ function LandingHow() {
             </div>
             <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Cout evite ·</span>
-              <Mono style={{ fontSize: 16, fontWeight: 600, color: T.accent }}>180 EUR</Mono>
+              <Mono style={{ fontSize: 16, fontWeight: 600, color: T.accent }}>180 €</Mono>
             </div>
           </div>
         </div>
@@ -282,7 +282,7 @@ function LandingHow() {
   ];
 
   return (
-    <div style={{ padding: "80px 48px 64px" }}>
+    <div className="bi-land-pad" style={{ padding: "80px 48px 64px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Comment ca marche</div>
@@ -296,7 +296,7 @@ function LandingHow() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+      <div className="bi-land-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         {steps.map(s => (
           <div key={s.n} style={{ borderRadius: 16, border: `1px solid ${T.line}`, background: T.card, overflow: "hidden" }}>
             <div style={{ padding: "24px 24px 0" }}>
@@ -317,7 +317,7 @@ function LandingHow() {
 // ── Insights ───────────────────────────────────────────────────
 function LandingInsights() {
   return (
-    <div style={{ padding: "40px 48px 80px" }}>
+    <div className="bi-land-pad" style={{ padding: "40px 48px 80px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Ce que tu vas apprendre</div>
@@ -330,11 +330,11 @@ function LandingInsights() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+      <div className="bi-land-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         {[
-          { eyebrow: "Sur-remplacement detecte", color: T.accent, headline: "Tu changes tes chaines 30% trop tot.", body: "Le seuil critique est a 95% d'usure, pas 70%.", impact: "+ 22 EUR/an" },
+          { eyebrow: "Sur-remplacement detecte", color: T.accent, headline: "Tu changes tes chaines 30% trop tot.", body: "Le seuil critique est a 95% d'usure, pas 70%.", impact: "+ 22 €/an" },
           { eyebrow: "Anomalie mecanique", color: T.warn, headline: "Ton pneu AR s'use 2x plus vite que l'AV.", body: "Probablement une pression mal ajustee ou un poids mal reparti.", impact: "Risque ponction x2" },
-          { eyebrow: "Concentration des couts", color: T.muted, headline: "La transmission represente 60% de ton budget.", body: "Concentre tes efforts d'optimisation ici.", impact: "263 EUR / 412 EUR" },
+          { eyebrow: "Concentration des couts", color: T.muted, headline: "La transmission represente 60% de ton budget.", body: "Concentre tes efforts d'optimisation ici.", impact: "263 € / 412 €" },
         ].map((item, idx) => (
           <div key={idx} style={{ borderRadius: 16, background: T.card, border: `1px solid ${T.line}`, padding: 24, borderLeft: `4px solid ${item.color}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -366,15 +366,15 @@ function LandingComparison() {
   ];
 
   return (
-    <div style={{ padding: "60px 48px", background: T.card, borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}` }}>
+    <div className="bi-land-pad" style={{ padding: "60px 48px", background: T.card, borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}` }}>
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Pourquoi pas Strava, ProBikeGarage ou un tableur ?</div>
           <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Ils tracent. On decide.</div>
         </div>
 
-        <div style={{ background: T.bg, borderRadius: 16, border: `1px solid ${T.line}`, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
+        <div className="bi-land-table-wrap" style={{ background: T.bg, borderRadius: 16, border: `1px solid ${T.line}`, overflow: "hidden" }}>
+          <div className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
             <span></span>
             <span style={{ textAlign: "center", color: T.ink }}>Bike Insight</span>
             <span style={{ textAlign: "center" }}>Strava</span>
@@ -382,7 +382,7 @@ function LandingComparison() {
             <span style={{ textAlign: "center" }}>Tableur</span>
           </div>
           {rows.map((row, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: i === rows.length - 1 ? "none" : `1px solid ${T.soft}` }}>
+            <div key={i} className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: i === rows.length - 1 ? "none" : `1px solid ${T.soft}` }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>{row[0]}</span>
               {[1, 2, 3, 4].map(j => {
                 const v = row[j];
@@ -410,7 +410,7 @@ function LandingComparison() {
 // ── CTA ────────────────────────────────────────────────────────
 function LandingCTA() {
   return (
-    <div style={{ padding: "80px 48px", background: T.ink, color: "#fff", textAlign: "center", position: "relative", overflow: "hidden" }}>
+    <div className="bi-land-pad" style={{ padding: "80px 48px", background: T.ink, color: "#fff", textAlign: "center", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 60%)" }} />
       <div style={{ position: "relative" }}>
         <div style={{ fontSize: 10.5, fontWeight: 600, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>Beta · acces libre</div>
@@ -437,8 +437,8 @@ function LandingCTA() {
 // ── Footer ─────────────────────────────────────────────────────
 function LandingFooter() {
   return (
-    <div style={{ padding: "40px 48px 32px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 40 }}>
+    <div className="bi-land-pad" style={{ padding: "40px 48px 32px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
+      <div className="bi-land-footer" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 40 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 26, height: 26, borderRadius: 7, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>

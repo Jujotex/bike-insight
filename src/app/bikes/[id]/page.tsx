@@ -50,39 +50,48 @@ export default async function BikeDetailPage({
 
   const { bike, components, activities } = data;
 
-  // Fetch maintenance history for this bike
+  // Fetch en parallèle : historique composants, dépenses, entretiens vélo, méta vélo
   const { createSupabaseServerClient } = await import("@/lib/supabase-server");
   const supabase = await createSupabaseServerClient();
-  const { data: maintenanceLogs } = await supabase
-    .from("maintenance_logs")
-    .select("id, action, km_at_action, cost, performed_at, notes, component_id, components(name, category)")
-    .eq("components.bike_id", id)
-    .not("component_id", "is", null)
-    .order("performed_at", { ascending: false })
-    .limit(20);
+  const twelveMonthsAgoStr = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const [
+    { data: maintenanceLogs },
+    { data: spendingLogs },
+    { data: bikeMaintLogs },
+    { data: bikeMeta },
+  ] = await Promise.all([
+    supabase
+      .from("maintenance_logs")
+      .select("id, action, km_at_action, cost, performed_at, notes, component_id, components(name, category)")
+      .eq("components.bike_id", id)
+      .not("component_id", "is", null)
+      .order("performed_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("maintenance_logs")
+      .select("cost, performed_at")
+      .eq("components.bike_id", id)
+      .not("component_id", "is", null)
+      .not("cost", "is", null)
+      .gte("performed_at", twelveMonthsAgoStr)
+      .order("performed_at", { ascending: true }),
+    supabase
+      .from("maintenance_logs")
+      .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
+      .eq("bike_id", id)
+      .not("maintenance_type", "is", null)
+      .order("performed_at", { ascending: false }),
+    supabase
+      .from("bikes")
+      .select("groupset_template_id")
+      .eq("id", id)
+      .single(),
+  ]);
 
   const logs = (maintenanceLogs ?? []).filter(
     (l) => l.components !== null
   );
-
-  // Fetch spending data — last 12 months, all maintenance logs with cost for this bike
-  const twelveMonthsAgoStr = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const { data: spendingLogs } = await supabase
-    .from("maintenance_logs")
-    .select("cost, performed_at")
-    .eq("components.bike_id", id)
-    .not("component_id", "is", null)
-    .not("cost", "is", null)
-    .gte("performed_at", twelveMonthsAgoStr)
-    .order("performed_at", { ascending: true });
-
-  // Entretiens au niveau vélo (lubrification, purge, ...) — dernier par type
-  const { data: bikeMaintLogs } = await supabase
-    .from("maintenance_logs")
-    .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
-    .eq("bike_id", id)
-    .not("maintenance_type", "is", null)
-    .order("performed_at", { ascending: false });
 
   const lastByType: Record<string, MaintenanceLast> = {};
   for (const l of bikeMaintLogs ?? []) {
@@ -96,11 +105,6 @@ export default async function BikeDetailPage({
   }
 
   // Applicabilité des entretiens : VTT ? freins à patins ?
-  const { data: bikeMeta } = await supabase
-    .from("bikes")
-    .select("groupset_template_id")
-    .eq("id", id)
-    .single();
   const bikeGroupTemplate = bikeMeta?.groupset_template_id
     ? BIKE_TEMPLATES.find(t => t.id === bikeMeta.groupset_template_id) ?? null
     : null;
@@ -121,7 +125,7 @@ export default async function BikeDetailPage({
       return {
         id: l.id as string,
         action: l.action as string,
-        targetName: comp?.name ?? "Composant supprimé",
+        targetName: comp?.name ?? "Pièce supprimée",
         targetLink: l.component_id ? `/components/${l.component_id}` : null,
         performed_at: l.performed_at as string,
         km_at_action: (l.km_at_action as number | null) ?? null,
@@ -237,7 +241,7 @@ export default async function BikeDetailPage({
             <Link href={components.length === 0 ? `/onboarding?bike_id=${bike.id}` : `/components/new?bike_id=${bike.id}`}>
               <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-                Composant
+                Ajouter une pièce
               </button>
             </Link>
           </div>
@@ -270,12 +274,12 @@ export default async function BikeDetailPage({
             <div className="bi-comp-table-inner">
             <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600 }}>Composants · {components.length}</div>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>Pièces · {components.length}</div>
                 <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par taux d&apos;usure</div>
               </div>
             </div>
             <div className="bi-comp-table-header-row">
-              <span>Composant</span>
+              <span>Pièce</span>
               <span className="bi-comp-col-installed">Installé</span>
               <span>Usure</span>
               <span className="bi-comp-col-km" style={{ textAlign: "right" }}>Km</span>
@@ -284,7 +288,7 @@ export default async function BikeDetailPage({
             </div>
             {components.length === 0 ? (
               <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
-                Aucun composant — <Link href={`/onboarding?bike_id=${bike.id}`} style={{ color: "var(--bi-ink)", fontWeight: 600 }}>configurer ce vélo en 2 min</Link>
+                Aucune pièce — <Link href={`/onboarding?bike_id=${bike.id}`} style={{ color: "var(--bi-ink)", fontWeight: 600 }}>configurer ce vélo en 2 min</Link>
               </div>
             ) : (
               components.map((c) => {
@@ -357,7 +361,7 @@ export default async function BikeDetailPage({
               <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
                 {mostCritical ? (
                   <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Composant critique</div>
+                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Pièce critique</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 6, height: 6, borderRadius: 999, background: STATUS_COLORS[mostCritical.status] ?? "var(--bi-muted)", flexShrink: 0 }} />
                       <span style={{ fontSize: 13, fontWeight: 600 }}>
@@ -368,7 +372,7 @@ export default async function BikeDetailPage({
                 ) : (
                   <div>
                     <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>État général</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Tous les composants OK</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Toutes les pièces OK</div>
                   </div>
                 )}
 
