@@ -53,11 +53,9 @@ export default async function BikeDetailPage({
   // Fetch en parallèle : historique composants, dépenses, entretiens vélo, méta vélo
   const { createSupabaseServerClient } = await import("@/lib/supabase-server");
   const supabase = await createSupabaseServerClient();
-  const twelveMonthsAgoStr = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const [
     { data: maintenanceLogs },
-    { data: spendingLogs },
     { data: bikeMaintLogs },
     { data: bikeMeta },
   ] = await Promise.all([
@@ -68,14 +66,6 @@ export default async function BikeDetailPage({
       .not("component_id", "is", null)
       .order("performed_at", { ascending: false })
       .limit(20),
-    supabase
-      .from("maintenance_logs")
-      .select("cost, performed_at")
-      .eq("components.bike_id", id)
-      .not("component_id", "is", null)
-      .not("cost", "is", null)
-      .gte("performed_at", twelveMonthsAgoStr)
-      .order("performed_at", { ascending: true }),
     supabase
       .from("maintenance_logs")
       .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
@@ -145,27 +135,6 @@ export default async function BikeDetailPage({
     })),
   ].sort((a, b) => b.performed_at.localeCompare(a.performed_at)).slice(0, 20);
 
-  // Aggregate by month
-  const spendingByMonth: Record<string, number> = {};
-  const now2 = new Date();
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
-    const key = d.toISOString().slice(0, 7); // YYYY-MM
-    spendingByMonth[key] = 0;
-  }
-  for (const l of (spendingLogs ?? [])) {
-    const key = (l.performed_at as string).slice(0, 7);
-    if (key in spendingByMonth) spendingByMonth[key] += (l.cost as number) ?? 0;
-  }
-  // + coûts des entretiens vélo (lubrification, purge, ...)
-  for (const l of bikeMaintLogs ?? []) {
-    if (l.cost == null) continue;
-    const key = (l.performed_at as string).slice(0, 7);
-    if (key in spendingByMonth) spendingByMonth[key] += (l.cost as number) ?? 0;
-  }
-  const spendingEntries = Object.entries(spendingByMonth);
-  const maxSpending = Math.max(...spendingEntries.map(([, v]) => v), 1);
-  const totalSpending12m = spendingEntries.reduce((s, [, v]) => s + v, 0);
 
   // Stats 12 mois
   const now = new Date();
@@ -462,42 +431,6 @@ export default async function BikeDetailPage({
               </div>
             );
           })}
-        </BiCard>
-      )}
-
-      {/* ── Historique des dépenses ─────────────────────────── */}
-      {totalSpending12m > 0 && (
-        <BiCard pad={0} style={{ marginTop: 14 }}>
-          <div style={{ padding: "18px 24px 14px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Dépenses · 12 mois</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Remplacements enregistrés</div>
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <Mono style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.6 }}>{Math.round(totalSpending12m).toLocaleString("fr")}</Mono>
-              <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€</span>
-            </div>
-          </div>
-          <div style={{ padding: "0 24px 8px", display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
-            {spendingEntries.map(([month, val]) => {
-              const heightPct = val > 0 ? Math.max(8, Math.round((val / maxSpending) * 100)) : 3;
-              const isActive = val > 0;
-              const label = new Date(month + "-01").toLocaleDateString("fr-FR", { month: "short" });
-              return (
-                <div key={month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, height: "100%", justifyContent: "flex-end" }}>
-                  <div
-                    title={`${label} · ${Math.round(val)} €`}
-                    style={{ width: "100%", height: `${heightPct}%`, background: isActive ? "var(--bi-ink)" : "var(--bi-line)", borderRadius: "3px 3px 0 0", minHeight: 3 }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ padding: "4px 24px 16px", display: "flex", justifyContent: "space-between", fontSize: 9.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
-            <span>{new Date(spendingEntries[0][0] + "-01").toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })}</span>
-            <span>{new Date(spendingEntries[5][0] + "-01").toLocaleDateString("fr-FR", { month: "short" })}</span>
-            <span>{new Date(spendingEntries[11][0] + "-01").toLocaleDateString("fr-FR", { month: "short", year: "2-digit" })}</span>
-          </div>
         </BiCard>
       )}
 

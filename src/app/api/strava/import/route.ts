@@ -6,6 +6,23 @@ import { getValidStravaToken } from '@/lib/strava'
 const FIRST_SYNC_DAYS = 90  // Premier import : 90 derniers jours
 const PAGE_SIZE = 100
 
+// L'app ne suit que le vélo : on ignore course à pied, marche, natation, etc.
+// Strava renvoie le type dans `sport_type` (récent) ou `type` (ancien).
+const CYCLING_TYPES = new Set([
+  'Ride',
+  'MountainBikeRide',
+  'GravelRide',
+  'EBikeRide',
+  'EMountainBikeRide',
+  'VirtualRide',
+  'Handcycle',
+  'Velomobile',
+])
+
+function isCycling(a: { sport_type?: string; type?: string }): boolean {
+  return CYCLING_TYPES.has(a.sport_type ?? a.type ?? '')
+}
+
 export async function POST() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -126,7 +143,7 @@ export async function POST() {
     const activities = await res.json()
     if (!Array.isArray(activities) || activities.length === 0) break
 
-    const rows = activities.map((a: {
+    const rows = activities.filter(isCycling).map((a: {
       id: number
       name: string
       distance: number
