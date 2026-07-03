@@ -1,5 +1,10 @@
 # Changelog
 
+## [Non publié] — fix : réglages d'alertes restaurés dans Compte
+
+### Corrigé
+- La fusion de `/notifications` dans le dashboard avait fait disparaître les **réglages d'alertes** (activation + seuils À surveiller / À remplacer). Ils sont restaurés dans la page Compte, section « Alertes » (`notification-settings.tsx`) : toggles, sliders de seuils, sauvegarde automatique avec confirmation « ✓ Sauvegardé ». Ces seuils gouvernent aussi les notifications d'entretien.
+
 ## [Non publié] — entretiens dans le statut global et les notifications
 
 ### Modifié (visuel)
