@@ -257,7 +257,7 @@ export function NotificationsClient({
           <div style={{ textAlign: "center", padding: "60px 0", color: "var(--bi-muted)" }}>
             <div style={{ fontSize: 36, marginBottom: 14, opacity: 0.25 }}>🔔</div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--bi-ink)" }}>Aucune alerte</div>
-            <div style={{ fontSize: 13, marginTop: 8 }}>Tes composants sont tous en bon état.</div>
+            <div style={{ fontSize: 13, marginTop: 8 }}>Tes pièces sont toutes en bon état.</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden" }}>

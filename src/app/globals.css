@@ -261,3 +261,13 @@ body {
   .bi-compare-context-divider { display: none !important; }
   .bi-compare-options { grid-template-columns: 1fr; }
 }
+
+/* ── Skeletons & toasts ──────────────────────────────────────── */
+@keyframes bi-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+@keyframes bi-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

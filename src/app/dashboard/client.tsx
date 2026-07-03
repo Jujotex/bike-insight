@@ -18,7 +18,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   suspension: "Suspension",
   roues: "Pneumatiques",
   cockpit: "Cockpit",
-  eclairage: "Eclairage",
+  eclairage: "Éclairage",
   autre: "Autre",
 };
 
@@ -108,13 +108,13 @@ export function DashboardClient({
     : warnItems.length > 0 ? "rgba(208,132,21,0.18)"
     : "rgba(14,143,90,0.18)";
   const statusMsg = badItems.length > 0
-    ? `${badItems.length} composant${badItems.length > 1 ? "s" : ""} à remplacer`
+    ? `${badItems.length} pièce${badItems.length > 1 ? "s" : ""} à remplacer`
     : warnItems.length > 0
-    ? `${warnItems.length} composant${warnItems.length > 1 ? "s" : ""} à surveiller`
+    ? `${warnItems.length} pièce${warnItems.length > 1 ? "s" : ""} à surveiller`
     : "Prêt à rouler";
   const statusSub = badItems.length === 0 && warnItems.length === 0 && filteredPredictions.length > 0
     ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} - ${formatWeeks(filteredPredictions[0].weeksUntil)}`
-    : badItems.length > 0 ? "Remplace ce composant avant de rouler."
+    : badItems.length > 0 ? "Remplace cette pièce avant de rouler."
     : null;
 
   const kmFormatted = kpis.totalKm12m.toLocaleString("fr-FR");
@@ -137,7 +137,7 @@ export function DashboardClient({
         <Link href={hasNoComponents ? (selectedBikeId ? `/onboarding?bike_id=${selectedBikeId}` : "/onboarding") : `/components/new?bike_id=${selectedBikeId}`} className="bi-desktop">
           <button style={{ padding: "8px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-            Composant
+            Ajouter une pièce
           </button>
         </Link>
       </div>
@@ -201,7 +201,7 @@ export function DashboardClient({
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>Aucun composant configuré</div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>Aucune pièce configurée</div>
               <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 4 }}>Configure ton vélo en 2 minutes pour suivre l&apos;usure et recevoir des alertes.</div>
             </div>
             <Link href={selectedBikeId ? `/onboarding?bike_id=${selectedBikeId}` : "/onboarding"}>
@@ -287,7 +287,7 @@ export function DashboardClient({
               </div>
               <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, marginLeft: filteredAttention.length > 0 ? 30 : 0 }}>
                 {filteredAttention.length === 0
-                  ? "Tous tes composants sont OK"
+                  ? "Toutes tes pièces sont OK"
                   : `${badItems.length} à remplacer · ${warnItems.length} à surveiller`}
               </div>
             </div>
@@ -306,7 +306,7 @@ export function DashboardClient({
                 </div>
                 <div>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bi-ok)" }}>Tout est en ordre.</div>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucun composant ne nécessite d&apos;attention.</div>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucune pièce ne nécessite d&apos;attention.</div>
                 </div>
               </div>
             </div>

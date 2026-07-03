@@ -170,7 +170,7 @@ export function OnboardingWizard({
 
   async function handleConfirm() {
     const toCreate = components.filter(c => c.enabled);
-    if (toCreate.length === 0) { setError("Sélectionne au moins un composant."); return; }
+    if (toCreate.length === 0) { setError("Sélectionne au moins une pièce."); return; }
     setSaving(true);
     setError("");
 
@@ -363,7 +363,7 @@ export function OnboardingWizard({
                   style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>Je ne sais pas / Autre</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Composants génériques proposés</div>
+                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Pièces génériques proposées</div>
                   </div>
                   {templateId === "custom" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                 </button>

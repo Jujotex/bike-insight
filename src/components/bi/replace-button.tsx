@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { showToast } from "@/components/bi/toast";
 
 type Reason = "usure" | "crevaison" | "casse" | "anticipé";
 
@@ -91,6 +92,7 @@ export function ReplaceButton({
 
       await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
+      showToast("Pièce remplacée — le suivi repart de zéro");
       if (newComp?.id) {
         router.push(`/components/${newComp.id}`);
       } else {

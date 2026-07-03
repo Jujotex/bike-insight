@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
 import { getCatalogForTemplate, checkBrandCompatibility, type CatalogEntry } from "@/lib/components-catalog";
 import { BIKE_TEMPLATES } from "@/lib/bike-templates";
@@ -119,6 +120,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     // Recalcul immédiat de l'usure via route serveur (a les droits nécessaires)
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
+    showToast("Pièce ajoutée — usure suivie automatiquement");
     router.push("/components");
     router.refresh();
   }

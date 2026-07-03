@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono } from "@/components/bi/ui";
 
 const LIFESPAN_OPTIONS = [
@@ -74,6 +75,7 @@ export function EditComponentForm({ component }: { component: EditableComponent 
     if (err) { setError(err.message); setSaving(false); return; }
 
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    showToast("Modifications enregistrées");
     router.push(`/components/${component.id}`);
     router.refresh();
   }

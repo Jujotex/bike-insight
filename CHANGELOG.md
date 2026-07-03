@@ -1,5 +1,21 @@
 # Changelog
 
+## [Non publié] — fluidité et polissage UX
+
+### Ajouté
+- **Skeletons de chargement** (`loading.tsx`) sur les 5 routes principales (dashboard, vélos, détail vélo, pièces, détail pièce) : plus d'écran figé pendant les requêtes serveur.
+- **Toasts de confirmation** après chaque écriture (entretien enregistré, pièce remplacée/ajoutée/modifiée), avec relais via sessionStorage pour survivre aux navigations. Monté dans `AppShell`.
+
+### Modifié
+- **Requêtes parallélisées** : `getBikeData` (3 requêtes) et la page détail vélo (4 requêtes) passent en `Promise.all` — temps de chargement divisé d'autant.
+- **Vocabulaire** : « composant » → « pièce » et « Déclarer » → « Ajouter » dans toute l'interface (dashboard, listes, formulaires, wizard, compte, notifications).
+- **Accents** : passe complète sur la page détail pièce (état, intensité, événements…) et remplacement des « EUR » restants par €.
+
+## [Non publié] — fix : graphe « Usure dans le temps » vide
+
+### Corrigé
+- Le graphe de la page composant affichait « Données insuffisantes » pour les pièces sans date d'installation (créées via le wizard avec « d'origine du vélo » ou « je ne sais pas »). Il démarre désormais à la première activité connue du vélo, avec l'usure déjà accumulée comme point de départ de la courbe (fin de l'étirement artificiel depuis 0 %).
+
 ## [Non publié] — suivi des pièces à usure lente
 
 ### Ajouté

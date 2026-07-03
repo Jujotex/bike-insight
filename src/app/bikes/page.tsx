@@ -102,7 +102,7 @@ export default async function BikesPage() {
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
             ["Distance totale", `${totalKm.toLocaleString("fr-FR")} km`],
-            ["Coût composants", `${Math.round(totalCost).toLocaleString("fr-FR")} €`],
+            ["Coût des pièces", `${Math.round(totalCost).toLocaleString("fr-FR")} €`],
           ].map(([k, v]) => (
             <div key={String(k)} style={{ background: "var(--bi-card)", padding: "18px 22px" }}>
               <BiLabel>{k}</BiLabel>

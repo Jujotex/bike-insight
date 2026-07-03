@@ -107,7 +107,7 @@ export function AccountClient({
               <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{bikeCount}</Mono> vélo{bikeCount !== 1 ? "s" : ""}
             </span>
             <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>
-              <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{componentCount}</Mono> composant{componentCount !== 1 ? "s" : ""}
+              <Mono style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{componentCount}</Mono> pièce{componentCount !== 1 ? "s" : ""}
             </span>
             {unreadNotifCount > 0 && (
               <span style={{ fontSize: 12, color: "var(--bi-bad)", fontWeight: 600 }}>
@@ -249,7 +249,7 @@ export function AccountClient({
         <div style={sectionTitle}>Navigation</div>
         {[
           { label: "Mes vélos", href: "/bikes", icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3" },
-          { label: "Composants", href: "/components", icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z" },
+          { label: "Pièces", href: "/components", icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z" },
           { label: "Alertes", href: "/notifications", icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0", badge: unreadNotifCount },
         ].map((item, i, arr) => (
           <Link key={item.href} href={item.href} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--bi-line)" : "none", textDecoration: "none", color: "var(--bi-ink)" }}>
@@ -294,7 +294,7 @@ export function AccountClient({
         {confirmDelete && (
           <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 10, background: "rgba(200,54,46,0.06)", border: "1px solid rgba(200,54,46,0.2)" }}>
             <div style={{ fontSize: 13, color: "var(--bi-bad)", fontWeight: 600, marginBottom: 6 }}>Cette action est irréversible.</div>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginBottom: 12 }}>Toutes tes données (vélos, composants, historique) seront supprimées définitivement.</div>
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginBottom: 12 }}>Toutes tes données (vélos, pièces, historique) seront supprimées définitivement.</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "8px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>Annuler</button>
               <a href="mailto:support@bikeinsight.app?subject=Suppression de compte" style={{ flex: 2, padding: "8px 0", background: "var(--bi-bad)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", fontWeight: 600, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>

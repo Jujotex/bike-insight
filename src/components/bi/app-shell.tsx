@@ -1,5 +1,6 @@
 import { SideNav } from "./side-nav";
 import { BottomNav } from "./bottom-nav";
+import { Toaster } from "./toast";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -44,6 +45,7 @@ export function AppShell({ children, nav }: AppShellProps) {
         <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {children}
         </main>
+        <Toaster />
 
         {/* Mobile bottom nav */}
         <div className="md:hidden">
