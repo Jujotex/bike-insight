@@ -76,6 +76,7 @@ export type MaintenanceStatus =
   | { state: "never" }
   | {
       state: "ok" | "soon" | "due";
+      pct: number;                // progression vers l'échéance (0-100, plafonné)
       kmSince: number | null;
       weeksSince: number;
       dueInKm: number | null;     // km restants avant échéance (si intervalKm)
@@ -107,5 +108,6 @@ export function computeMaintenanceStatus(
     : null;
 
   const state = ratio >= 1 ? "due" : ratio >= 0.75 ? "soon" : "ok";
-  return { state, kmSince, weeksSince, dueInKm, dueInWeeks };
+  const pct = Math.min(100, Math.max(0, Math.round(ratio * 100)));
+  return { state, pct, kmSince, weeksSince, dueInKm, dueInWeeks };
 }

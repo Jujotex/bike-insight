@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BiCard, Mono } from "@/components/bi/ui";
+import { BiCard, Mono, ProgressBar } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 import {
   MAINTENANCE_TYPES,
@@ -12,6 +12,10 @@ import {
   type MaintenanceLast,
 } from "@/lib/maintenance-catalog";
 
+// Même langage visuel que le tableau des pièces :
+// barre latérale colorée, barre de progression vers l'échéance + %,
+// colonnes en grille, tri par urgence.
+
 const STATE_UI: Record<string, { label: string; color: string }> = {
   due: { label: "À faire", color: "var(--bi-bad)" },
   soon: { label: "Bientôt", color: "var(--bi-warn)" },
@@ -19,11 +23,13 @@ const STATE_UI: Record<string, { label: string; color: string }> = {
   never: { label: "Jamais enregistré", color: "var(--bi-muted)" },
 };
 
-function nextDueLabel(def: MaintenanceDef, dueInKm: number | null, dueInWeeks: number | null): string {
+const STATE_ORDER: Record<string, number> = { due: 0, soon: 1, ok: 2, never: 3 };
+
+function nextDueLabel(dueInKm: number | null, dueInWeeks: number | null): string {
   const parts: string[] = [];
   if (dueInKm !== null) parts.push(`~${dueInKm.toLocaleString("fr")} km`);
   if (dueInWeeks !== null) parts.push(dueInWeeks >= 5 ? `${Math.round(dueInWeeks / 4)} mois` : `${dueInWeeks} sem.`);
-  return parts.length > 0 ? `prochaine dans ${parts.join(" ou ")}` : "";
+  return parts.length > 0 ? `dans ${parts.join(" ou ")}` : "";
 }
 
 export function MaintenanceCard({
@@ -46,9 +52,20 @@ export function MaintenanceCard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const types = MAINTENANCE_TYPES.filter(t =>
-    (!t.vttOnly || isVtt) && (!t.discOnly || !hasRimBrakes)
-  );
+  const rows = MAINTENANCE_TYPES
+    .filter(t => (!t.vttOnly || isVtt) && (!t.discOnly || !hasRimBrakes))
+    .map(t => {
+      const last = lastByType[t.id] ?? null;
+      const status = computeMaintenanceStatus(t, last, bikeKm);
+      return { def: t, last, status };
+    })
+    .sort((a, b) => {
+      const so = STATE_ORDER[a.status.state] - STATE_ORDER[b.status.state];
+      if (so !== 0) return so;
+      const pa = a.status.state === "never" ? 0 : a.status.pct;
+      const pb = b.status.state === "never" ? 0 : b.status.pct;
+      return pb - pa;
+    });
 
   function openForm(t: MaintenanceDef) {
     setOpenId(t.id);
@@ -82,52 +99,86 @@ export function MaintenanceCard({
   }
 
   return (
-    <BiCard pad={0} style={{ marginTop: 14 }}>
-      <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>Entretien courant</div>
-        <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-          Lubrification, purge, révision — enregistre en un clic, on suit les échéances pour toi.
-        </div>
+    <BiCard pad={0} style={{ marginTop: 14, overflow: "hidden" }}>
+      <div style={{ padding: "20px 22px 12px" }}>
+        <div style={{ fontSize: 15, fontWeight: 600 }}>Entretien · {rows.length}</div>
+        <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par échéance — enregistre en un clic, on suit le reste</div>
       </div>
 
-      {types.map((t, i) => {
-        const last = lastByType[t.id] ?? null;
-        const status = computeMaintenanceStatus(t, last, bikeKm);
+      {/* En-têtes de colonnes, comme le tableau des pièces */}
+      <div className="bi-maint-header-row">
+        <span>Entretien</span>
+        <span className="bi-maint-col-last">Dernier</span>
+        <span>Échéance</span>
+        <span style={{ textAlign: "right" }}></span>
+      </div>
+
+      {rows.map(({ def: t, last, status }) => {
         const ui = STATE_UI[status.state];
         const isOpen = openId === t.id;
+        const lastDate = last
+          ? new Date(last.performed_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
+          : "—";
+        const lastSub = status.state === "never"
+          ? "jamais"
+          : status.kmSince !== null
+            ? `il y a ${status.kmSince.toLocaleString("fr")} km`
+            : `il y a ${status.weeksSince} sem.`;
 
         return (
-          <div key={t.id} style={{ borderTop: i > 0 ? "1px solid var(--bi-line)" : "none" }}>
-            <div style={{ padding: "13px 22px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              <span style={{ width: 7, height: 7, borderRadius: 999, background: ui.color, flexShrink: 0, display: "inline-block" }} />
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{t.label}</div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>{t.sub}</div>
-              </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: ui.color }}>{ui.label}</div>
-                <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 1 }}>
-                  {status.state === "never"
-                    ? "—"
-                    : status.state === "ok"
-                      ? nextDueLabel(t, status.dueInKm, status.dueInWeeks)
-                      : status.kmSince !== null
-                        ? `il y a ${status.kmSince.toLocaleString("fr")} km`
-                        : `il y a ${status.weeksSince} sem.`}
+          <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
+            <div className="bi-maint-row">
+              {/* Entretien */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <div style={{ width: 4, height: 28, background: ui.color, borderRadius: 2, flexShrink: 0 }} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>
                 </div>
               </div>
-              <button
-                onClick={() => isOpen ? setOpenId(null) : openForm(t)}
-                style={{
-                  padding: "7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                  fontFamily: "inherit", cursor: "pointer", flexShrink: 0,
-                  background: isOpen ? "transparent" : "var(--bi-ink)",
-                  color: isOpen ? "var(--bi-muted)" : "var(--bi-bg)",
-                  border: isOpen ? "1px solid var(--bi-line)" : "none",
-                }}
-              >
-                {isOpen ? "Annuler" : "Fait ✓"}
-              </button>
+
+              {/* Dernier */}
+              <div className="bi-maint-col-last">
+                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", display: "block" }}>{lastDate}</Mono>
+                <span style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>{lastSub}</span>
+              </div>
+
+              {/* Échéance : progression + % */}
+              {status.state === "never" ? (
+                <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>Jamais enregistré</div>
+              ) : (
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <ProgressBar value={Math.min(status.pct / 100, 1)} color={ui.color} height={3} />
+                    </div>
+                    <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 32, textAlign: "right" }}>
+                      {status.pct}%
+                    </Mono>
+                  </div>
+                  <div style={{ fontSize: 10.5, fontWeight: 600, color: ui.color, marginTop: 4 }}>
+                    {status.state === "ok"
+                      ? nextDueLabel(status.dueInKm, status.dueInWeeks)
+                      : ui.label}
+                  </div>
+                </div>
+              )}
+
+              {/* Action */}
+              <div style={{ textAlign: "right" }}>
+                <button
+                  onClick={() => isOpen ? setOpenId(null) : openForm(t)}
+                  style={{
+                    padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                    fontFamily: "inherit", cursor: "pointer",
+                    background: isOpen ? "transparent" : status.state === "due" ? "var(--bi-ink)" : "transparent",
+                    color: isOpen ? "var(--bi-muted)" : status.state === "due" ? "var(--bi-bg)" : "var(--bi-ink)",
+                    border: isOpen ? "1px solid var(--bi-line)" : status.state === "due" ? "none" : "1px solid var(--bi-line)",
+                  }}
+                >
+                  {isOpen ? "Annuler" : "Fait ✓"}
+                </button>
+              </div>
             </div>
 
             {isOpen && (

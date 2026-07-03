@@ -2,6 +2,10 @@
 
 ## [Non publié] — entretiens dans le statut global et les notifications
 
+### Modifié (visuel)
+- **Carte Entretien** alignée sur le langage visuel du tableau des pièces : lignes en grille (Entretien / Dernier / Échéance / action), barre latérale colorée par statut, barre de progression vers l'échéance avec pourcentage, tri par urgence (à faire → bientôt → OK → jamais enregistré). Le bouton « Fait ✓ » n'est plein que pour les entretiens dus. Colonne « Dernier » masquée sur mobile.
+- `computeMaintenanceStatus` expose désormais `pct` (progression 0-100 vers l'échéance).
+
 ### Ajouté
 - **Notifications d'entretien** : `createMaintenanceNotifications` génère des notifications (warn = bientôt, bad = à faire) pour les entretiens en retard, avec dédoublonnage par vélo + type tant que la notification n'est pas lue. Déclenchée après chaque sync Strava et chaque recalcul d'usure, comme les notifications d'usure. Respecte les réglages notify_warn/notify_bad.
 - **Migration** `20260703000001_notifications_maintenance.sql` : colonne `maintenance_type` sur `notifications`. ⚠️ À appliquer sur Supabase avant déploiement.
