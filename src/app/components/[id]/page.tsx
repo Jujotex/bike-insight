@@ -210,7 +210,7 @@ export default async function ComponentDetailPage({
         />
 
         <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <div style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
+          <div className="bi-comp-hero" style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
@@ -224,14 +224,14 @@ export default async function ComponentDetailPage({
                 {CATEGORY_LABELS[comp.category as string] ?? String(comp.category)}
               </Mono>
             </div>
-            <div style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
-              <span style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
+            <div className="bi-wear-hero" style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
+              <span className="bi-wear-num" style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
                 {kmMax > 0 ? wearPct : "-"}
               </span>
               {kmMax > 0 && <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>}
               <div style={{ flex: 1 }} />
               {kmMax > 0 && (
-                <div style={{ textAlign: "right" }}>
+                <div className="bi-wear-side" style={{ textAlign: "right" }}>
                   <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>
                     {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")}
                   </Mono>

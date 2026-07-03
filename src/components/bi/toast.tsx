@@ -63,7 +63,7 @@ export function Toaster() {
             display: "flex", alignItems: "center", gap: 9,
             padding: "11px 20px", borderRadius: 999,
             background: "var(--bi-ink)", color: "var(--bi-bg)",
-            fontSize: 13, fontWeight: 600, whiteSpace: "nowrap",
+            fontSize: 13, fontWeight: 600, maxWidth: "calc(100vw - 32px)", textAlign: "center",
             boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
             animation: "bi-toast-in 0.2s ease-out",
           }}

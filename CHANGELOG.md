@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — passe responsive mobile
+
+### Corrigé
+- **Filet global** : `overflow-x: hidden` sur le body (fin du scroll horizontal parasite).
+- **Page pièce** : le « 100 % » géant du héros d'usure (100px) passait hors écran — réduit à 56px sur mobile, bloc km repositionné, padding resserré.
+- **Landing** : héros 2 colonnes, grilles 3-4 colonnes, footer et paddings 48px adaptés au mobile ; tableau comparatif en scroll horizontal contenu. Accents corrigés au passage (Chaîne, Prévision, Régularité, € au lieu de EUR…).
+- **Toasts** : ne débordent plus sur petit écran (largeur max = écran − 32px, retour à la ligne).
+- **Barre de navigation mobile** : respecte la safe area iOS (`env(safe-area-inset-bottom)`) au lieu d'un padding fixe.
+
 ## [Non publié] — fin de la boucle multi-vélos + pages orphelines
 
 ### Modifié

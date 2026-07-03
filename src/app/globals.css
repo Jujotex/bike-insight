@@ -271,3 +271,28 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Passe mobile : durcissement (audit responsive) ─────────── */
+
+/* Filet de sécurité global contre le scroll horizontal parasite */
+body { overflow-x: hidden; }
+
+/* Page pièce : héros usure (le "100 %" géant débordait) */
+@media (max-width: 768px) {
+  .bi-comp-hero { padding: 22px !important; }
+  .bi-wear-hero { margin-top: 18px !important; flex-wrap: wrap; row-gap: 10px; }
+  .bi-wear-num  { font-size: 56px !important; letter-spacing: -2px !important; }
+  .bi-wear-side { text-align: left !important; width: 100%; }
+}
+
+/* Landing page */
+@media (max-width: 768px) {
+  .bi-land-pad   { padding-left: 20px !important; padding-right: 20px !important; }
+  .bi-land-hero  { grid-template-columns: 1fr !important; gap: 36px !important; padding-top: 36px !important; padding-bottom: 36px !important; }
+  .bi-land-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
+  .bi-land-3     { grid-template-columns: 1fr !important; }
+  .bi-land-footer { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
+  /* Tableau comparatif : scroll horizontal contenu */
+  .bi-land-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .bi-land-table-row  { min-width: 560px; }
+}

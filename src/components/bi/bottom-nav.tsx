@@ -51,7 +51,7 @@ export function BottomNav() {
     <nav
       style={{
         flexShrink: 0,
-        padding: "12px 8px 28px",
+        padding: "12px 8px calc(14px + env(safe-area-inset-bottom, 14px))",
         background: "var(--bi-bg)",
         borderTop: "1px solid var(--bi-line)",
         display: "flex",
