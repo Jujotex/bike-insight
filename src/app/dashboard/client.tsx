@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BiCard, Mono } from "@/components/bi/ui";
 
@@ -98,24 +98,41 @@ export function DashboardClient({
 
   const hasNoComponents = filteredAttention.length === 0 && filteredPredictions.length === 0;
 
+  // Les entretiens dus comptent dans le statut global du vélo
+  const dueMaint = filteredMaintenance.filter(m => m.state === "due");
+  const hasWarnLevel = warnItems.length > 0 || dueMaint.length > 0;
   const statusColor = badItems.length > 0 ? "var(--bi-bad)"
-    : warnItems.length > 0 ? "var(--bi-warn)"
+    : hasWarnLevel ? "var(--bi-warn)"
     : "var(--bi-ok)";
   const statusBg = badItems.length > 0 ? "rgba(200,54,46,0.06)"
-    : warnItems.length > 0 ? "rgba(208,132,21,0.06)"
+    : hasWarnLevel ? "rgba(208,132,21,0.06)"
     : "rgba(14,143,90,0.06)";
   const statusBorder = badItems.length > 0 ? "rgba(200,54,46,0.18)"
-    : warnItems.length > 0 ? "rgba(208,132,21,0.18)"
+    : hasWarnLevel ? "rgba(208,132,21,0.18)"
     : "rgba(14,143,90,0.18)";
   const statusMsg = badItems.length > 0
     ? `${badItems.length} pièce${badItems.length > 1 ? "s" : ""} à remplacer`
     : warnItems.length > 0
     ? `${warnItems.length} pièce${warnItems.length > 1 ? "s" : ""} à surveiller`
+    : dueMaint.length > 0
+    ? `${dueMaint.length} entretien${dueMaint.length > 1 ? "s" : ""} à faire`
     : "Prêt à rouler";
-  const statusSub = badItems.length === 0 && warnItems.length === 0 && filteredPredictions.length > 0
+  const statusSub = badItems.length > 0
+    ? "Remplace cette pièce avant de rouler."
+    : warnItems.length === 0 && dueMaint.length > 0
+    ? dueMaint[0].label
+    : warnItems.length === 0 && filteredPredictions.length > 0
     ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} - ${formatWeeks(filteredPredictions[0].weeksUntil)}`
-    : badItems.length > 0 ? "Remplace cette pièce avant de rouler."
     : null;
+
+  // Le dashboard est la surface des alertes : marque les notifications comme lues
+  useEffect(() => {
+    fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    }).catch(() => {});
+  }, []);
 
   const kmFormatted = kpis.totalKm12m.toLocaleString("fr-FR");
   const costPerKmFormatted = kpis.costPerKm !== null
@@ -240,9 +257,9 @@ export function DashboardClient({
             <div style={{ fontSize: 15, fontWeight: 700, color: statusColor }}>{statusMsg}</div>
             {statusSub && <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 3 }}>{statusSub}</div>}
           </div>
-          {(badItems.length > 0 || warnItems.length > 0) && (
+          {(badItems.length > 0 || warnItems.length > 0 || dueMaint.length > 0) && (
             <div style={{ fontSize: 22, fontWeight: 700, color: statusColor, fontFamily: "var(--font-jetbrains-mono)", flexShrink: 0 }}>
-              {badItems.length + warnItems.length}
+              {badItems.length + warnItems.length + dueMaint.length}
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { MAINTENANCE_TYPES, computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
 
 /**
  * Génère des notifications d'usure pour les composants qui dépassent
@@ -67,6 +68,94 @@ export async function createWearNotifications(supabase: SupabaseClient, userId: 
       bike_name:      c.bike_name,
       type:           c.type,
       read:           false,
+    }))
+
+  if (toInsert.length > 0) {
+    await supabase.from('notifications').insert(toInsert)
+  }
+}
+
+/**
+ * Génère des notifications pour les entretiens dus ou bientôt dus
+ * (lubrification, purge, révision, ...). Même principe que l'usure :
+ * pas de doublon tant que la notification précédente n'est pas lue,
+ * et on n'alerte que sur les entretiens déjà enregistrés au moins une fois.
+ */
+export async function createMaintenanceNotifications(supabase: SupabaseClient, userId: string) {
+  const { data: settings } = await supabase
+    .from('notification_settings')
+    .select('notify_warn, notify_bad')
+    .eq('user_id', userId)
+    .single()
+
+  const notifyWarn = settings?.notify_warn ?? true
+  const notifyBad  = settings?.notify_bad  ?? true
+  if (!notifyWarn && !notifyBad) return
+
+  const [{ data: bikes }, { data: logs }] = await Promise.all([
+    supabase
+      .from('bikes')
+      .select('id, name, total_km')
+      .eq('user_id', userId)
+      .eq('is_active', true),
+    supabase
+      .from('maintenance_logs')
+      .select('bike_id, maintenance_type, performed_at, km_at_action')
+      .eq('user_id', userId)
+      .not('maintenance_type', 'is', null)
+      .order('performed_at', { ascending: false }),
+  ])
+
+  if (!bikes || bikes.length === 0) return
+
+  const lastByKey: Record<string, MaintenanceLast> = {}
+  for (const l of logs ?? []) {
+    const key = `${l.bike_id}:${l.maintenance_type}`
+    if (!(key in lastByKey)) {
+      lastByKey[key] = {
+        performed_at: l.performed_at as string,
+        km_at_action: (l.km_at_action as number | null) ?? null,
+      }
+    }
+  }
+
+  const alerts: { bike_id: string; bike_name: string; maintenance_type: string; label: string; type: 'warn' | 'bad' }[] = []
+  for (const b of bikes) {
+    const bikeKm = (b.total_km as number) ?? 0
+    for (const def of MAINTENANCE_TYPES) {
+      const last = lastByKey[`${b.id}:${def.id}`] ?? null
+      if (!last) continue
+      const st = computeMaintenanceStatus(def, last, bikeKm)
+      if (st.state === 'due' && notifyBad) {
+        alerts.push({ bike_id: b.id as string, bike_name: (b.name as string) ?? '—', maintenance_type: def.id, label: def.label, type: 'bad' })
+      } else if (st.state === 'soon' && notifyWarn) {
+        alerts.push({ bike_id: b.id as string, bike_name: (b.name as string) ?? '—', maintenance_type: def.id, label: def.label, type: 'warn' })
+      }
+    }
+  }
+  if (alerts.length === 0) return
+
+  // Dédoublonnage sur les notifications d'entretien non lues
+  const { data: existing } = await supabase
+    .from('notifications')
+    .select('bike_id, maintenance_type, type')
+    .eq('user_id', userId)
+    .eq('read', false)
+    .not('maintenance_type', 'is', null)
+
+  const existingSet = new Set((existing ?? []).map(n => `${n.bike_id}:${n.maintenance_type}:${n.type}`))
+
+  const toInsert = alerts
+    .filter(a => !existingSet.has(`${a.bike_id}:${a.maintenance_type}:${a.type}`))
+    .map(a => ({
+      user_id:          userId,
+      component_id:     null,
+      bike_id:          a.bike_id,
+      component_name:   a.label,
+      bike_name:        a.bike_name,
+      type:             a.type,
+      maintenance_type: a.maintenance_type,
+      read:             false,
     }))
 
   if (toInsert.length > 0) {

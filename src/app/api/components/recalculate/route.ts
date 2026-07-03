@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { createWearNotifications } from '@/lib/notifications-helper'
+import { createWearNotifications, createMaintenanceNotifications } from '@/lib/notifications-helper'
 
 export async function POST() {
   const supabase = await createSupabaseServerClient()
@@ -16,8 +16,9 @@ export async function POST() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // 2. Notifications
+  // 2. Notifications (usure + entretiens)
   await createWearNotifications(supabase, user.id)
+  await createMaintenanceNotifications(supabase, user.id).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }
