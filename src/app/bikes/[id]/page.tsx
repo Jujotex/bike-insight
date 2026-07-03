@@ -5,6 +5,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getBikeData } from "@/lib/data";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
+import { MaintenanceCard } from "@/components/bi/maintenance-card";
+import { BIKE_TEMPLATES } from "@/lib/bike-templates";
+import type { MaintenanceLast } from "@/lib/maintenance-catalog";
 
 const STATUS_COLORS: Record<string, string> = {
   ok: "var(--bi-ok)",
@@ -73,6 +76,71 @@ export default async function BikeDetailPage({
     .gte("performed_at", twelveMonthsAgoStr)
     .order("performed_at", { ascending: true });
 
+  // Entretiens au niveau vélo (lubrification, purge, ...) — dernier par type
+  const { data: bikeMaintLogs } = await supabase
+    .from("maintenance_logs")
+    .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
+    .eq("bike_id", id)
+    .not("maintenance_type", "is", null)
+    .order("performed_at", { ascending: false });
+
+  const lastByType: Record<string, MaintenanceLast> = {};
+  for (const l of bikeMaintLogs ?? []) {
+    const t = l.maintenance_type as string;
+    if (!(t in lastByType)) {
+      lastByType[t] = {
+        performed_at: l.performed_at as string,
+        km_at_action: (l.km_at_action as number | null) ?? null,
+      };
+    }
+  }
+
+  // Applicabilité des entretiens : VTT ? freins à patins ?
+  const { data: bikeMeta } = await supabase
+    .from("bikes")
+    .select("groupset_template_id")
+    .eq("id", id)
+    .single();
+  const bikeGroupTemplate = bikeMeta?.groupset_template_id
+    ? BIKE_TEMPLATES.find(t => t.id === bikeMeta.groupset_template_id) ?? null
+    : null;
+  const isVtt = bikeGroupTemplate
+    ? bikeGroupTemplate.bikeTypes.includes("vtt") && !bikeGroupTemplate.bikeTypes.includes("route")
+    : false;
+  const hasRimBrakes = components.some(c => (c.name as string).toLowerCase().includes("patin"));
+
+  // Historique unifié : opérations composants + entretiens vélo
+  type HistoryEntry = {
+    id: string; action: string; targetName: string | null; targetLink: string | null;
+    performed_at: string; km_at_action: number | null; cost: number | null; notes: string | null;
+  };
+  const history: HistoryEntry[] = [
+    ...logs.map((l): HistoryEntry => {
+      const compRaw = l.components as { name: string; category: string } | { name: string; category: string }[] | null;
+      const comp = Array.isArray(compRaw) ? compRaw[0] ?? null : compRaw;
+      return {
+        id: l.id as string,
+        action: l.action as string,
+        targetName: comp?.name ?? "Composant supprimé",
+        targetLink: l.component_id ? `/components/${l.component_id}` : null,
+        performed_at: l.performed_at as string,
+        km_at_action: (l.km_at_action as number | null) ?? null,
+        cost: (l.cost as number | null) ?? null,
+        notes: (l.notes as string | null) ?? null,
+      };
+    }),
+    ...(bikeMaintLogs ?? []).map((l): HistoryEntry => ({
+      id: l.id as string,
+      action: (l.action as string | null) ?? "Entretien",
+      targetName: null,
+      targetLink: null,
+      performed_at: l.performed_at as string,
+      km_at_action: (l.km_at_action as number | null) ?? null,
+      cost: (l.cost as number | null) ?? null,
+      notes: (l.notes as string | null) ?? null,
+    })),
+  ].sort((a, b) => b.performed_at.localeCompare(a.performed_at)).slice(0, 20);
+
   // Aggregate by month
   const spendingByMonth: Record<string, number> = {};
   const now2 = new Date();
@@ -82,6 +150,12 @@ export default async function BikeDetailPage({
     spendingByMonth[key] = 0;
   }
   for (const l of (spendingLogs ?? [])) {
+    const key = (l.performed_at as string).slice(0, 7);
+    if (key in spendingByMonth) spendingByMonth[key] += (l.cost as number) ?? 0;
+  }
+  // + coûts des entretiens vélo (lubrification, purge, ...)
+  for (const l of bikeMaintLogs ?? []) {
+    if (l.cost == null) continue;
     const key = (l.performed_at as string).slice(0, 7);
     if (key in spendingByMonth) spendingByMonth[key] += (l.cost as number) ?? 0;
   }
@@ -321,21 +395,28 @@ export default async function BikeDetailPage({
             </BiCard>
           </div>
         </div>
+      {/* ── Entretien courant ───────────────────────────── */}
+      <MaintenanceCard
+        bikeId={bike.id as string}
+        bikeKm={(bike.total_km as number) ?? 0}
+        isVtt={isVtt}
+        hasRimBrakes={hasRimBrakes}
+        lastByType={lastByType}
+      />
+
       {/* ── Historique de maintenance ───────────────────── */}
-      {logs.length > 0 && (
+      {history.length > 0 && (
         <BiCard pad={0} style={{ marginTop: 14 }}>
           <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Historique de maintenance</div>
             <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-              {logs.length} opération{logs.length > 1 ? "s" : ""} enregistrée{logs.length > 1 ? "s" : ""}
+              {history.length} opération{history.length > 1 ? "s" : ""} enregistrée{history.length > 1 ? "s" : ""}
             </div>
           </div>
-          {logs.map((log, i) => {
-            const compRaw = log.components as { name: string; category: string } | { name: string; category: string }[] | null;
-            const comp = Array.isArray(compRaw) ? compRaw[0] ?? null : compRaw;
+          {history.map((log, i) => {
             const date = new Date(log.performed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
             return (
-              <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 22px", borderBottom: i < logs.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
+              <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 22px", borderBottom: i < history.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
                 {/* Icône action */}
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -346,13 +427,18 @@ export default async function BikeDetailPage({
                 {/* Détails */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-                    {log.action} —{" "}
-                    {log.component_id ? (
-                      <Link href={`/components/${log.component_id}`} style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "var(--bi-line)" }}>
-                        {comp?.name ?? "Composant"}
-                      </Link>
-                    ) : (
-                      comp?.name ?? "Composant supprimé"
+                    {log.action}
+                    {log.targetName && (
+                      <>
+                        {" — "}
+                        {log.targetLink ? (
+                          <Link href={log.targetLink} style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "var(--bi-line)" }}>
+                            {log.targetName}
+                          </Link>
+                        ) : (
+                          log.targetName
+                        )}
+                      </>
                     )}
                   </div>
                   <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>

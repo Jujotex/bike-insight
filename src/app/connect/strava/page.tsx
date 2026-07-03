@@ -67,9 +67,13 @@ function StepSuccess() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchBikes() {
+    async function importAndFetchBikes() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
+      // Import idempotent déclenché depuis le client : le déclenchement en
+      // arrière-plan depuis le callback n'est pas garanti sur Vercel.
+      // Il crée aussi les vélos manquants avant de rattacher les activités.
+      await fetch("/api/strava/import", { method: "POST" }).catch(() => {});
       const { data } = await supabase
         .from("bikes")
         .select("id, name, model, total_km")
@@ -79,7 +83,7 @@ function StepSuccess() {
       setBikes(data ?? []);
       setLoading(false);
     }
-    fetchBikes();
+    importAndFetchBikes();
   }, []);
 
   const totalKm = bikes.reduce((s, b) => s + (b.total_km ?? 0), 0);
@@ -105,7 +109,7 @@ function StepSuccess() {
         C&apos;est prêt.
       </div>
       <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
-        {loading ? "Chargement de tes vélos…" : `On a détecté ${bikes.length} vélo${bikes.length > 1 ? "s" : ""}. Vérifie qu'ils sont corrects avant de configurer ton matériel.`}
+        {loading ? "Synchronisation de tes activités Strava… (moins d\u2019une minute)" : `On a détecté ${bikes.length} vélo${bikes.length > 1 ? "s" : ""}. Vérifie qu'ils sont corrects avant de configurer ton matériel.`}
       </div>
 
       {!loading && bikes.length > 0 && (

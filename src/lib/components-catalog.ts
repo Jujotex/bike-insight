@@ -418,6 +418,70 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Maxxis Minion DHF 27.5", brand: "Maxxis", reference: "DHF-275", price: 55, lifeKm: 4500, tier: "premium", note: "Référence enduro, grip maximal" },
     ],
   },
+  // ── PLATEAUX ───────────────────────────────────────────────
+
+  {
+    id: "chainring-road",
+    compatNote: "Plateaux — vérifier le BCD (diamètre de fixation) et le nombre de dents de ton pédalier",
+    keywords: [["plateau", "chainring"]],
+    products: [
+      { name: "Plateau Stronglight compatible", brand: "Stronglight", price: 25, lifeKm: 25000, tier: "budget", note: "Alternative française, vérifier BCD et denture" },
+      { name: "Plateaux Shimano 105 FC-R7000", brand: "Shimano", reference: "FC-R7000", price: 50, lifeKm: 30000, tier: "original", note: "Plateaux d'origine 105, denture usinée" },
+      { name: "Plateaux Shimano Ultegra FC-R8000", brand: "Shimano", reference: "FC-R8000", price: 80, lifeKm: 35000, tier: "premium", note: "Usinage Hollowglide, passage de chaîne optimisé" },
+    ],
+  },
+
+  // ── BOÎTIER DE PÉDALIER ────────────────────────────────────
+
+  {
+    id: "bottom-bracket",
+    compatNote: "Boîtier de pédalier — vérifier le standard du cadre (BSA fileté, Press-Fit, T47…)",
+    keywords: [["boîtier", "boitier", "pédalier", "pedalier", "bottom bracket"]],
+    products: [
+      { name: "Boîtier scellé générique", brand: "Générique", price: 18, lifeKm: 12000, tier: "budget", note: "Roulements scellés standard" },
+      { name: "Shimano SM-BBR60", brand: "Shimano", reference: "SM-BBR60", price: 30, lifeKm: 15000, tier: "original", note: "BSA fileté, référence route Shimano" },
+      { name: "Boîtier céramique (Kogel / CeramicSpeed entrée)", brand: "Kogel", price: 90, lifeKm: 20000, tier: "premium", note: "Roulements céramique, friction réduite" },
+    ],
+  },
+
+  // ── ROULEMENTS DE ROUES ────────────────────────────────────
+
+  {
+    id: "wheel-bearings",
+    compatNote: "Roulements de moyeux — vérifier la référence gravée sur le roulement (ex : 6803, 6903)",
+    keywords: [["roulement", "bearing", "moyeu", "hub"]],
+    products: [
+      { name: "Jeu de roulements scellés", brand: "Générique", price: 15, lifeKm: 15000, tier: "budget", note: "Roulements standard ABEC-3, pose par tes soins" },
+      { name: "Remplacement chez le vélociste", brand: "Prestation", price: 40, lifeKm: 18000, tier: "original", note: "Roulements qualité + pose et réglage" },
+      { name: "Roulements Enduro ABEC-5", brand: "Enduro", price: 60, lifeKm: 25000, tier: "premium", note: "Étanchéité renforcée, idéal pluie/hiver" },
+    ],
+  },
+
+  // ── GALETS DE DÉRAILLEUR ───────────────────────────────────
+
+  {
+    id: "jockey-wheels",
+    compatNote: "Galets de dérailleur — vérifier le nombre de dents (11/12/14) et le nombre de vitesses",
+    keywords: [["galet", "jockey", "pulley"]],
+    products: [
+      { name: "Galets standard (paire)", brand: "Générique", price: 12, lifeKm: 8000, tier: "budget", note: "Bagues plastique, à vérifier régulièrement" },
+      { name: "Galets Shimano d'origine (paire)", brand: "Shimano", price: 20, lifeKm: 10000, tier: "original", note: "Roulements scellés, silencieux" },
+      { name: "Galets céramique (paire)", brand: "BBB", price: 60, lifeKm: 15000, tier: "premium", note: "Roulements céramique, friction réduite" },
+    ],
+  },
+
+  // ── GUIDOLINE ──────────────────────────────────────────────
+
+  {
+    id: "bar-tape",
+    compatNote: "Guidoline route / gravel",
+    keywords: [["guidoline", "bar tape", "ruban de cintre"]],
+    products: [
+      { name: "Guidoline EVA basique", brand: "Générique", price: 12, lifeKm: 6000, tier: "budget", note: "Mousse EVA, bon grip" },
+      { name: "Lizard Skins DSP 2.5", brand: "Lizard Skins", reference: "DSP-2.5", price: 30, lifeKm: 8000, tier: "original", note: "Référence confort/grip, durable" },
+      { name: "Guidoline cuir Brooks", brand: "Brooks", price: 45, lifeKm: 12000, tier: "premium", note: "Cuir, patine avec le temps" },
+    ],
+  },
 ];
 
 // ── Détection automatique ─────────────────────────────────────
@@ -466,7 +530,7 @@ export function getCatalogForTemplate(
   const isCassette = name.includes("cassette") || name.includes("cs-");
   const isDiscBrake = cat === "freinage" && (name.includes("plaquette") || name.includes("disque") || name.includes("disc") || name.includes("m0"));
   const isRimBrake = cat === "freinage" && (name.includes("patin"));
-  const isTire = cat === "roues";
+  const isTire = cat === "roues" && (name.includes("pneu") || name.includes("tire") || name.includes("tyre"));
 
   if (isChain) {
     if (name.includes("flattop")) {

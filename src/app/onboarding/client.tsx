@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, type TemplateComponent } from "@/lib/bike-templates";
+import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
 import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
 import { matchBikeModel } from "@/lib/bike-models";
 
@@ -19,6 +19,7 @@ type Bike = {
 
 type ComponentRow = TemplateComponent & {
   enabled: boolean;
+  optional?: boolean;
 };
 
 // État initial des pièces — une seule question globale au lieu de km/date par pièce
@@ -118,7 +119,11 @@ export function OnboardingWizard({
   function buildComponents(tmplId: string, brake: "disc" | "rim"): ComponentRow[] {
     const tmpl = BIKE_TEMPLATES.find(t => t.id === tmplId);
     if (!tmpl) return [];
-    return tmpl.components[brake].map(c => ({ ...c, enabled: true }));
+    return [
+      ...tmpl.components[brake].map(c => ({ ...c, enabled: true })),
+      // Pièces à usure lente (plateaux, roulements, ...) — décochées par défaut
+      ...OPTIONAL_COMPONENTS.map(c => ({ ...c, enabled: false, optional: true })),
+    ];
   }
 
   // Traduit la réponse globale "état des pièces" en km d'installation par pièce
@@ -409,8 +414,15 @@ export function OnboardingWizard({
                 const catalogEntry: CatalogEntry | null = (selectedTemplate && selectedTemplate.id !== "custom")
                   ? getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds)
                   : null;
+                const isFirstOptional = !!c.optional && (idx === 0 || !components[idx - 1].optional);
                 return (
-                  <div key={idx} style={{ borderRadius: 12, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
+                  <Fragment key={idx}>
+                  {isFirstOptional && (
+                    <div style={{ ...sectionLabel, marginTop: 10, marginBottom: 0 }}>
+                      Optionnel <span style={{ textTransform: "none", fontWeight: 400 }}>— pièces à usure lente, coche ce que tu veux suivre</span>
+                    </div>
+                  )}
+                  <div style={{ borderRadius: 12, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
                     {/* Header row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
                       <button onClick={() => { updateComponent(idx, "enabled", !c.enabled); if (!c.enabled) setSwappingIdx(null); }}
@@ -504,6 +516,7 @@ export function OnboardingWizard({
                       </div>
                     )}
                   </div>
+                  </Fragment>
                 );
               })}
             </div>

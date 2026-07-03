@@ -633,3 +633,16 @@ export const BIKE_TYPE_LABELS = {
 export function getTemplatesForType(bikeType: "route" | "gravel" | "vtt"): BikeTemplate[] {
   return BIKE_TEMPLATES.filter(t => t.bikeTypes.includes(bikeType));
 }
+
+// ── Pièces optionnelles (usure lente) ─────────────────────────
+// Proposées décochées dans le wizard — pour ceux qui veulent un suivi complet.
+// Durées de vie indicatives (usage route sec) : plateaux 2-3× la vie d'une
+// cassette, boîtier et roulements très dépendants de la pluie.
+
+export const OPTIONAL_COMPONENTS: TemplateComponent[] = [
+  { name: "Plateaux", category: "transmission", brand: "Shimano", purchase_price: 45, km_max: 30000, note: "S'usent bien plus lentement que la cassette" },
+  { name: "Boîtier de pédalier", category: "transmission", brand: "Shimano", purchase_price: 30, km_max: 15000, note: "Durée réduite sous la pluie" },
+  { name: "Roulements de roues", category: "roues", brand: "Générique", purchase_price: 30, km_max: 18000, note: "Roulements scellés des moyeux" },
+  { name: "Galets de dérailleur", category: "transmission", brand: "Shimano", purchase_price: 18, km_max: 10000, note: "5-8 000 km en usage boue/pluie" },
+  { name: "Guidoline", category: "cockpit", brand: "Générique", purchase_price: 20, km_max: 8000, note: "Route et gravel" },
+];

@@ -57,6 +57,55 @@ export async function POST() {
   const bikeMap = new Map<string, string>()
   bikes?.forEach(b => { if (b.strava_gear_id) bikeMap.set(b.strava_gear_id, b.id) })
 
+  // ── Synchronise les vélos Strava AVANT les activités ─────────
+  // Filet de sécurité : crée les vélos manquants (si le callback a échoué
+  // ou si un vélo a été ajouté sur Strava) et met à jour les km.
+  // Sans ça, les activités seraient rattachées à bike_id null définitivement.
+  try {
+    const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (athleteRes.ok) {
+      const athlete = await athleteRes.json()
+      const gears: Array<{ id: string; name: string; distance: number }> = athlete.bikes ?? []
+
+      const missing = gears.filter(g => !bikeMap.has(g.id))
+      if (missing.length > 0) {
+        const { data: created, error: createError } = await supabase
+          .from('bikes')
+          .insert(missing.map(g => ({
+            user_id: user.id,
+            strava_gear_id: g.id,
+            name: g.name,
+            total_km: Math.round(g.distance / 1000),
+            is_active: true,
+          })))
+          .select('id, strava_gear_id')
+        if (createError) {
+          console.error('[sync] création vélos manquants error:', createError)
+        } else {
+          created?.forEach(b => { if (b.strava_gear_id) bikeMap.set(b.strava_gear_id as string, b.id as string) })
+          console.log('[sync] vélos manquants créés:', missing.length)
+        }
+      }
+
+      // Met à jour les km des vélos existants
+      for (const g of gears) {
+        const bikeId = bikeMap.get(g.id)
+        if (bikeId && !missing.some(m => m.id === g.id)) {
+          await supabase
+            .from('bikes')
+            .update({ total_km: Math.round(g.distance / 1000) })
+            .eq('id', bikeId)
+        }
+      }
+    } else {
+      console.error('[sync] athlete fetch failed:', athleteRes.status)
+    }
+  } catch (err) {
+    console.error('[sync] athlete fetch error:', err)
+  }
+
   // ── Fetch des activités Strava (paginé) ───────────────────────
   const syncStartedAt = new Date().toISOString()
   let page = 1
@@ -120,28 +169,6 @@ export async function POST() {
     .from('profiles')
     .update({ last_sync_at: syncStartedAt })
     .eq('id', user.id)
-
-  // ── Met à jour total_km depuis Strava ─────────────────────────
-  try {
-    const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    if (athleteRes.ok) {
-      const athlete = await athleteRes.json()
-      const gears: Array<{ id: string; distance: number }> = athlete.bikes ?? []
-      for (const gear of gears) {
-        const bikeId = bikeMap.get(gear.id)
-        if (bikeId) {
-          await supabase
-            .from('bikes')
-            .update({ total_km: Math.round(gear.distance / 1000) })
-            .eq('id', bikeId)
-        }
-      }
-    }
-  } catch (err) {
-    console.error('[sync] athlete fetch error:', err)
-  }
 
   // ── Recalcul usure ────────────────────────────────────────────
   const { error: rpcError } = await supabase.rpc('recalculate_component_km', { p_user_id: user.id })
