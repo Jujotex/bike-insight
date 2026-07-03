@@ -1,5 +1,16 @@
 # Changelog
 
+## [Non publié] — suppression du graphe « Dépenses · 12 mois »
+
+### Supprimé
+- Le bloc **« Dépenses · 12 mois »** (histogramme des remplacements par mois) sur la page vélo (`bikes/[id]`) est retiré, avec l'agrégation mensuelle et la requête `spendingLogs` associées désormais inutiles.
+
+## [Non publié] — fix : import Strava limité aux activités vélo
+
+### Corrigé
+- L'import Strava (`api/strava/import`) enregistrait **toutes** les activités (course à pied, marche, natation…) dans `activities`, qui est la source de vérité des km. Résultat : les KPI « 12 mois » du dashboard (km + sorties) étaient gonflés par des activités non cyclistes. L'import ne conserve désormais que les types vélo (`Ride`, `MountainBikeRide`, `GravelRide`, `EBikeRide`, `EMountainBikeRide`, `VirtualRide`, `Handcycle`, `Velomobile`), via `sport_type` (avec repli sur `type`).
+- ⚠️ Les activités non cyclistes déjà importées restent en base (pas de `sport_type` stocké pour les distinguer) : un nettoyage + resync complet est nécessaire pour corriger les chiffres historiques.
+
 ## [Non publié] — fix : réglages d'alertes restaurés dans Compte
 
 ### Corrigé
