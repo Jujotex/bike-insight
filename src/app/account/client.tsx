@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { Mono } from "@/components/bi/ui";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { SyncButton } from "@/components/bi/sync-button";
+import { NotificationSettings } from "@/components/bi/notification-settings";
 
 interface Props {
   userId: string;
@@ -238,6 +239,9 @@ export function AccountClient({
           </div>
         </div>
       </div>
+
+      {/* Réglages des alertes (ex-page /notifications) */}
+      <NotificationSettings />
 
       {/* Liens rapides */}
       <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
