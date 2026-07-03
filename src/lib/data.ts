@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from './supabase-server'
+import { MAINTENANCE_TYPES, computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
 
 // ── Dashboard data ─────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ export async function getDashboardData() {
     { data: allComponents },
     { data: ninetyDaysActivities },
     { data: yearActivitiesByBike },
+    { data: bikeMaintLogs },
   ] = await Promise.all([
     primaryBike
       ? supabase.from('component_stats').select('*').eq('bike_id', primaryBike.id).eq('is_active', true).order('wear_pct', { ascending: false })
@@ -39,6 +41,8 @@ export async function getDashboardData() {
     // Activités 90j + 12m par vélo pour calculer le rythme km/semaine (avec fallback)
     supabase.from('activities').select('bike_id, distance_km, started_at').eq('user_id', user.id).gte('started_at', ninetyDaysAgo.toISOString()),
     supabase.from('activities').select('bike_id, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()),
+    // Entretiens au niveau vélo (lubrification, purge, ...) pour les alertes
+    supabase.from('maintenance_logs').select('bike_id, maintenance_type, performed_at, km_at_action').eq('user_id', user.id).not('maintenance_type', 'is', null).order('performed_at', { ascending: false }),
   ])
 
   const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
@@ -265,6 +269,42 @@ export async function getDashboardData() {
     wearByCategoryByBike[bid] = byCat
   }
 
+  // ── Alertes entretien (niveau vélo) ──────────────────────────
+  // On n'alerte que sur les entretiens déjà enregistrés au moins une fois :
+  // pas de fausses alertes pour les entretiens non pertinents pour l'utilisateur.
+  const lastMaintByBikeType: Record<string, MaintenanceLast> = {}
+  for (const l of bikeMaintLogs ?? []) {
+    const key = `${l.bike_id}:${l.maintenance_type}`
+    if (!(key in lastMaintByBikeType)) {
+      lastMaintByBikeType[key] = {
+        performed_at: l.performed_at as string,
+        km_at_action: (l.km_at_action as number | null) ?? null,
+      }
+    }
+  }
+  const maintenanceAlerts: Array<{ bikeId: string; bikeName: string; typeId: string; label: string; state: 'due' | 'soon'; detail: string }> = []
+  for (const b of bikes ?? []) {
+    const bikeKm = (b.total_km as number) ?? 0
+    for (const def of MAINTENANCE_TYPES) {
+      const last = lastMaintByBikeType[`${b.id}:${def.id}`] ?? null
+      if (!last) continue
+      const st = computeMaintenanceStatus(def, last, bikeKm)
+      if (st.state !== 'due' && st.state !== 'soon') continue
+      const detail = st.kmSince !== null && def.intervalKm
+        ? `fait il y a ${Math.round(st.kmSince).toLocaleString('fr')} km`
+        : `fait il y a ${st.weeksSince} sem.`
+      maintenanceAlerts.push({
+        bikeId: b.id as string,
+        bikeName: (b.name as string) ?? '',
+        typeId: def.id,
+        label: def.label,
+        state: st.state,
+        detail,
+      })
+    }
+  }
+  maintenanceAlerts.sort((a, b2) => (a.state === 'due' ? 0 : 1) - (b2.state === 'due' ? 0 : 1))
+
   return {
     user,
     primaryBike,
@@ -292,6 +332,7 @@ export async function getDashboardData() {
     readinessByBike,
     budgetByBike,
     wearByCategoryByBike,
+    maintenanceAlerts,
   }
 }
 

@@ -63,6 +63,12 @@ export async function GET(request: NextRequest) {
       console.log('[Strava callback] bikes depuis /athlete:', JSON.stringify(allBikes))
     } else {
       console.log('[Strava callback] /athlete failed:', athleteRes.status)
+      // Fallback : les vélos renvoyés par le token exchange
+      allBikes = athlete?.bikes ?? []
+    }
+    // Dernier filet : si /athlete a répondu OK mais sans vélos, tente le token exchange
+    if (allBikes.length === 0 && (athlete?.bikes?.length ?? 0) > 0) {
+      allBikes = athlete.bikes
     }
   } catch (e) {
     console.log('[Strava callback] /athlete error:', e)

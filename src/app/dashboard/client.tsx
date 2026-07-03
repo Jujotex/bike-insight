@@ -36,6 +36,15 @@ interface AttentionItem {
   cost: number | null;
 }
 
+interface MaintenanceAlert {
+  bikeId: string;
+  bikeName: string;
+  typeId: string;
+  label: string;
+  state: "due" | "soon";
+  detail: string;
+}
+
 interface Prediction {
   componentId: string;
   componentName: string;
@@ -63,13 +72,14 @@ export interface DashboardClientProps {
   readinessByBike: Record<string, { value: number; components: number }>;
   attentionItems: AttentionItem[];
   predictions: Prediction[];
+  maintenanceAlerts: MaintenanceAlert[];
   budgetByBike: Record<string, Record<string, number>>;
   wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
 }
 
 export function DashboardClient({
   userName, todayCap, bikes, kpis,
-  attentionItems, predictions,
+  attentionItems, predictions, maintenanceAlerts,
 }: DashboardClientProps) {
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
   const [selectedBikeId, setSelectedBikeId] = useState(primaryBikeId);
@@ -77,6 +87,7 @@ export function DashboardClient({
 
   const filteredAttention = attentionItems.filter(a => a.bikeId === selectedBikeId);
   const filteredPredictions = predictions.filter(p => p.bikeId === selectedBikeId);
+  const filteredMaintenance = maintenanceAlerts.filter(m => m.bikeId === selectedBikeId);
 
   const badItems = filteredAttention.filter(a => a.status === "bad");
   const warnItems = filteredAttention.filter(a => a.status === "warn");
@@ -235,6 +246,28 @@ export function DashboardClient({
             </div>
           )}
         </div>
+      )}
+
+      {/* Entretien à prévoir */}
+      {filteredMaintenance.length > 0 && (
+        <BiCard pad={0} style={{ marginBottom: 14 }}>
+          <div style={{ padding: "16px 22px 10px", display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Entretien à prévoir</span>
+            <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>basé sur tes derniers entretiens</span>
+          </div>
+          {filteredMaintenance.map(m => (
+            <div key={m.typeId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 22px", borderTop: "1px solid var(--bi-line)" }}>
+              <span style={{ width: 7, height: 7, borderRadius: 999, background: m.state === "due" ? "var(--bi-bad)" : "var(--bi-warn)", flexShrink: 0, display: "inline-block" }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</span>
+                <span style={{ fontSize: 11.5, color: "var(--bi-muted)", marginLeft: 8 }}>{m.detail}</span>
+              </div>
+              <Link href={`/bikes/${m.bikeId}`} style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none", flexShrink: 0 }}>
+                Enregistrer →
+              </Link>
+            </div>
+          ))}
+        </BiCard>
       )}
 
       {/* Main grid */}

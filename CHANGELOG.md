@@ -1,5 +1,30 @@
 # Changelog
 
+## [Non publié] — suivi des pièces à usure lente
+
+### Ajouté
+- **5 pièces optionnelles** proposées décochées dans le wizard : plateaux (~30 000 km), boîtier de pédalier (~15 000 km), roulements de roues (~18 000 km), galets de dérailleur (~10 000 km), guidoline (~8 000 km). Durées indicatives issues de recherches (retours d'usage route ; réduites sous la pluie).
+- **5 entrées catalogue** correspondantes (3 gammes chacune) pour les suggestions du wizard et la page Remplacer, avec notes de compatibilité (BCD, standard de boîtier, référence de roulement…).
+
+### Corrigé
+- `getCatalogForTemplate` : la catégorie « roues » n'est plus assimilée d'office à un pneu (les roulements de roues obtenaient des suggestions de pneus).
+
+## [Non publié] — fix : vélos non détectés à la première connexion Strava
+
+### Corrigé
+- **Callback Strava** : si l'appel `/athlete` échoue (rate limit…), fallback sur les vélos renvoyés par le token exchange — avant, `allBikes` restait vide sans erreur visible.
+- **Import** (`/api/strava/import`) : crée désormais les vélos Strava manquants **avant** de rattacher les activités (avant, il ne faisait que mettre à jour les km des vélos existants → activités orphelines `bike_id = null` si le callback avait échoué). Couvre aussi les vélos ajoutés sur Strava après la connexion.
+- **Écran de succès** (`/connect/strava?success=true`) : déclenche l'import depuis le client et attend sa fin avant d'afficher les vélos — le déclenchement fire-and-forget depuis le callback n'est pas garanti sur Vercel (fonction gelée au retour).
+
+## [Non publié] — entretiens courants (nouvelle fonctionnalité)
+
+### Ajouté
+- **Dashboard** : carte « Entretien à prévoir » sous le bandeau de statut, listant les entretiens dus ou bientôt dus du vélo sélectionné avec lien direct vers l'enregistrement. Alerte uniquement sur les entretiens déjà enregistrés au moins une fois (pas de fausses alertes).
+- **Historique unifié** sur le détail vélo : les entretiens vélo apparaissent dans l'historique de maintenance aux côtés des opérations par composant, et leurs coûts alimentent le graphe de dépenses mensuelles.
+- **Suivi des entretiens** au niveau vélo : lubrification de la chaîne, nettoyage/dégraissage de la transmission, purge des freins hydrauliques, préventif tubeless, contrôle des serrages, entretien fourche/suspension (VTT), révision complète. Catalogue et intervalles recommandés (km et/ou mois) dans `src/lib/maintenance-catalog.ts`.
+- **Carte « Entretien courant »** sur la page détail vélo : statut par entretien (OK / Bientôt / À faire / Jamais enregistré), prochaine échéance estimée, enregistrement en un clic (date + coût optionnel, km du vélo capturé automatiquement). Les entretiens non pertinents sont masqués (purge si freins à patins, suspension si pas VTT).
+- **Migration** `20260702000001_maintenance_bike_level.sql` : colonnes `bike_id` et `maintenance_type` sur `maintenance_logs` (la table existante d'historique par composant est réutilisée, pas de nouvelle table). ⚠️ À appliquer sur Supabase avant déploiement.
+
 ## [Non publié] — audit UX P1 : CTA contextuels
 
 ### Modifié
