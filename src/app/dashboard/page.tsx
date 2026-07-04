@@ -12,7 +12,7 @@ export default async function DashboardPage() {
     user, bikes, kpis,
     readinessByBike, attentionItems,
     predictions, budgetByBike, wearByCategoryByBike,
-    maintenanceAlerts,
+    maintenanceAlerts, maintenanceSummaryByBike,
   } = data;
 
   const userName = (user.user_metadata?.full_name as string)?.split(" ")[0] ?? "toi";
@@ -31,6 +31,7 @@ export default async function DashboardPage() {
           attentionItems={attentionItems}
           predictions={predictions}
           maintenanceAlerts={maintenanceAlerts}
+          maintenanceSummaryByBike={maintenanceSummaryByBike}
           budgetByBike={budgetByBike}
           wearByCategoryByBike={wearByCategoryByBike}
         />

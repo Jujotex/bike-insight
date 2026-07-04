@@ -305,6 +305,39 @@ export async function getDashboardData() {
   }
   maintenanceAlerts.sort((a, b2) => (a.state === 'due' ? 0 : 1) - (b2.state === 'due' ? 0 : 1))
 
+  // ── Résumé entretien par vélo (pour la carte compacte du dashboard) ──
+  // Contrairement aux alertes, on inclut aussi les entretiens "ok" afin
+  // d'afficher les prochaines échéances même quand rien n'est en retard.
+  const STATE_RANK: Record<string, number> = { due: 0, soon: 1, ok: 2 }
+  const maintenanceSummaryByBike: Record<string, {
+    counts: { due: number; soon: number; ok: number }
+    items: Array<{ typeId: string; label: string; state: 'due' | 'soon' | 'ok'; pct: number; statusLabel: string; detail: string }>
+  }> = {}
+  for (const b of bikes ?? []) {
+    const bikeKm = (b.total_km as number) ?? 0
+    const counts = { due: 0, soon: 0, ok: 0 }
+    const items: Array<{ typeId: string; label: string; state: 'due' | 'soon' | 'ok'; pct: number; statusLabel: string; detail: string }> = []
+    for (const def of MAINTENANCE_TYPES) {
+      const last = lastMaintByBikeType[`${b.id}:${def.id}`] ?? null
+      if (!last) continue // seulement les entretiens déjà enregistrés au moins une fois
+      const st = computeMaintenanceStatus(def, last, bikeKm)
+      if (st.state === 'never') continue
+      counts[st.state]++
+      const dueParts: string[] = []
+      if (st.dueInKm !== null) dueParts.push(`~${st.dueInKm.toLocaleString('fr')} km`)
+      if (st.dueInWeeks !== null) dueParts.push(st.dueInWeeks >= 5 ? `${Math.round(st.dueInWeeks / 4)} mois` : `${st.dueInWeeks} sem.`)
+      const statusLabel = st.state === 'due' ? 'À faire'
+        : st.state === 'soon' ? 'Bientôt'
+        : dueParts.length > 0 ? `dans ${dueParts.join(' ou ')}` : 'OK'
+      const detail = st.kmSince !== null && def.intervalKm
+        ? `fait il y a ${Math.round(st.kmSince).toLocaleString('fr')} km`
+        : `fait il y a ${st.weeksSince} sem.`
+      items.push({ typeId: def.id, label: def.label, state: st.state, pct: st.pct, statusLabel, detail })
+    }
+    items.sort((x, y) => STATE_RANK[x.state] - STATE_RANK[y.state] || y.pct - x.pct)
+    maintenanceSummaryByBike[b.id as string] = { counts, items }
+  }
+
   return {
     user,
     primaryBike,
@@ -333,6 +366,7 @@ export async function getDashboardData() {
     budgetByBike,
     wearByCategoryByBike,
     maintenanceAlerts,
+    maintenanceSummaryByBike,
   }
 }
 

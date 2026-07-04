@@ -55,17 +55,9 @@ export default async function BikeDetailPage({
   const supabase = await createSupabaseServerClient();
 
   const [
-    { data: maintenanceLogs },
     { data: bikeMaintLogs },
     { data: bikeMeta },
   ] = await Promise.all([
-    supabase
-      .from("maintenance_logs")
-      .select("id, action, km_at_action, cost, performed_at, notes, component_id, components(name, category)")
-      .eq("components.bike_id", id)
-      .not("component_id", "is", null)
-      .order("performed_at", { ascending: false })
-      .limit(20),
     supabase
       .from("maintenance_logs")
       .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
@@ -78,10 +70,6 @@ export default async function BikeDetailPage({
       .eq("id", id)
       .single(),
   ]);
-
-  const logs = (maintenanceLogs ?? []).filter(
-    (l) => l.components !== null
-  );
 
   const lastByType: Record<string, MaintenanceLast> = {};
   for (const l of bikeMaintLogs ?? []) {
@@ -102,39 +90,6 @@ export default async function BikeDetailPage({
     ? bikeGroupTemplate.bikeTypes.includes("vtt") && !bikeGroupTemplate.bikeTypes.includes("route")
     : false;
   const hasRimBrakes = components.some(c => (c.name as string).toLowerCase().includes("patin"));
-
-  // Historique unifié : opérations composants + entretiens vélo
-  type HistoryEntry = {
-    id: string; action: string; targetName: string | null; targetLink: string | null;
-    performed_at: string; km_at_action: number | null; cost: number | null; notes: string | null;
-  };
-  const history: HistoryEntry[] = [
-    ...logs.map((l): HistoryEntry => {
-      const compRaw = l.components as { name: string; category: string } | { name: string; category: string }[] | null;
-      const comp = Array.isArray(compRaw) ? compRaw[0] ?? null : compRaw;
-      return {
-        id: l.id as string,
-        action: l.action as string,
-        targetName: comp?.name ?? "Pièce supprimée",
-        targetLink: l.component_id ? `/components/${l.component_id}` : null,
-        performed_at: l.performed_at as string,
-        km_at_action: (l.km_at_action as number | null) ?? null,
-        cost: (l.cost as number | null) ?? null,
-        notes: (l.notes as string | null) ?? null,
-      };
-    }),
-    ...(bikeMaintLogs ?? []).map((l): HistoryEntry => ({
-      id: l.id as string,
-      action: (l.action as string | null) ?? "Entretien",
-      targetName: null,
-      targetLink: null,
-      performed_at: l.performed_at as string,
-      km_at_action: (l.km_at_action as number | null) ?? null,
-      cost: (l.cost as number | null) ?? null,
-      notes: (l.notes as string | null) ?? null,
-    })),
-  ].sort((a, b) => b.performed_at.localeCompare(a.performed_at)).slice(0, 20);
-
 
   // Stats 12 mois
   const now = new Date();
@@ -376,63 +331,6 @@ export default async function BikeDetailPage({
         hasRimBrakes={hasRimBrakes}
         lastByType={lastByType}
       />
-
-      {/* ── Historique de maintenance ───────────────────── */}
-      {history.length > 0 && (
-        <BiCard pad={0} style={{ marginTop: 14 }}>
-          <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid var(--bi-line)" }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Historique de maintenance</div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-              {history.length} opération{history.length > 1 ? "s" : ""} enregistrée{history.length > 1 ? "s" : ""}
-            </div>
-          </div>
-          {history.map((log, i) => {
-            const date = new Date(log.performed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-            return (
-              <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 22px", borderBottom: i < history.length - 1 ? "1px solid var(--bi-line)" : "none" }}>
-                {/* Icône action */}
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-                  </svg>
-                </div>
-                {/* Détails */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-                    {log.action}
-                    {log.targetName && (
-                      <>
-                        {" — "}
-                        {log.targetLink ? (
-                          <Link href={log.targetLink} style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "var(--bi-line)" }}>
-                            {log.targetName}
-                          </Link>
-                        ) : (
-                          log.targetName
-                        )}
-                      </>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
-                    {date}
-                    {log.km_at_action !== null && ` · ${Math.round(log.km_at_action).toLocaleString("fr")} km vélo`}
-                  </div>
-                  {log.notes && (
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, fontStyle: "italic" }}>{log.notes}</div>
-                  )}
-                </div>
-                {/* Coût */}
-                {log.cost !== null && (
-                  <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-jetbrains-mono)", flexShrink: 0 }}>
-                    {Math.round(log.cost).toLocaleString("fr")} €
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </BiCard>
-      )}
 
       </div>
     </AppShell>

@@ -1,5 +1,16 @@
 # Changelog
 
+## [Non publié] — icône vélo cartoon
+
+### Modifié (visuel)
+- L'illustration du vélo sur les cartes (`bikes`) passe d'un trait technique fin à un style cartoon « Chunky » : traits épais et arrondis, moyeux et pédalier pleins. Conserve la couleur dynamique `bikeColor`.
+
+## [Non publié] — carte Entretien sur le dashboard
+
+### Ajouté
+- **Carte « Entretien » compacte** sur le dashboard, toujours visible (avant, le bloc « Entretien à prévoir » disparaissait quand rien n'était en retard). Elle affiche le statut global (à faire / à surveiller / à jour) et les prochaines échéances du vélo sélectionné, y compris les entretiens « OK », avec un lien « Voir tout » vers la page vélo. Si aucun entretien n'a encore été enregistré, un message d'invite s'affiche.
+- `getDashboardData` expose `maintenanceSummaryByBike` : par vélo, les compteurs due/soon/ok et les entretiens triés par urgence (label, statut, échéance formatée). Contrairement à `maintenanceAlerts`, ce résumé inclut aussi les entretiens à jour.
+
 ## [Non publié] — suppression du graphe « Dépenses · 12 mois »
 
 ### Supprimé

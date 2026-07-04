@@ -61,6 +61,22 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
       return;
     }
 
+    // Incrémente le kilométrage total du vélo (odomètre à vie).
+    // Une sortie manuelle n'est pas couverte par la synchro Strava (gear.distance),
+    // il faut donc l'ajouter ici — sinon total_km reste figé et l'usure /
+    // le "depuis dernier entretien" ne bougent jamais.
+    // Fait avant le recalcul d'usure, qui lit total_km.
+    const rideKm = Math.round(km * 10) / 10;
+    const { data: bikeRow } = await supabase
+      .from("bikes")
+      .select("total_km")
+      .eq("id", bikeId)
+      .single();
+    await supabase
+      .from("bikes")
+      .update({ total_km: (bikeRow?.total_km ?? 0) + rideKm })
+      .eq("id", bikeId);
+
     // Recalcule l'usure des composants
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
