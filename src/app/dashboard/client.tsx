@@ -57,6 +57,20 @@ interface Prediction {
   urgency: "now" | "soon" | "later";
 }
 
+interface MaintenanceSummaryItem {
+  typeId: string;
+  label: string;
+  state: "due" | "soon" | "ok";
+  pct: number;
+  statusLabel: string;
+  detail: string;
+}
+
+interface MaintenanceSummary {
+  counts: { due: number; soon: number; ok: number };
+  items: MaintenanceSummaryItem[];
+}
+
 export interface DashboardClientProps {
   userName: string;
   todayCap: string;
@@ -73,13 +87,14 @@ export interface DashboardClientProps {
   attentionItems: AttentionItem[];
   predictions: Prediction[];
   maintenanceAlerts: MaintenanceAlert[];
+  maintenanceSummaryByBike: Record<string, MaintenanceSummary>;
   budgetByBike: Record<string, Record<string, number>>;
   wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
 }
 
 export function DashboardClient({
   userName, todayCap, bikes, kpis,
-  attentionItems, predictions, maintenanceAlerts,
+  attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike,
 }: DashboardClientProps) {
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
   const [selectedBikeId, setSelectedBikeId] = useState(primaryBikeId);
@@ -88,6 +103,7 @@ export function DashboardClient({
   const filteredAttention = attentionItems.filter(a => a.bikeId === selectedBikeId);
   const filteredPredictions = predictions.filter(p => p.bikeId === selectedBikeId);
   const filteredMaintenance = maintenanceAlerts.filter(m => m.bikeId === selectedBikeId);
+  const maintenanceSummary = maintenanceSummaryByBike[selectedBikeId] ?? { counts: { due: 0, soon: 0, ok: 0 }, items: [] };
 
   const badItems = filteredAttention.filter(a => a.status === "bad");
   const warnItems = filteredAttention.filter(a => a.status === "warn");
@@ -265,27 +281,50 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* Entretien à prévoir */}
-      {filteredMaintenance.length > 0 && (
-        <BiCard pad={0} style={{ marginBottom: 14 }}>
-          <div style={{ padding: "16px 22px 10px", display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Entretien à prévoir</span>
-            <span style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>basé sur tes derniers entretiens</span>
-          </div>
-          {filteredMaintenance.map(m => (
-            <div key={m.typeId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 22px", borderTop: "1px solid var(--bi-line)" }}>
-              <span style={{ width: 7, height: 7, borderRadius: 999, background: m.state === "due" ? "var(--bi-bad)" : "var(--bi-warn)", flexShrink: 0, display: "inline-block" }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</span>
-                <span style={{ fontSize: 11.5, color: "var(--bi-muted)", marginLeft: 8 }}>{m.detail}</span>
+      {/* Entretien — résumé compact toujours visible */}
+      {!hasNoComponents && (() => {
+        const { counts, items } = maintenanceSummary;
+        const maintStatusColor = counts.due > 0 ? "var(--bi-bad)" : counts.soon > 0 ? "var(--bi-warn)" : "var(--bi-ok)";
+        const maintStatusMsg = items.length === 0
+          ? "Aucun entretien enregistré"
+          : counts.due > 0
+          ? `${counts.due} entretien${counts.due > 1 ? "s" : ""} à faire`
+          : counts.soon > 0
+          ? `${counts.soon} entretien${counts.soon > 1 ? "s" : ""} à surveiller`
+          : "Tout est à jour";
+        const dotColor = (s: string) => s === "due" ? "var(--bi-bad)" : s === "soon" ? "var(--bi-warn)" : "var(--bi-ok)";
+        return (
+          <BiCard pad={0} style={{ marginBottom: 14 }}>
+            <div style={{ padding: "16px 22px 10px", display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
+                <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Entretien</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: maintStatusColor }}>{maintStatusMsg}</span>
               </div>
-              <Link href={`/bikes/${m.bikeId}`} style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none", flexShrink: 0 }}>
-                Enregistrer →
-              </Link>
+              {selectedBikeId && (
+                <Link href={`/bikes/${selectedBikeId}`} style={{ fontSize: 11.5, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
+                  Voir tout
+                </Link>
+              )}
             </div>
-          ))}
-        </BiCard>
-      )}
+            {items.length === 0 ? (
+              <div style={{ padding: "4px 22px 18px", fontSize: 12.5, color: "var(--bi-muted)" }}>
+                Enregistre un entretien pour suivre tes échéances (lubrification, purge, révision…).
+              </div>
+            ) : (
+              items.slice(0, 3).map(m => (
+                <div key={m.typeId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 22px", borderTop: "1px solid var(--bi-line)" }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor(m.state), flexShrink: 0, display: "inline-block" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</span>
+                    <span style={{ fontSize: 11.5, color: "var(--bi-muted)", marginLeft: 8 }}>{m.detail}</span>
+                  </div>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: dotColor(m.state), flexShrink: 0 }}>{m.statusLabel}</span>
+                </div>
+              ))
+            )}
+          </BiCard>
+        );
+      })()}
 
       {/* Main grid */}
       <div className="bi-grid-split" style={{ marginBottom: 14 }}>
