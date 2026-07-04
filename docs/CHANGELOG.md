@@ -5,7 +5,15 @@
 
 ---
 
-## [Unreleased]
+## [Unreleased] — Retrait bloc Historique de maintenance
+
+### Removed
+- `src/app/bikes/[id]/page.tsx` : suppression de la carte « Historique de maintenance » de la page vélo, ainsi que la requête `maintenance_logs` (composants) et la construction `history`/`logs` devenues inutiles.
+
+## [Unreleased] — Fix kilométrage sorties manuelles
+
+### Fixed
+- `src/components/bi/manual-ride-button.tsx` : une sortie manuelle incrémente désormais `bikes.total_km` (odomètre à vie) en plus d'insérer l'activité. Avant, `total_km` n'était mis à jour que par la synchro Strava (`gear.distance`), donc les sorties manuelles ne faisaient jamais bouger le compteur — l'usure et le « depuis dernier entretien » (ex. « il y a 0 km ») restaient figés. L'incrément est fait avant le recalcul d'usure, qui lit `total_km`.
 
 ## [Unreleased] — Ajout vélo manuel
 

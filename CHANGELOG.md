@@ -1,5 +1,10 @@
 # Changelog
 
+## [Non publié] — icône vélo cartoon
+
+### Modifié (visuel)
+- L'illustration du vélo sur les cartes (`bikes`) passe d'un trait technique fin à un style cartoon « Chunky » : traits épais et arrondis, moyeux et pédalier pleins. Conserve la couleur dynamique `bikeColor`.
+
 ## [Non publié] — carte Entretien sur le dashboard
 
 ### Ajouté
