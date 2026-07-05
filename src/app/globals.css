@@ -316,7 +316,9 @@ body { overflow-x: hidden; }
   gap: 14px;
   align-items: center;
   padding: 13px 22px;
+  transition: background 0.1s;
 }
+.bi-maint-row:hover { background: var(--bi-bg); }
 
 @media (max-width: 768px) {
   .bi-maint-header-row,
