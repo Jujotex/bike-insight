@@ -108,10 +108,6 @@ export function DashboardClient({
   const badItems = filteredAttention.filter(a => a.status === "bad");
   const warnItems = filteredAttention.filter(a => a.status === "warn");
 
-  const budget3m = filteredPredictions
-    .filter(p => p.weeksUntil !== null && p.weeksUntil <= 13)
-    .reduce((s, p) => s + (p.cost ?? 0), 0);
-
   const hasNoComponents = filteredAttention.length === 0 && filteredPredictions.length === 0;
 
   // Les entretiens dus comptent dans le statut global du vélo
@@ -327,7 +323,7 @@ export function DashboardClient({
       })()}
 
       {/* Main grid */}
-      <div className="bi-grid-split" style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 14 }}>
 
         {/* A traiter */}
         <BiCard pad={0}>
@@ -393,7 +389,7 @@ export function DashboardClient({
                     <div style={{ fontSize: 11.5, color, fontWeight: 500, marginTop: 4 }}>{urgencyLine}</div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
-                    {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>~{c.cost}</Mono>}
+                    {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>~{c.cost} €</Mono>}
                     <Link href={isBad ? `/components/${c.id}/compare` : `/components/${c.id}`}>
                       <button style={{
                         padding: "8px 14px",
@@ -413,51 +409,6 @@ export function DashboardClient({
               );
             })
           )}
-        </BiCard>
-
-        {/* Prochains remplacements */}
-        <BiCard pad={0}>
-          <div style={{ padding: "20px 22px 14px" }}>
-            <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Prochains remplacements</div>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>
-              {budget3m > 0
-                ? `Budget estimé 3 mois · ${Math.round(budget3m)} €`
-                : "Basé sur ton rythme actuel"}
-            </div>
-          </div>
-          <div style={{ borderTop: "1px solid var(--bi-line)" }}>
-            {filteredPredictions.length === 0 ? (
-              <div style={{ padding: "16px 22px 20px", fontSize: 13, color: "var(--bi-muted)" }}>
-                Aucun remplacement prévu prochainement.
-              </div>
-            ) : (
-              filteredPredictions.slice(0, 5).map((p, i, arr) => {
-                const dotColor = p.urgency === "now" ? "var(--bi-bad)" : p.urgency === "soon" ? "var(--bi-warn)" : "var(--bi-muted)";
-                const timeLabel = p.weeksUntil !== null
-                  ? p.weeksUntil <= 0 ? "Maintenant" : `Dans ${formatWeeks(p.weeksUntil)}`
-                  : null;
-                return (
-                  <Link key={i} href={`/components/${p.componentId}`} style={{
-                    padding: "13px 22px", display: "flex", alignItems: "center", gap: 12,
-                    borderBottom: i === arr.length - 1 ? "none" : "1px solid var(--bi-line)",
-                    textDecoration: "none", color: "inherit",
-                  }}>
-                    <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor, flexShrink: 0, display: "inline-block" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {CATEGORY_LABELS[p.category] ?? p.componentName}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {p.componentName}
-                        {timeLabel && <span style={{ color: dotColor }}> - {timeLabel}</span>}
-                      </div>
-                    </div>
-                    {p.cost !== null && <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{p.cost}</Mono>}
-                  </Link>
-                );
-              })
-            )}
-          </div>
         </BiCard>
 
       </div>

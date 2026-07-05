@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getBikeData } from "@/lib/data";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { MaintenanceCard } from "@/components/bi/maintenance-card";
-import { BIKE_TEMPLATES } from "@/lib/bike-templates";
+import { fetchBikeMaintenanceDefs } from "@/lib/maintenance-types";
 import type { MaintenanceLast } from "@/lib/maintenance-catalog";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -56,7 +56,7 @@ export default async function BikeDetailPage({
 
   const [
     { data: bikeMaintLogs },
-    { data: bikeMeta },
+    maintenanceDefs,
   ] = await Promise.all([
     supabase
       .from("maintenance_logs")
@@ -64,11 +64,7 @@ export default async function BikeDetailPage({
       .eq("bike_id", id)
       .not("maintenance_type", "is", null)
       .order("performed_at", { ascending: false }),
-    supabase
-      .from("bikes")
-      .select("groupset_template_id")
-      .eq("id", id)
-      .single(),
+    fetchBikeMaintenanceDefs(supabase, id),
   ]);
 
   const lastByType: Record<string, MaintenanceLast> = {};
@@ -81,15 +77,6 @@ export default async function BikeDetailPage({
       };
     }
   }
-
-  // Applicabilité des entretiens : VTT ? freins à patins ?
-  const bikeGroupTemplate = bikeMeta?.groupset_template_id
-    ? BIKE_TEMPLATES.find(t => t.id === bikeMeta.groupset_template_id) ?? null
-    : null;
-  const isVtt = bikeGroupTemplate
-    ? bikeGroupTemplate.bikeTypes.includes("vtt") && !bikeGroupTemplate.bikeTypes.includes("route")
-    : false;
-  const hasRimBrakes = components.some(c => (c.name as string).toLowerCase().includes("patin"));
 
   // Stats 12 mois
   const now = new Date();
@@ -327,8 +314,7 @@ export default async function BikeDetailPage({
       <MaintenanceCard
         bikeId={bike.id as string}
         bikeKm={(bike.total_km as number) ?? 0}
-        isVtt={isVtt}
-        hasRimBrakes={hasRimBrakes}
+        types={maintenanceDefs}
         lastByType={lastByType}
       />
 
