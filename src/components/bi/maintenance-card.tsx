@@ -139,14 +139,18 @@ export function MaintenanceCard({
         return (
           <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
             <div className="bi-maint-row">
-              {/* Entretien */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              {/* Entretien — cliquable pour modifier ce type */}
+              <Link
+                href={`/reglages/entretiens?bike=${bikeId}&edit=${t.id}`}
+                title="Modifier cet entretien"
+                style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textDecoration: "none", color: "inherit" }}
+              >
                 <div style={{ width: 4, height: 28, background: ui.color, borderRadius: 2, flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
                   <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>
                 </div>
-              </div>
+              </Link>
 
               {/* Dernier */}
               <div className="bi-maint-col-last">

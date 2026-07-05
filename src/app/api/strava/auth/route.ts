@@ -14,7 +14,8 @@ export async function GET() {
   stravaAuthUrl.searchParams.set('redirect_uri', `${process.env.NEXT_PUBLIC_APP_URL}/api/strava/callback`)
   stravaAuthUrl.searchParams.set('response_type', 'code')
   stravaAuthUrl.searchParams.set('approval_prompt', 'auto')
-  stravaAuthUrl.searchParams.set('scope', 'activity:read_all,profile:read_all')
+  // activity:write requis pour ajouter l'alerte d'usure dans la description des sorties
+  stravaAuthUrl.searchParams.set('scope', 'activity:read_all,activity:write,profile:read_all')
 
   return NextResponse.redirect(stravaAuthUrl.toString())
 }

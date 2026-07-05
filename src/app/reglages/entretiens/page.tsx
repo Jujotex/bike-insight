@@ -8,9 +8,9 @@ import { MaintenanceSettingsClient, type MaintenanceTypeRow } from "./client";
 export default async function MaintenanceSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ bike?: string }>;
+  searchParams: Promise<{ bike?: string; edit?: string }>;
 }) {
-  const { bike } = await searchParams;
+  const { bike, edit } = await searchParams;
 
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -47,6 +47,7 @@ export default async function MaintenanceSettingsPage({
           bikes={bikeList}
           types={(types ?? []) as MaintenanceTypeRow[]}
           initialBikeId={initialBikeId}
+          initialEditSlug={edit ?? null}
         />
       </div>
     </AppShell>

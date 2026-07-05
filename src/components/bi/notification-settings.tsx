@@ -12,6 +12,7 @@ type Settings = {
   notify_bad: boolean;
   warn_threshold: number;
   bad_threshold: number;
+  strava_wear_comment: boolean;
 };
 
 function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
@@ -96,8 +97,9 @@ export function NotificationSettings() {
         notify_bad: data.notify_bad ?? true,
         warn_threshold: data.warn_threshold ?? 80,
         bad_threshold: data.bad_threshold ?? 100,
+        strava_wear_comment: data.strava_wear_comment ?? false,
       }))
-      .catch(() => setSettings({ notify_warn: true, notify_bad: true, warn_threshold: 80, bad_threshold: 100 }));
+      .catch(() => setSettings({ notify_warn: true, notify_bad: true, warn_threshold: 80, bad_threshold: 100, strava_wear_comment: false }));
   }, []);
 
   // Sauvegarde avec debounce 600 ms
@@ -185,6 +187,25 @@ export function NotificationSettings() {
                 onChange={v => save({ ...settings, warn_threshold: v })}
               />
             )}
+          </div>
+
+          {/* Commentaire d'usure sur Strava */}
+          <div style={{ padding: "18px 24px", borderTop: "1px solid var(--bi-line)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 999, background: "#FC4C02", flexShrink: 0, marginTop: 4 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 500 }}>Alerte dans la description Strava</span>
+                  <Toggle
+                    enabled={settings.strava_wear_comment}
+                    onChange={() => save({ ...settings, strava_wear_comment: !settings.strava_wear_comment })}
+                  />
+                </div>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 3, lineHeight: 1.5 }}>
+                  Quand une pièce atteint l&apos;usure critique, ajoute une phrase d&apos;alerte à la description de tes nouvelles sorties Strava. Nécessite de reconnecter Strava (droit d&apos;écriture). Ta description existante est conservée.
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style={{ padding: "12px 24px 16px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)" }}>

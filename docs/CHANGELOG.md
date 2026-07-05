@@ -5,6 +5,23 @@
 
 ---
 
+## [Unreleased] — Entretien cliquable → modification directe
+
+### Changed
+- `src/components/bi/maintenance-card.tsx` : le nom de chaque entretien est cliquable et renvoie vers sa modification (`/reglages/entretiens?bike=<id>&edit=<slug>`). Le bouton « Fait ✓ » reste pour l'enregistrement rapide.
+- `src/app/reglages/entretiens/` (page + client) : lecture du paramètre `edit` pour ouvrir directement le bon entretien en mode édition à l'arrivée.
+
+## [Unreleased] — Alerte d'usure dans la description Strava
+
+### Added
+- Migration `supabase/migrations/20260705000002_strava_wear_comment.sql` : colonne `strava_wear_comment` (bool, défaut false) sur `notification_settings`.
+- `src/lib/strava-comment.ts` : `commentWearOnActivities` ajoute une phrase d'alerte d'usure critique à la description des sorties Strava (pièces au statut `bad`), idempotent (marqueur « Bike Insight »), sans écraser la description existante.
+- Réglage « Alerte dans la description Strava » (opt-in) dans `notification-settings.tsx` + API `notifications/settings` (GET/POST).
+
+### Changed
+- `src/app/api/strava/auth/route.ts` : scope OAuth élargi à `activity:write` (reconnexion Strava requise).
+- `src/app/api/strava/import/route.ts` : après le recalcul d'usure, annote les nouvelles sorties (imports incrémentaux uniquement) si le réglage est actif.
+
 ## [Unreleased] — Retrait bloc « Prochains remplacements »
 
 ### Removed
