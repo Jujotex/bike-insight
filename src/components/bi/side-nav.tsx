@@ -22,12 +22,6 @@ const NAV_ITEMS = [
     href: "/bikes",
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
   },
-  {
-    id: "entretiens",
-    label: "Entretiens",
-    href: "/reglages/entretiens",
-    icon: "M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z",
-  },
 ];
 
 interface SideNavProps {
