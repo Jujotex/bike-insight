@@ -5,6 +5,21 @@
 
 ---
 
+## [Unreleased] — Retrait bloc « Prochains remplacements »
+
+### Removed
+- `src/app/dashboard/client.tsx` : suppression de la carte « Prochains remplacements » (doublon avec « À traiter » pour les pièces critiques). La carte « À traiter » passe en pleine largeur. Variable `budget3m` supprimée (devenue inutile).
+
+## [Unreleased] — Entretiens personnalisables (par vélo)
+
+### Added
+- Migration `supabase/migrations/20260705000001_maintenance_types.sql` : table `maintenance_types` (par vélo, RLS complète), fonction `default_maintenance_types()` (les 7 entretiens historiques), trigger `seed_bike_maintenance_types` qui équipe chaque nouveau vélo, et backfill des vélos existants. Le lien avec l'historique se fait via `slug` (= `maintenance_logs.maintenance_type`).
+- `src/lib/maintenance-types.ts` : lecture des types depuis la base (`fetchBikeMaintenanceDefs`, `fetchUserMaintenanceDefsByBike`, `mapRowToDef`).
+- Page `src/app/reglages/entretiens/` (page serveur + client) : sélecteur de vélo, ajout / modification (nom, description, échéance km, échéance mois, coût) / suppression des entretiens. Entrée « Entretiens » dans la nav latérale + bouton « Gérer » sur la carte Entretien de la page vélo.
+
+### Changed
+- `src/components/bi/maintenance-card.tsx`, `src/lib/data.ts`, `src/lib/notifications-helper.ts`, `src/app/bikes/[id]/page.tsx` : les entretiens sont désormais lus depuis `maintenance_types` (par vélo) au lieu du tableau en dur `MAINTENANCE_TYPES`. Le filtrage automatique VTT / freins à patins est remplacé par la liste explicite propre à chaque vélo.
+
 ## [Unreleased] — Retrait bloc Historique de maintenance
 
 ### Removed

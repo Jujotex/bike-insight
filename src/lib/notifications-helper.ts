@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { MAINTENANCE_TYPES, computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
+import { computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
+import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 
 /**
  * Génère des notifications d'usure pour les composants qui dépassent
@@ -108,6 +109,8 @@ export async function createMaintenanceNotifications(supabase: SupabaseClient, u
 
   if (!bikes || bikes.length === 0) return
 
+  const defsByBike = await fetchUserMaintenanceDefsByBike(supabase, userId)
+
   const lastByKey: Record<string, MaintenanceLast> = {}
   for (const l of logs ?? []) {
     const key = `${l.bike_id}:${l.maintenance_type}`
@@ -122,7 +125,7 @@ export async function createMaintenanceNotifications(supabase: SupabaseClient, u
   const alerts: { bike_id: string; bike_name: string; maintenance_type: string; label: string; type: 'warn' | 'bad' }[] = []
   for (const b of bikes) {
     const bikeKm = (b.total_km as number) ?? 0
-    for (const def of MAINTENANCE_TYPES) {
+    for (const def of (defsByBike[b.id as string] ?? [])) {
       const last = lastByKey[`${b.id}:${def.id}`] ?? null
       if (!last) continue
       const st = computeMaintenanceStatus(def, last, bikeKm)

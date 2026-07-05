@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from './supabase-server'
-import { MAINTENANCE_TYPES, computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
+import { computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
+import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 
 // ── Dashboard data ─────────────────────────────────────────────
 
@@ -272,6 +273,8 @@ export async function getDashboardData() {
   // ── Alertes entretien (niveau vélo) ──────────────────────────
   // On n'alerte que sur les entretiens déjà enregistrés au moins une fois :
   // pas de fausses alertes pour les entretiens non pertinents pour l'utilisateur.
+  // Les types d'entretien sont désormais propres à chaque vélo (table maintenance_types).
+  const defsByBike = await fetchUserMaintenanceDefsByBike(supabase, user.id)
   const lastMaintByBikeType: Record<string, MaintenanceLast> = {}
   for (const l of bikeMaintLogs ?? []) {
     const key = `${l.bike_id}:${l.maintenance_type}`
@@ -285,7 +288,7 @@ export async function getDashboardData() {
   const maintenanceAlerts: Array<{ bikeId: string; bikeName: string; typeId: string; label: string; state: 'due' | 'soon'; detail: string }> = []
   for (const b of bikes ?? []) {
     const bikeKm = (b.total_km as number) ?? 0
-    for (const def of MAINTENANCE_TYPES) {
+    for (const def of (defsByBike[b.id as string] ?? [])) {
       const last = lastMaintByBikeType[`${b.id}:${def.id}`] ?? null
       if (!last) continue
       const st = computeMaintenanceStatus(def, last, bikeKm)
@@ -317,7 +320,7 @@ export async function getDashboardData() {
     const bikeKm = (b.total_km as number) ?? 0
     const counts = { due: 0, soon: 0, ok: 0 }
     const items: Array<{ typeId: string; label: string; state: 'due' | 'soon' | 'ok'; pct: number; statusLabel: string; detail: string }> = []
-    for (const def of MAINTENANCE_TYPES) {
+    for (const def of (defsByBike[b.id as string] ?? [])) {
       const last = lastMaintByBikeType[`${b.id}:${def.id}`] ?? null
       if (!last) continue // seulement les entretiens déjà enregistrés au moins une fois
       const st = computeMaintenanceStatus(def, last, bikeKm)

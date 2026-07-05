@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BiCard, Mono, ProgressBar } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 import {
-  MAINTENANCE_TYPES,
   computeMaintenanceStatus,
   type MaintenanceDef,
   type MaintenanceLast,
@@ -35,14 +35,12 @@ function nextDueLabel(dueInKm: number | null, dueInWeeks: number | null): string
 export function MaintenanceCard({
   bikeId,
   bikeKm,
-  isVtt,
-  hasRimBrakes,
+  types,
   lastByType,
 }: {
   bikeId: string;
   bikeKm: number;
-  isVtt: boolean;
-  hasRimBrakes: boolean;
+  types: MaintenanceDef[];
   lastByType: Record<string, MaintenanceLast>;
 }) {
   const router = useRouter();
@@ -52,8 +50,7 @@ export function MaintenanceCard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const rows = MAINTENANCE_TYPES
-    .filter(t => (!t.vttOnly || isVtt) && (!t.discOnly || !hasRimBrakes))
+  const rows = types
     .map(t => {
       const last = lastByType[t.id] ?? null;
       const status = computeMaintenanceStatus(t, last, bikeKm);
@@ -100,18 +97,32 @@ export function MaintenanceCard({
 
   return (
     <BiCard pad={0} style={{ marginTop: 14, overflow: "hidden" }}>
-      <div style={{ padding: "20px 22px 12px" }}>
-        <div style={{ fontSize: 15, fontWeight: 600 }}>Entretien · {rows.length}</div>
-        <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par échéance — enregistre en un clic, on suit le reste</div>
+      <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Entretien · {rows.length}</div>
+          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par échéance — enregistre en un clic, on suit le reste</div>
+        </div>
+        <Link
+          href={`/reglages/entretiens?bike=${bikeId}`}
+          style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid var(--bi-line)", fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>
+          Gérer
+        </Link>
       </div>
 
-      {/* En-têtes de colonnes, comme le tableau des pièces */}
+      {rows.length === 0 ? (
+        <div style={{ padding: "28px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13, borderTop: "1px solid var(--bi-line)" }}>
+          Aucun entretien pour ce vélo — <Link href={`/reglages/entretiens?bike=${bikeId}`} style={{ color: "var(--bi-ink)", fontWeight: 600 }}>en ajouter</Link>
+        </div>
+      ) : (
       <div className="bi-maint-header-row">
         <span>Entretien</span>
         <span className="bi-maint-col-last">Dernier</span>
         <span>Échéance</span>
         <span style={{ textAlign: "right" }}></span>
       </div>
+      )}
 
       {rows.map(({ def: t, last, status }) => {
         const ui = STATE_UI[status.state];
