@@ -9,12 +9,33 @@ const MARKER = 'Bike Insight' // présence = déjà annotée, on n'y retouche pa
 
 type SyncedActivity = { strava_id: number; bike_id: string | null }
 
+// Type court = premier mot du nom, pour voir le problème d'un coup d'œil.
+// « Cassette Shimano 105 CS-HG700-11 » → « Cassette », « Pneus route 700c » → « Pneus »
+function shortType(name: string): string {
+  return name.trim().split(/\s+/)[0] || name
+}
+
 function buildPhrase(comps: { name: string; wear: number }[]): string {
-  const parts = comps.map(c => `${c.name} (${Math.round(c.wear)}%)`)
-  let phrase = `🔧 ${MARKER} — usure critique : ${parts.join(', ')}. Pense à remplacer.`
+  // Regroupe par type court, garde l'usure la plus élevée, trie décroissant
+  const worstByType = new Map<string, number>()
+  for (const c of comps) {
+    const type = shortType(c.name)
+    if (c.wear > (worstByType.get(type) ?? 0)) worstByType.set(type, c.wear)
+  }
+  const lines = [...worstByType.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, wear]) => `🔴 ${type} · ${Math.round(wear)}%`)
+
+  const parts = [
+    `🚴 ${MARKER} — check usure`,
+    '',
+    ...lines,
+    '',
+    `Ces pièces méritent un coup d'œil 🔧`,
+  ]
   const appUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (appUrl) phrase += ` Suivi : ${appUrl}`
-  return phrase
+  if (appUrl) parts.push(`Suis l'usure de ton vélo → ${appUrl}`)
+  return parts.join('\n')
 }
 
 export async function commentWearOnActivities(
