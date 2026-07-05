@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BiCard } from "@/components/bi/ui";
+import { BiCard, Mono } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
+
+// Grille partagée en-têtes / lignes (façon tableau Composants)
+const GRID_COLS = "1.8fr 0.9fr 1fr 0.7fr 36px";
 
 export type MaintenanceTypeRow = {
   id: string;
@@ -238,14 +241,18 @@ export function MaintenanceSettingsClient({
       )}
 
       <BiCard pad={0} style={{ overflow: "hidden" }}>
-        <div style={{ padding: "18px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>
-            {bikeTypes.length} entretien{bikeTypes.length !== 1 ? "s" : ""}
+        {/* Sous-en-tête + Ajouter (comme la page Composants) */}
+        <div style={{ padding: "20px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, borderBottom: "1px solid var(--bi-line)" }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Entretiens</div>
+            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+              {bikeTypes.length} entretien{bikeTypes.length !== 1 ? "s" : ""} · clique une ligne pour la modifier
+            </div>
           </div>
           {editing !== "new" && (
             <button
               onClick={openNew}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               Ajouter
@@ -253,67 +260,71 @@ export function MaintenanceSettingsClient({
           )}
         </div>
 
+        {/* Formulaire d'ajout */}
         {editing === "new" && (
-          <div style={{ padding: "4px 20px 20px", borderTop: "1px solid var(--bi-line)" }}>{form}</div>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--bi-line)" }}>{form}</div>
         )}
 
+        {/* Empty state */}
         {bikeTypes.length === 0 && editing !== "new" && (
-          <div style={{ padding: "28px 20px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13, borderTop: "1px solid var(--bi-line)" }}>
+          <div style={{ padding: "32px 20px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
             Aucun entretien pour ce vélo. Clique sur « Ajouter » pour en créer un.
           </div>
         )}
 
-        {bikeTypes.map((t) => (
-          <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
-            {editing === t.id ? (
-              <div style={{ padding: "16px 20px" }}>{form}</div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{t.label}</div>
-                  {t.sub && <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>{t.sub}</div>}
-                  <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-                    {t.interval_km !== null && (
-                      <span style={badgeStyle}>{t.interval_km.toLocaleString("fr")} km</span>
-                    )}
-                    {t.interval_months !== null && (
-                      <span style={badgeStyle}>{t.interval_months} mois</span>
-                    )}
-                    {t.default_cost !== null && (
-                      <span style={badgeStyle}>{t.default_cost} €</span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                  <button
-                    onClick={() => openEdit(t)}
-                    style={{ padding: "7px 13px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)" }}
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => remove(t)}
-                    style={{ padding: "7px 13px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-bad)" }}
-                  >
-                    Supprimer
-                  </button>
-                </div>
+        {/* Tableau */}
+        {bikeTypes.length > 0 && (
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 560 }}>
+              {/* En-têtes de colonnes */}
+              <div style={{ padding: "8px 20px", display: "grid", gridTemplateColumns: GRID_COLS, gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
+                <span>Entretien</span>
+                <span style={{ textAlign: "right" }}>Échéance km</span>
+                <span style={{ textAlign: "right" }}>Échéance temps</span>
+                <span style={{ textAlign: "right" }}>Coût</span>
+                <span />
               </div>
-            )}
+
+              {bikeTypes.map((t) => (
+                editing === t.id ? (
+                  <div key={t.id} style={{ padding: "16px 20px", borderBottom: "1px solid var(--bi-line)" }}>{form}</div>
+                ) : (
+                  <div
+                    key={t.id}
+                    className="bi-component-row"
+                    onClick={() => openEdit(t)}
+                    style={{ display: "grid", gridTemplateColumns: GRID_COLS, gap: 14, padding: "14px 20px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                      <div style={{ width: 4, height: 28, background: "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
+                        {t.sub && <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>}
+                      </div>
+                    </div>
+                    <Mono style={{ fontSize: 12, textAlign: "right", color: t.interval_km !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                      {t.interval_km !== null ? `${t.interval_km.toLocaleString("fr")} km` : "—"}
+                    </Mono>
+                    <Mono style={{ fontSize: 12, textAlign: "right", color: t.interval_months !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                      {t.interval_months !== null ? `${t.interval_months} mois` : "—"}
+                    </Mono>
+                    <Mono style={{ fontSize: 12, textAlign: "right", fontWeight: 500, color: t.default_cost !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                      {t.default_cost !== null ? `${t.default_cost} €` : "—"}
+                    </Mono>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); remove(t); }}
+                      title="Supprimer"
+                      style={{ justifySelf: "end", padding: 6, background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", display: "flex", alignItems: "center" }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a1 1 0 01-1 1H6a1 1 0 01-1-1V6" /><path d="M10 11v6M14 11v6" /></svg>
+                    </button>
+                  </div>
+                )
+              ))}
+            </div>
           </div>
-        ))}
+        )}
       </BiCard>
     </>
   );
 }
-
-const badgeStyle: React.CSSProperties = {
-  fontSize: 10.5,
-  fontWeight: 600,
-  padding: "2px 8px",
-  borderRadius: 999,
-  background: "var(--bi-bg)",
-  border: "1px solid var(--bi-line)",
-  color: "var(--bi-muted)",
-  fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
-};

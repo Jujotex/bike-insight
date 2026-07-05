@@ -5,6 +5,11 @@
 
 ---
 
+## [Unreleased] — Page Entretiens présentée comme les Composants
+
+### Changed
+- `src/app/reglages/entretiens/client.tsx` : la liste des entretiens adopte le rendu tableau de la page Composants (en-têtes de colonnes Entretien / Échéance km / Échéance temps / Coût, lignes cliquables avec survol pour modifier, icône corbeille pour supprimer, bouton Ajouter). Logique inchangée.
+
 ## [Unreleased] — Entretien cliquable → modification directe
 
 ### Changed
