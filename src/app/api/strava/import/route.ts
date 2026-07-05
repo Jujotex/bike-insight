@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createWearNotifications, createMaintenanceNotifications } from '@/lib/notifications-helper'
 import { getValidStravaToken } from '@/lib/strava'
+import { commentWearOnActivities } from '@/lib/strava-comment'
 
 const FIRST_SYNC_DAYS = 90  // Premier import : 90 derniers jours
 const PAGE_SIZE = 100
@@ -194,6 +195,18 @@ export async function POST() {
   } else {
     await createWearNotifications(supabase, user.id).catch(e => console.error('[sync] notifications error:', e))
     await createMaintenanceNotifications(supabase, user.id).catch(e => console.error('[sync] notifications entretien error:', e))
+
+    // ── Alerte d'usure critique dans la description Strava (opt-in) ──
+    // Seulement sur les imports incrémentaux : on n'annote pas 90 jours
+    // d'historique au premier import.
+    if (!isFirstSync && allActivities.length > 0) {
+      const acts = allActivities.map(a => ({
+        strava_id: (a as { strava_id: number }).strava_id,
+        bike_id: (a as { bike_id: string | null }).bike_id,
+      }))
+      await commentWearOnActivities(supabase, user.id, accessToken, acts)
+        .catch(e => console.error('[sync] strava-comment error:', e))
+    }
   }
 
   console.log(`[sync] ${isFirstSync ? 'Premier import' : 'Import incrémental'} — ${totalImported} activités, ${page - 1} pages`)

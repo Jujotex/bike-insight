@@ -48,22 +48,30 @@ export function MaintenanceSettingsClient({
   bikes,
   types,
   initialBikeId,
+  initialEditSlug = null,
 }: {
   userId: string;
   bikes: Bike[];
   types: MaintenanceTypeRow[];
   initialBikeId: string;
+  initialEditSlug?: string | null;
 }) {
   const router = useRouter();
   const [bikeId, setBikeId] = useState(initialBikeId);
-  const [editing, setEditing] = useState<string | null>(null); // id d'un type, ou "new"
+
+  // Ouverture directe en édition si on arrive via un lien ?edit=<slug>
+  const initialType = initialEditSlug
+    ? types.find((t) => t.bike_id === initialBikeId && t.slug === initialEditSlug) ?? null
+    : null;
+
+  const [editing, setEditing] = useState<string | null>(initialType?.id ?? null); // id d'un type, ou "new"
 
   // Champs du formulaire
-  const [fLabel, setFLabel] = useState("");
-  const [fSub, setFSub] = useState("");
-  const [fKm, setFKm] = useState("");
-  const [fMonths, setFMonths] = useState("");
-  const [fCost, setFCost] = useState("");
+  const [fLabel, setFLabel] = useState(initialType?.label ?? "");
+  const [fSub, setFSub] = useState(initialType?.sub ?? "");
+  const [fKm, setFKm] = useState(initialType?.interval_km?.toString() ?? "");
+  const [fMonths, setFMonths] = useState(initialType?.interval_months?.toString() ?? "");
+  const [fCost, setFCost] = useState(initialType?.default_cost?.toString() ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
