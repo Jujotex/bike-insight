@@ -147,9 +147,6 @@ export function DashboardClient({
   }, []);
 
   const kmFormatted = kpis.totalKm12m.toLocaleString("fr-FR");
-  const costPerKmFormatted = kpis.costPerKm !== null
-    ? (Math.round(kpis.costPerKm * 100) / 100).toString().replace(".", ",")
-    : "---";
 
   return (
     <>
@@ -198,7 +195,7 @@ export function DashboardClient({
       )}
 
       {/* Stats strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
         <div style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
@@ -211,13 +208,6 @@ export function DashboardClient({
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
             <span style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.5, fontFamily: "var(--font-jetbrains-mono)" }}>{kpis.totalRides12m}</span>
             <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>sorties</span>
-          </div>
-        </div>
-        <div style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>coût moyen</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.5, fontFamily: "var(--font-jetbrains-mono)" }}>{costPerKmFormatted}</span>
-            <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>€/km</span>
           </div>
         </div>
       </div>
@@ -331,7 +321,7 @@ export function DashboardClient({
                 const pill = m.state === "due" ? "À FAIRE" : m.state === "soon" ? "BIENTÔT" : "À JOUR";
                 const pillBg = m.state === "due" ? "rgba(200,54,46,0.1)" : m.state === "soon" ? "rgba(208,132,21,0.1)" : "rgba(52,211,153,0.1)";
                 return (
-                  <div key={m.typeId} className="bi-attention-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)" }}>
+                  <Link key={m.typeId} href={`/reglages/entretiens?bike=${selectedBikeId}&edit=${m.typeId}`} className="bi-attention-row bi-component-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                     <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -349,7 +339,7 @@ export function DashboardClient({
                       </div>
                       <div style={{ fontSize: 11.5, color, fontWeight: 500, marginTop: 4 }}>{m.statusLabel}</div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })
             )}

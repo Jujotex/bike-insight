@@ -457,6 +457,134 @@ export async function getComponentsData() {
   }
 }
 
+// ── Cost analysis ──────────────────────────────────────────────
+// Page Coût dédiée : agrège le coût des pièces (via bike_stats.total_cost,
+// qui inclut les pièces archivées) + le coût des entretiens courants
+// (maintenance_logs avec maintenance_type, pour ne pas doubler les pièces).
+
+export async function getCostData() {
+  const supabase = await createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10)
+
+  const [
+    { data: components },
+    { data: bikes },
+    { data: maintLogs },
+  ] = await Promise.all([
+    supabase
+      .from('component_stats')
+      .select('name, category, bike_id, purchase_price, cost_per_km, km_used, installed_at')
+      .eq('user_id', user.id)
+      .eq('is_active', true),
+    supabase
+      .from('bike_stats')
+      .select('id, name, total_km, total_cost, cost_per_km')
+      .eq('user_id', user.id)
+      .eq('is_active', true),
+    supabase
+      .from('maintenance_logs')
+      .select('cost, performed_at, maintenance_type, bike_id')
+      .eq('user_id', user.id)
+      .not('cost', 'is', null),
+  ])
+
+  const comps = components ?? []
+  const bikeList = bikes ?? []
+  const logs = maintLogs ?? []
+
+  const bikeNames = Object.fromEntries(bikeList.map(b => [b.id as string, b.name as string]))
+
+  // Coût entretien courant (maintenance_type non nul) — hors remplacements de pièces
+  const maintByBike: Record<string, number> = {}
+  let maintTotal = 0
+  let maint12m = 0
+  for (const l of logs) {
+    if (!l.maintenance_type) continue
+    const cost = (l.cost as number) ?? 0
+    maintTotal += cost
+    const bid = l.bike_id as string | null
+    if (bid) maintByBike[bid] = (maintByBike[bid] ?? 0) + cost
+    if ((l.performed_at as string) >= twelveMonthsAgo) maint12m += cost
+  }
+
+  // Coût pièces (bike_stats.total_cost inclut les pièces archivées)
+  const partsTotal = bikeList.reduce((s, b) => s + ((b.total_cost as number) ?? 0), 0)
+  const parts12m = comps
+    .filter(c => {
+      const d = c.installed_at as string | null
+      return d !== null && d >= twelveMonthsAgo
+    })
+    .reduce((s, c) => s + ((c.purchase_price as number) ?? 0), 0)
+
+  const totalKm = bikeList.reduce((s, b) => s + ((b.total_km as number) ?? 0), 0)
+  const totalCost = partsTotal + maintTotal
+  const costPerKm = totalKm > 0 ? totalCost / totalKm : null
+
+  // Coût par vélo (pièces + entretien)
+  const byBike = bikeList
+    .map(b => {
+      const bid = b.id as string
+      const parts = (b.total_cost as number) ?? 0
+      const maint = maintByBike[bid] ?? 0
+      const km = (b.total_km as number) ?? 0
+      const total = parts + maint
+      return {
+        id: bid,
+        name: b.name as string,
+        totalCost: Math.round(total),
+        totalKm: Math.round(km),
+        costPerKm: km > 0 ? total / km : null,
+      }
+    })
+    .sort((a, b) => b.totalCost - a.totalCost)
+
+  // Classement des pièces par €/km (les plus coûteuses au kilomètre)
+  const topByCpm = comps
+    .filter(c => (c.cost_per_km as number | null) !== null)
+    .map(c => ({
+      name: c.name as string,
+      bikeName: bikeNames[c.bike_id as string] ?? '—',
+      category: (c.category as string) ?? 'autre',
+      costPerKm: c.cost_per_km as number,
+      cost: (c.purchase_price as number | null) ?? null,
+      kmUsed: Math.round((c.km_used as number) ?? 0),
+    }))
+    .sort((a, b) => b.costPerKm - a.costPerKm)
+    .slice(0, 8)
+
+  // Répartition du coût des pièces par catégorie
+  const byCat: Record<string, number> = {}
+  for (const c of comps) {
+    const cat = (c.category as string) ?? 'autre'
+    byCat[cat] = (byCat[cat] ?? 0) + ((c.purchase_price as number) ?? 0)
+  }
+  const categoryBreakdown = Object.entries(byCat)
+    .filter(([, v]) => v > 0)
+    .map(([category, total]) => ({
+      category,
+      total: Math.round(total),
+      pct: partsTotal > 0 ? Math.round((total / partsTotal) * 100) : 0,
+    }))
+    .sort((a, b) => b.total - a.total)
+
+  return {
+    kpis: {
+      totalCost: Math.round(totalCost),
+      costPerKm,
+      spend12m: Math.round(parts12m + maint12m),
+      maint12m: Math.round(maint12m),
+    },
+    byBike,
+    topByCpm,
+    categoryBreakdown,
+    hasData: comps.length > 0 || maintTotal > 0,
+  }
+}
+
 // ── Sync page data ─────────────────────────────────────────────
 
 export async function getSyncData() {

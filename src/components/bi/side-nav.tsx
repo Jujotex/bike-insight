@@ -22,6 +22,12 @@ const NAV_ITEMS = [
     href: "/bikes",
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
   },
+  {
+    id: "cout",
+    label: "Coût",
+    href: "/cout",
+    icon: "M3 3v18h18M7 15l4-4 3 3 5-6",
+  },
 ];
 
 interface SideNavProps {

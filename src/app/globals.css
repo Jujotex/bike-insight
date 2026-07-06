@@ -213,7 +213,7 @@ body {
 .bi-comp-table-header-row {
   padding: 8px 22px 6px;
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr;
+  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr;
   gap: 14px;
   font-size: 10.5px;
   color: var(--bi-muted);
@@ -224,7 +224,7 @@ body {
 }
 .bi-comp-table-data-row {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr 0.5fr 0.5fr;
+  grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr;
   gap: 14px;
   align-items: center;
   padding: 14px 22px;

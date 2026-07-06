@@ -237,7 +237,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
             <div style={{ minWidth: 640 }}>
               <div style={{
                 padding: "8px 22px", display: "grid",
-                gridTemplateColumns: "1.4fr 1fr 1fr 1.4fr 0.6fr 0.5fr",
+                gridTemplateColumns: "1.4fr 1fr 1fr 1.4fr 0.6fr",
                 gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600,
                 letterSpacing: "0.07em", textTransform: "uppercase",
                 borderBottom: "1px solid var(--bi-line)",
@@ -245,7 +245,6 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                 <span>Composant</span><span>Vélo</span><span>Installé</span>
                 <span>Usure</span>
                 <span style={{ textAlign: "right" }}>Km</span>
-                <span style={{ textAlign: "right" }}>Coût</span>
               </div>
 
               {filteredComponents.length === 0 ? (
@@ -263,7 +262,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                       className="bi-component-row"
                       style={{
                         textDecoration: "none", color: "inherit",
-                        display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1.4fr 0.6fr 0.5fr",
+                        display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1.4fr 0.6fr",
                         gap: 14, padding: "14px 22px", alignItems: "center",
                         borderBottom: "1px solid var(--bi-line)",
                       }}
@@ -292,9 +291,6 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                       <Mono style={{ fontSize: 12, textAlign: "right" }}>
                         {((c.km_used as number) ?? 0).toLocaleString("fr")}
                       </Mono>
-                      <Mono style={{ fontSize: 12, textAlign: "right", fontWeight: 500 }}>
-                        {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                      </Mono>
                     </Link>
                   );
                 })
@@ -316,9 +312,6 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                         <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name as string}</div>
                         <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{bikeNames[c.bike_id as string] ?? "—"}</div>
                       </div>
-                      <Mono style={{ fontSize: 12, fontWeight: 500, flexShrink: 0 }}>
-                        {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                      </Mono>
                     </div>
                     <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={4} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11.5, color: "var(--bi-muted)" }}>

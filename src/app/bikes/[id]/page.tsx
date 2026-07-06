@@ -194,8 +194,6 @@ export default async function BikeDetailPage({
               <span className="bi-comp-col-installed">Installé</span>
               <span>Usure</span>
               <span className="bi-comp-col-km" style={{ textAlign: "right" }}>Km</span>
-              <span className="bi-comp-col-cost" style={{ textAlign: "right" }}>Coût</span>
-              <span className="bi-comp-col-cpm" style={{ textAlign: "right" }}>€/km</span>
             </div>
             {components.length === 0 ? (
               <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
@@ -205,7 +203,6 @@ export default async function BikeDetailPage({
               components.map((c) => {
                 const color = STATUS_COLORS[c.status] ?? "var(--bi-muted)";
                 const wearPct = (c.wear_pct as number) ?? 0;
-                const costPerKmVal = c.cost_per_km as number | null;
                 const installedDate = c.installed_at
                   ? new Date(c.installed_at as string).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
                   : "—";
@@ -231,16 +228,6 @@ export default async function BikeDetailPage({
                     </div>
                     <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
                       <Mono style={{ fontSize: 12 }}>{fmt(c.km_used ?? 0)}</Mono>
-                    </div>
-                    <div className="bi-comp-col-cost" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 12 }}>
-                        {c.purchase_price !== null ? `${c.purchase_price} €` : "—"}
-                      </Mono>
-                    </div>
-                    <div className="bi-comp-col-cpm" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>
-                        {costPerKmVal !== null ? costPerKmVal.toFixed(3) : "—"}
-                      </Mono>
                     </div>
                   </Link>
                 );
