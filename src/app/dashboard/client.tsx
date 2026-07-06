@@ -289,12 +289,22 @@ export function DashboardClient({
           ? `${counts.soon} entretien${counts.soon > 1 ? "s" : ""} à surveiller`
           : "Tout est à jour";
         const dotColor = (s: string) => s === "due" ? "var(--bi-bad)" : s === "soon" ? "var(--bi-warn)" : "var(--bi-ok)";
+        const attentionCount = counts.due + counts.soon;
         return (
           <BiCard pad={0} style={{ marginBottom: 14 }}>
-            <div style={{ padding: "16px 22px 10px", display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Entretien</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: maintStatusColor }}>{maintStatusMsg}</span>
+            <div style={{ padding: "20px 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {attentionCount > 0 && (
+                    <div style={{ width: 22, height: 22, borderRadius: 999, background: maintStatusColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>
+                      {attentionCount}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Entretien</span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, marginLeft: attentionCount > 0 ? 30 : 0 }}>
+                  {maintStatusMsg}
+                </div>
               </div>
               {selectedBikeId && (
                 <Link href={`/bikes/${selectedBikeId}`} style={{ fontSize: 11.5, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
@@ -302,21 +312,46 @@ export function DashboardClient({
                 </Link>
               )}
             </div>
+
             {items.length === 0 ? (
-              <div style={{ padding: "4px 22px 18px", fontSize: 12.5, color: "var(--bi-muted)" }}>
-                Enregistre un entretien pour suivre tes échéances (lubrification, purge, révision…).
+              <div style={{ padding: "8px 22px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12, background: "rgba(0,0,0,0.02)", border: "1px solid var(--bi-line)" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 999, background: "var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l2.5 2.5" /><circle cx="12" cy="12" r="9" /></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>Aucun entretien enregistré</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Enregistre un entretien pour suivre tes échéances (lubrification, purge, révision…).</div>
+                  </div>
+                </div>
               </div>
             ) : (
-              items.slice(0, 3).map(m => (
-                <div key={m.typeId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 22px", borderTop: "1px solid var(--bi-line)" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor(m.state), flexShrink: 0, display: "inline-block" }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</span>
-                    <span style={{ fontSize: 11.5, color: "var(--bi-muted)", marginLeft: 8 }}>{m.detail}</span>
+              items.slice(0, 3).map(m => {
+                const color = dotColor(m.state);
+                const pill = m.state === "due" ? "À FAIRE" : m.state === "soon" ? "BIENTÔT" : "À JOUR";
+                const pillBg = m.state === "due" ? "rgba(200,54,46,0.1)" : m.state === "soon" ? "rgba(208,132,21,0.1)" : "rgba(52,211,153,0.1)";
+                return (
+                  <div key={m.typeId} className="bi-attention-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)" }}>
+                    <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 14, fontWeight: 600 }}>{m.label}</span>
+                        <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: pillBg, color, fontWeight: 700 }}>
+                          {pill}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{m.detail}</div>
+                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ flex: 1, maxWidth: 180, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                          <div style={{ width: `${Math.min(m.pct, 100)}%`, height: "100%", background: color, borderRadius: 999 }} />
+                        </div>
+                        <Mono style={{ fontSize: 11, color }}>{Math.round(m.pct)}%</Mono>
+                      </div>
+                      <div style={{ fontSize: 11.5, color, fontWeight: 500, marginTop: 4 }}>{m.statusLabel}</div>
+                    </div>
                   </div>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: dotColor(m.state), flexShrink: 0 }}>{m.statusLabel}</span>
-                </div>
-              ))
+                );
+              })
             )}
           </BiCard>
         );
@@ -343,8 +378,8 @@ export function DashboardClient({
                   : `${badItems.length} à remplacer · ${warnItems.length} à surveiller`}
               </div>
             </div>
-            {filteredAttention.length > 0 && (
-              <Link href="/bikes" style={{ fontSize: 11.5, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
+            {filteredAttention.length > 0 && selectedBikeId && (
+              <Link href={`/bikes/${selectedBikeId}`} style={{ fontSize: 11.5, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
                 Voir tout
               </Link>
             )}

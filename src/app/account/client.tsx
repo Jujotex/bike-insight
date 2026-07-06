@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Mono } from "@/components/bi/ui";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
@@ -242,28 +241,6 @@ export function AccountClient({
 
       {/* Réglages des alertes (ex-page /notifications) */}
       <NotificationSettings />
-
-      {/* Liens rapides */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
-        <div style={sectionTitle}>Navigation</div>
-        {[
-          { label: "Mes vélos", href: "/bikes", icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3" },
-          { label: "Pièces", href: "/components", icon: "M12 4v4M12 16v4M4 12h4M16 12h4M12 9a3 3 0 100 6 3 3 0 000-6z" },
-          { label: "Alertes", href: "/dashboard", icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0", badge: unreadNotifCount },
-        ].map((item, i, arr) => (
-          <Link key={item.href} href={item.href} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--bi-line)" : "none", textDecoration: "none", color: "var(--bi-ink)" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d={item.icon} />
-            </svg>
-            <span style={{ flex: 1, fontSize: 13.5 }}>{item.label}</span>
-            {item.badge ? (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bad)", color: "#fff" }}>{item.badge}</span>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
-            )}
-          </Link>
-        ))}
-      </div>
 
       {/* Actions compte */}
       <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>

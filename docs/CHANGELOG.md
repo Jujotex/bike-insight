@@ -5,6 +5,19 @@
 
 ---
 
+## [Unreleased] — Compte : retrait du bloc « Navigation »
+
+### Removed
+- `src/app/account/client.tsx` : suppression du bloc de liens rapides « Navigation » (Mes vélos / Pièces / Alertes), redondant avec la nav latérale (desktop) et la nav du bas (mobile). Import `Link` devenu inutile retiré.
+
+## [Unreleased] — Dashboard : cohérence visuelle Entretien / À traiter
+
+### Changed
+- `src/app/dashboard/client.tsx` : la carte « Entretien » adopte le même langage visuel que la carte « À traiter » — en-tête avec badge compteur (nombre d'entretiens à faire/à surveiller) et sous-titre de statut, lignes avec barre colorée à gauche, pastille de statut (À FAIRE / BIENTÔT / À JOUR), barre de progression + pourcentage (`pct`) et ligne d'échéance. Données inchangées.
+
+### Fixed
+- `src/app/dashboard/client.tsx` : le lien « Voir tout » de la carte « À traiter » renvoyait vers la liste des vélos (`/bikes`) au lieu de la fiche du vélo sélectionné (`/bikes/<id>`, détail des composants). Corrigé pour être cohérent avec la carte « Entretien ».
+
 ## [Unreleased] — Page Entretiens présentée comme les Composants
 
 ### Changed

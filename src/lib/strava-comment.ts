@@ -27,11 +27,8 @@ function buildPhrase(comps: { name: string; wear: number }[]): string {
     .map(([type, wear]) => `🔴 ${type} · ${Math.round(wear)}%`)
 
   const parts = [
-    `🚴 ${MARKER} — check usure`,
-    '',
+    `🚴 ${MARKER}`,
     ...lines,
-    '',
-    `Ces pièces méritent un coup d'œil 🔧`,
   ]
   const appUrl = process.env.NEXT_PUBLIC_APP_URL
   if (appUrl) parts.push(`Suis l'usure de ton vélo → ${appUrl}`)
