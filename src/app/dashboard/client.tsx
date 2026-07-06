@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BiCard, Mono } from "@/components/bi/ui";
 
 function formatWeeks(w: number | null): string {
@@ -96,6 +97,7 @@ export function DashboardClient({
   userName, todayCap, bikes, kpis,
   attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike,
 }: DashboardClientProps) {
+  const router = useRouter();
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
   const [selectedBikeId, setSelectedBikeId] = useState(primaryBikeId);
   const selectedBike = bikes.find(b => (b.id as string) === selectedBikeId) ?? bikes[0] ?? null;
@@ -395,7 +397,7 @@ export function DashboardClient({
                 : c.weeksUntil !== null ? `Dans ${formatWeeks(c.weeksUntil)}`
                 : `~${c.kmRemaining.toLocaleString("fr")} km`;
               return (
-                <div key={c.id} className="bi-attention-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)" }}>
+                <Link key={c.id} href={`/components/${c.id}`} className="bi-attention-row bi-component-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                   <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -415,8 +417,13 @@ export function DashboardClient({
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
                     {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>~{c.cost} €</Mono>}
-                    <Link href={isBad ? `/components/${c.id}/compare` : `/components/${c.id}`}>
-                      <button style={{
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(isBad ? `/components/${c.id}/compare` : `/components/${c.id}`);
+                      }}
+                      style={{
                         padding: "8px 14px",
                         background: i === 0 ? "var(--bi-ink)" : "transparent",
                         color: i === 0 ? "var(--bi-bg)" : "var(--bi-ink)",
@@ -425,12 +432,11 @@ export function DashboardClient({
                         fontFamily: "inherit", cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 5,
                       }}>
-                        {isBad ? "Remplacer" : "Planifier"}
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-                      </button>
-                    </Link>
+                      {isBad ? "Remplacer" : "Planifier"}
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+                    </button>
                   </div>
-                </div>
+                </Link>
               );
             })
           )}

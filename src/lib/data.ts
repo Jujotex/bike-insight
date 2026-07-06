@@ -474,6 +474,7 @@ export async function getCostData() {
     { data: components },
     { data: bikes },
     { data: maintLogs },
+    { data: replacements },
   ] = await Promise.all([
     supabase
       .from('component_stats')
@@ -490,11 +491,18 @@ export async function getCostData() {
       .select('cost, performed_at, maintenance_type, bike_id')
       .eq('user_id', user.id)
       .not('cost', 'is', null),
+    // Remplacements de pièces (tout l'historique) pour longévité + économie transmission
+    supabase
+      .from('maintenance_logs')
+      .select('cost, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
+      .eq('user_id', user.id)
+      .eq('action', 'Remplacement'),
   ])
 
   const comps = components ?? []
   const bikeList = bikes ?? []
   const logs = maintLogs ?? []
+  const repl = replacements ?? []
 
   const bikeNames = Object.fromEntries(bikeList.map(b => [b.id as string, b.name as string]))
 
@@ -571,6 +579,65 @@ export async function getCostData() {
     }))
     .sort((a, b) => b.total - a.total)
 
+  // ── Bénéfices d'entretien ────────────────────────────────────
+  // Hypothèses de l'estimation transmission (affichées à l'utilisateur)
+  const DEFAULT_CASSETTE = 90        // € si la cassette du vélo n'a pas de prix
+  const CHAINRINGS_ESTIMATE = 50     // € plateaux (estimation)
+  const CHAINS_PER_CASSETTE = 2      // ~2 chaînes à temps préservent 1 transmission
+
+  // Prix cassette par vélo (composant actif dont le nom contient « cassette »)
+  const cassettePriceByBike: Record<string, number> = {}
+  for (const c of comps) {
+    const name = ((c.name as string) ?? '').toLowerCase()
+    const price = c.purchase_price as number | null
+    if (name.includes('cassette') && price !== null) {
+      const bid = c.bike_id as string
+      cassettePriceByBike[bid] = Math.max(cassettePriceByBike[bid] ?? 0, price)
+    }
+  }
+
+  type ReplComp = { name: string; category: string; km_max: number | null; installed_km: number | null; bike_id: string | null }
+  const normalizeComp = (raw: unknown): ReplComp | null => {
+    const c = Array.isArray(raw) ? (raw[0] ?? null) : (raw ?? null)
+    return (c as ReplComp | null) ?? null
+  }
+
+  let repairTotal = 0
+  let longevityKm = 0
+  let longevityParts = 0
+  let transmissionSavings = 0
+  let onTimeChains = 0
+
+  for (const r of repl) {
+    repairTotal += (r.cost as number) ?? 0
+    const comp = normalizeComp(r.components)
+    if (!comp) continue
+
+    const kmAt = r.km_at_action as number | null
+    const installedKm = comp.installed_km
+    const kmMax = comp.km_max
+    const lifeKm = (kmAt !== null && installedKm !== null) ? Math.max(0, kmAt - installedKm) : null
+
+    // Longévité : km tenus au-delà de l'estimation
+    if (lifeKm !== null && kmMax !== null && lifeKm > kmMax) {
+      longevityKm += lifeKm - kmMax
+      longevityParts++
+    }
+
+    // Économie transmission : chaîne remplacée à temps (avant sa durée de vie estimée)
+    const name = (comp.name ?? '').toLowerCase()
+    const isChain = name.includes('chaîne') || name.includes('chaine') || name.includes('chain')
+    if (isChain && lifeKm !== null && kmMax !== null && lifeKm <= kmMax) {
+      const bid = comp.bike_id
+      const cassette = (bid && cassettePriceByBike[bid]) ? cassettePriceByBike[bid] : DEFAULT_CASSETTE
+      transmissionSavings += (cassette + CHAINRINGS_ESTIMATE) / CHAINS_PER_CASSETTE
+      onTimeChains++
+    }
+  }
+
+  const preventionCost = Math.round(maintTotal)   // entretien courant
+  const repairCost = Math.round(repairTotal)      // remplacements de pièces
+
   return {
     kpis: {
       totalCost: Math.round(totalCost),
@@ -581,7 +648,15 @@ export async function getCostData() {
     byBike,
     topByCpm,
     categoryBreakdown,
-    hasData: comps.length > 0 || maintTotal > 0,
+    insights: {
+      transmissionSavings: Math.round(transmissionSavings),
+      onTimeChains,
+      longevityKm: Math.round(longevityKm),
+      longevityParts,
+      preventionCost,
+      repairCost,
+    },
+    hasData: comps.length > 0 || maintTotal > 0 || repl.length > 0,
   }
 }
 

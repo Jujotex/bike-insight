@@ -5,6 +5,15 @@
 
 ---
 
+## [Unreleased] — Page Coût : bénéfices d'entretien + coût / 1000 km
+
+### Added
+- `src/lib/data.ts` (`getCostData`) : nouveaux indicateurs — économie transmission (chaînes remplacées à temps × cassette réelle/défaut + plateaux, ÷ ~2 chaînes par cassette), longévité gagnée (km tenus au-delà de l'estimation, via le `beat` des remplacements), prévention vs réparation (coût entretien courant vs remplacements). Requête remplacements ajoutée.
+- `src/app/cout/page.tsx` : section « bénéfices d'entretien » (3 cartes) + note d'hypothèse pour l'estimation transmission.
+
+### Changed
+- `src/app/cout/page.tsx` : le coût au kilomètre est exprimé en **€ / 1000 km** (KPI, coût par vélo, classement des pièces) — plus lisible que le €/km.
+
 ## [Unreleased] — Coût sorti des vues de gestion (suite)
 
 ### Changed
@@ -19,6 +28,11 @@
 
 ### Changed
 - `src/app/bikes/[id]/page.tsx` + `src/app/globals.css` : retrait de la colonne €/km du tableau des pièces (l'analyse coût est désormais sur la page Coût dédiée). La table de gestion se concentre sur usure / km / état ; le coût/km au niveau du vélo reste dans les stats de la fiche.
+
+## [Unreleased] — Dashboard : lignes « À traiter » cliquables avec surbrillance
+
+### Changed
+- `src/app/dashboard/client.tsx` : chaque ligne de la carte « À traiter » devient un `<Link>` cliquable vers le détail de la pièce (`/components/<id>`), avec surbrillance au survol (`bi-component-row`). Le bouton d'action (« Remplacer » / « Planifier ») conserve sa destination propre (comparateur pour les pièces critiques) via un `onClick` avec `stopPropagation`, pour éviter deux liens imbriqués. Import `useRouter` ajouté.
 
 ## [Unreleased] — Dashboard : entretiens cliquables avec surbrillance
 
