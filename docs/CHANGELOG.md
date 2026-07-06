@@ -5,6 +5,26 @@
 
 ---
 
+## [Unreleased] — Coût sorti des vues de gestion (suite)
+
+### Changed
+- `src/app/bikes/[id]/page.tsx`, `src/app/components/client.tsx`, `src/app/globals.css` : retrait de la colonne « Coût » (prix d'achat) des tableaux de pièces (fiche vélo + page Pièces, desktop et cartes mobiles). Le prix reste sur la fiche détail d'une pièce ; le KPI « Coût composants » de la page Pièces est conservé.
+- `src/app/dashboard/client.tsx` : retrait de la stat « Coût / km » du bandeau (passe de 3 à 2 tuiles). Le coût/km vit désormais sur la page Coût et la fiche vélo. Variable `costPerKmFormatted` supprimée.
+
+## [Unreleased] — Page Coût dédiée + allègement des vues
+
+### Added
+- `src/lib/data.ts` : `getCostData()` — agrège coût total (pièces + entretien courant), coût/km moyen, dépense 12 mois, coût par vélo, classement des pièces par €/km, répartition par catégorie.
+- Page `src/app/cout/page.tsx` : analyse coût (bandeau KPIs, pièces les plus coûteuses au km, coût par vélo, répartition par catégorie). Entrée « Coût » ajoutée dans la nav latérale.
+
+### Changed
+- `src/app/bikes/[id]/page.tsx` + `src/app/globals.css` : retrait de la colonne €/km du tableau des pièces (l'analyse coût est désormais sur la page Coût dédiée). La table de gestion se concentre sur usure / km / état ; le coût/km au niveau du vélo reste dans les stats de la fiche.
+
+## [Unreleased] — Dashboard : entretiens cliquables avec surbrillance
+
+### Changed
+- `src/app/dashboard/client.tsx` : les lignes de la carte « Entretien » deviennent des `<Link>` cliquables vers la modification de l'entretien (`/reglages/entretiens?bike=<id>&edit=<typeId>`), avec la classe `bi-component-row` pour la même surbrillance au survol que les lignes de la page vélo.
+
 ## [Unreleased] — Compte : retrait du bloc « Navigation »
 
 ### Removed
