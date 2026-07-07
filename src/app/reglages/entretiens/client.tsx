@@ -6,8 +6,17 @@ import { supabase } from "@/lib/supabase";
 import { BiCard, Mono } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 
-// Grille partagée en-têtes / lignes (façon tableau Composants)
-const GRID_COLS = "1.8fr 0.9fr 1fr 0.7fr 36px";
+// Badge compact (visible seulement sur mobile, quand les colonnes se replient)
+const mtBadge: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  padding: "2px 7px",
+  borderRadius: 999,
+  background: "var(--bi-bg)",
+  border: "1px solid var(--bi-line)",
+  color: "var(--bi-muted)",
+  fontFamily: "var(--bi-font-mono)",
+};
 
 export type MaintenanceTypeRow = {
   id: string;
@@ -274,55 +283,65 @@ export function MaintenanceSettingsClient({
 
         {/* Tableau */}
         {bikeTypes.length > 0 && (
-          <div style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: 560 }}>
-              {/* En-têtes de colonnes */}
-              <div style={{ padding: "8px 20px", display: "grid", gridTemplateColumns: GRID_COLS, gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
-                <span>Entretien</span>
-                <span style={{ textAlign: "right" }}>Échéance km</span>
-                <span style={{ textAlign: "right" }}>Échéance temps</span>
-                <span style={{ textAlign: "right" }}>Coût</span>
-                <span />
-              </div>
+          <>
+            {/* En-têtes de colonnes */}
+            <div className="bi-mt-row" style={{ padding: "8px 20px", fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
+              <span>Entretien</span>
+              <span className="bi-mt-num" style={{ textAlign: "right" }}>Échéance km</span>
+              <span className="bi-mt-num" style={{ textAlign: "right" }}>Échéance temps</span>
+              <span className="bi-mt-num" style={{ textAlign: "right" }}>Coût</span>
+              <span />
+            </div>
 
-              {bikeTypes.map((t) => (
-                editing === t.id ? (
-                  <div key={t.id} style={{ padding: "16px 20px", borderBottom: "1px solid var(--bi-line)" }}>{form}</div>
-                ) : (
-                  <div
-                    key={t.id}
-                    className="bi-component-row"
-                    onClick={() => openEdit(t)}
-                    style={{ display: "grid", gridTemplateColumns: GRID_COLS, gap: 14, padding: "14px 20px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer" }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                      <div style={{ width: 4, height: 28, background: "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
-                        {t.sub && <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>}
+            {bikeTypes.map((t) => (
+              editing === t.id ? (
+                <div key={t.id} style={{ padding: "16px 20px", borderBottom: "1px solid var(--bi-line)" }}>{form}</div>
+              ) : (
+                <div
+                  key={t.id}
+                  className="bi-component-row bi-mt-row"
+                  onClick={() => openEdit(t)}
+                  style={{ padding: "14px 20px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                    <div style={{ width: 4, height: 28, background: "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
+                      {t.sub && <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>}
+                      {/* Détails repliés en badges sur mobile */}
+                      <div className="bi-mt-badges">
+                        {t.interval_km !== null && <span style={mtBadge}>{t.interval_km.toLocaleString("fr")} km</span>}
+                        {t.interval_months !== null && <span style={mtBadge}>{t.interval_months} mois</span>}
+                        {t.default_cost !== null && <span style={mtBadge}>{t.default_cost} €</span>}
                       </div>
                     </div>
-                    <Mono style={{ fontSize: 12, textAlign: "right", color: t.interval_km !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                  </div>
+                  <div className="bi-mt-num" style={{ textAlign: "right" }}>
+                    <Mono style={{ fontSize: 12, color: t.interval_km !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
                       {t.interval_km !== null ? `${t.interval_km.toLocaleString("fr")} km` : "—"}
                     </Mono>
-                    <Mono style={{ fontSize: 12, textAlign: "right", color: t.interval_months !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                  </div>
+                  <div className="bi-mt-num" style={{ textAlign: "right" }}>
+                    <Mono style={{ fontSize: 12, color: t.interval_months !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
                       {t.interval_months !== null ? `${t.interval_months} mois` : "—"}
                     </Mono>
-                    <Mono style={{ fontSize: 12, textAlign: "right", fontWeight: 500, color: t.default_cost !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                  </div>
+                  <div className="bi-mt-num" style={{ textAlign: "right" }}>
+                    <Mono style={{ fontSize: 12, fontWeight: 500, color: t.default_cost !== null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
                       {t.default_cost !== null ? `${t.default_cost} €` : "—"}
                     </Mono>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); remove(t); }}
-                      title="Supprimer"
-                      style={{ justifySelf: "end", padding: 6, background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", display: "flex", alignItems: "center" }}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a1 1 0 01-1 1H6a1 1 0 01-1-1V6" /><path d="M10 11v6M14 11v6" /></svg>
-                    </button>
                   </div>
-                )
-              ))}
-            </div>
-          </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); remove(t); }}
+                    title="Supprimer"
+                    style={{ justifySelf: "end", padding: 6, background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", display: "flex", alignItems: "center" }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a1 1 0 01-1 1H6a1 1 0 01-1-1V6" /><path d="M10 11v6M14 11v6" /></svg>
+                  </button>
+                </div>
+              )
+            ))}
+          </>
         )}
       </BiCard>
     </>

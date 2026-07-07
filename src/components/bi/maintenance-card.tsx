@@ -147,15 +147,15 @@ export function MaintenanceCard({
               >
                 <div style={{ width: 4, height: 28, background: ui.color, borderRadius: 2, flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</div>
                   <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>
                 </div>
               </Link>
 
-              {/* Dernier */}
+              {/* Dernier — même traitement que la colonne date des composants */}
               <div className="bi-maint-col-last">
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", display: "block" }}>{lastDate}</Mono>
-                <span style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>{lastSub}</span>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{lastSub}</div>
               </div>
 
               {/* Échéance : progression + % */}
@@ -184,14 +184,19 @@ export function MaintenanceCard({
                 <button
                   onClick={() => isOpen ? setOpenId(null) : openForm(t)}
                   style={{
-                    padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                    fontFamily: "inherit", cursor: "pointer",
+                    padding: "7px 13px", borderRadius: 999, fontSize: 11.5, fontWeight: 600,
+                    fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap",
                     background: isOpen ? "transparent" : status.state === "due" ? "var(--bi-ink)" : "transparent",
                     color: isOpen ? "var(--bi-muted)" : status.state === "due" ? "var(--bi-bg)" : "var(--bi-ink)",
                     border: isOpen ? "1px solid var(--bi-line)" : status.state === "due" ? "none" : "1px solid var(--bi-line)",
                   }}
                 >
-                  {isOpen ? "Annuler" : "Fait ✓"}
+                  {isOpen ? "Annuler" : (
+                    <>
+                      <span className="bi-inline-desktop">Marquer comme fait</span>
+                      <span className="bi-inline-mobile">Marquer fait</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -15,7 +15,7 @@ export default async function BikesPage() {
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-  const [{ data: bikes }, { data: yearActivities }, { data: profile }, { data: configuredBikes }] = await Promise.all([
+  const [{ data: bikes }, { data: yearActivities }, { data: profile }, { data: configuredBikes }, { data: maintLogs }] = await Promise.all([
     supabase
       .from("bike_stats")
       .select("*")
@@ -37,6 +37,12 @@ export default async function BikesPage() {
       .select("bike_id")
       .eq("user_id", user.id)
       .eq("is_active", true),
+    // Dépense d'entretien réelle (remplacements + entretiens) — tous vélos
+    supabase
+      .from("maintenance_logs")
+      .select("cost")
+      .eq("user_id", user.id)
+      .not("cost", "is", null),
   ]);
 
   const configuredBikeIds = new Set((configuredBikes ?? []).map(c => c.bike_id as string));
@@ -67,7 +73,7 @@ export default async function BikesPage() {
 
   const totalKm = bikeList.reduce((s, b) => s + (b.total_km ?? 0), 0);
   const totalRides = Array.from(bikeStats12m.values()).reduce((s, v) => s + v.rides, 0);
-  const totalCost = bikeList.reduce((s, b) => s + ((b.total_cost as number) ?? 0), 0);
+  const totalCost = Math.round((maintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0));
 
   function formatLastRide(iso: string | null): string {
     if (!iso) return "Aucune sortie";
@@ -102,7 +108,7 @@ export default async function BikesPage() {
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
             ["Distance totale", `${totalKm.toLocaleString("fr-FR")} km`],
-            ["Coût des pièces", `${Math.round(totalCost).toLocaleString("fr-FR")} €`],
+            ["Dépensé en entretien", `${totalCost.toLocaleString("fr-FR")} €`],
           ].map(([k, v]) => (
             <div key={String(k)} style={{ background: "var(--bi-card)", padding: "18px 22px" }}>
               <BiLabel>{k}</BiLabel>
