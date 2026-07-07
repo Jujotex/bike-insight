@@ -159,11 +159,10 @@ export default async function BikeDetailPage({
         </div>
 
         {/* Hero stats */}
-        <div className="bi-stats-5" style={{ marginBottom: 14 }}>
+        <div className="bi-stats-4" style={{ marginBottom: 14 }}>
           {[
             ["Kilométrage total", fmt(bike.total_km ?? 0), "km"],
             ["Coût total", fmt(Math.round((bike.total_cost as number) ?? 0)), "€"],
-            ["Coût / km", bike.cost_per_km !== null ? String((bike.cost_per_km as number).toFixed(2)).replace(".", ",") : "—", "€/km"],
             ["Sorties · 12 m", String(totalRides12m), ""],
             ["Moy. par sortie", String(avgKmPerRide), "km"],
           ].map(([k, v, u]) => (

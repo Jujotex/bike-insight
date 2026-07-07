@@ -80,7 +80,6 @@ export default async function ComponentDetailPage({
   const installedDate = comp.installed_at
     ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : "-";
-  const costPerKm = (comp.cost_per_km as number | null);
 
   let daysRemaining = "-";
   if (kmMax > 0 && kmRemaining > 0 && kmUsed > 0 && comp.installed_at) {
@@ -283,7 +282,7 @@ export default async function ComponentDetailPage({
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
               {[
                 ["Prix achat", comp.purchase_price !== null ? comp.purchase_price + " €" : "-"],
-                ["Coût / km", costPerKm !== null ? (costPerKm as number).toFixed(3) + " €" : "-"],
+                ["Km parcourus", ((comp.km_used as number) ?? 0).toLocaleString("fr-FR") + " km"],
                 ["Intensité", intensity],
                 ["Vie restante", daysRemaining],
               ].map(([k, v]) => (

@@ -80,10 +80,6 @@ export function EditComponentForm({ component }: { component: EditableComponent 
     router.refresh();
   }
 
-  const priceNum    = parseFloat(price) || 0;
-  const kmMaxNum    = parseFloat(kmMax) || defaultKmMax;
-  const costPerKm   = priceNum > 0 && kmMaxNum > 0 ? (priceNum / kmMaxNum).toFixed(3) : null;
-
   return (
     <div className="bi-grid-form">
       {/* Formulaire */}
@@ -223,10 +219,9 @@ export function EditComponentForm({ component }: { component: EditableComponent 
             {component.name}
             {brand && <span style={{ color: "var(--bi-muted)", fontWeight: 400 }}> · {brand}</span>}
           </div>
-          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 10, overflow: "hidden" }}>
             {[
               ["Durée de vie", `${parseInt(kmMax).toLocaleString("fr")} km`],
-              ["Coût / km",   costPerKm ? `${costPerKm} €` : "—"],
               ["Km install.", `${parseInt(installedKm).toLocaleString("fr")} km`],
               ["Prix",        price ? `${price} €` : "—"],
             ].map(([k, v]) => (

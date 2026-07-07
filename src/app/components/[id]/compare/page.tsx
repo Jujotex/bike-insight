@@ -230,7 +230,6 @@ export default async function ComparePage({
                 <div style={{ paddingTop: 14, paddingBottom: 16, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.1)" : "var(--bi-line)"), display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
                     ["Durée estimée", o.lifeKm.toLocaleString("fr") + " km"],
-                    ["Coût / km", costPerKm.toFixed(3) + " €"],
                     ["Coût annuel (" + kmPerYear.toLocaleString("fr") + " km)", annual + " €"],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
