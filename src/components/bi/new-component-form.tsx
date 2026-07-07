@@ -125,12 +125,6 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     router.refresh();
   }
 
-  const priceNum = parseFloat(price) || 0;
-  const kmMaxNum = parseFloat(kmMax) || selectedType.defaultKm;
-  const costPerKm = priceNum > 0 && kmMaxNum > 0
-    ? (priceNum / kmMaxNum).toFixed(3)
-    : null;
-
   return (
     <div className="bi-grid-form">
       {/* Form */}
@@ -355,10 +349,9 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
           <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>
             {bikes.find(b => b.id === bikeId)?.name ?? "—"}
           </div>
-          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 10, overflow: "hidden" }}>
             {[
               ["Durée de vie", `${parseInt(kmMax).toLocaleString("fr")} km`],
-              ["Coût / km", costPerKm ? `${costPerKm} €` : "—"],
               ["Catégorie", selectedType.category],
               ["Prix", price ? `${price} €` : "—"],
             ].map(([k, v]) => (

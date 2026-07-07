@@ -158,7 +158,7 @@ function LandingHero() {
 
         <div style={{ marginTop: 24, fontSize: 17, color: T.muted, lineHeight: 1.55, maxWidth: 480 }}>
           Bike Insight branche tes activites Strava et calcule en temps reel l&apos;usure et le{" "}
-          <Mono style={{ color: T.ink, fontWeight: 600 }}>€/km</Mono> de chaque composant. Tu sais quand remplacer, combien ça va te coûter, et combien tu peux éviter de gaspiller.
+          <Mono style={{ color: T.ink, fontWeight: 600 }}>coût réel</Mono> de chaque composant. Tu sais quand remplacer, combien ça va te coûter, et combien tu peux éviter de gaspiller.
         </div>
 
         <div style={{ marginTop: 36, display: "flex", alignItems: "center", gap: 12 }}>

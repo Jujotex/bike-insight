@@ -5,6 +5,14 @@
 
 ---
 
+## [Unreleased] — Coût simplifié et lisible pour tous
+
+### Changed
+- `src/app/cout/page.tsx` : page Coût réécrite en version essentielle et lisible pour un non-connaisseur — coût total, dépensé cette année, « économisé grâce à l'entretien » (héro), « où part ton argent » (répartition par catégorie), coût par vélo. Retrait du classement technique €/km, des cartes longévité/prévention et du coût/1000 km.
+
+### Removed
+- Suppression de la notion « Coût / km » (et /1000 km) partout où elle était affichée, jugée non parlante : fiche vélo (hero → 4 stats), fiche composant (remplacé par « Km parcourus »), formulaires d'ajout/édition de pièce, comparateur (on garde prix + coût annuel), et reformulation de la landing (« coût réel » au lieu de « €/km »).
+
 ## [Unreleased] — Page Coût : bénéfices d'entretien + coût / 1000 km
 
 ### Added
