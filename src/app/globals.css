@@ -301,7 +301,7 @@ body { overflow-x: hidden; }
 .bi-maint-header-row {
   padding: 8px 22px 6px;
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1.3fr 88px;
+  grid-template-columns: 1.6fr 1fr 1.1fr 150px;
   gap: 14px;
   font-size: 10.5px;
   color: var(--bi-muted);
@@ -312,7 +312,7 @@ body { overflow-x: hidden; }
 }
 .bi-maint-row {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1.3fr 88px;
+  grid-template-columns: 1.6fr 1fr 1.1fr 150px;
   gap: 14px;
   align-items: center;
   padding: 13px 22px;
@@ -322,6 +322,23 @@ body { overflow-x: hidden; }
 
 @media (max-width: 768px) {
   .bi-maint-header-row,
-  .bi-maint-row { grid-template-columns: 1.6fr 1.3fr 78px; gap: 10px; }
+  .bi-maint-row { grid-template-columns: 1.5fr 1fr 108px; gap: 10px; padding-left: 14px; padding-right: 14px; }
   .bi-maint-col-last { display: none !important; }
+}
+
+/* ── Réglages entretiens : table des types (responsive) ─────── */
+.bi-mt-row { display: grid; grid-template-columns: 1.8fr 0.9fr 1fr 0.7fr 36px; gap: 14px; }
+.bi-mt-badges { display: none; }
+
+@media (max-width: 768px) {
+  .bi-mt-row { grid-template-columns: 1fr 32px; gap: 10px; }
+  .bi-mt-num { display: none !important; }
+  .bi-mt-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+}
+
+/* ── Libellés inline responsive (boutons) ───────────────────── */
+.bi-inline-mobile { display: none; }
+@media (max-width: 768px) {
+  .bi-inline-desktop { display: none; }
+  .bi-inline-mobile  { display: inline; }
 }

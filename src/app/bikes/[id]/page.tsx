@@ -25,15 +25,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  transmission: "var(--bi-accent)",
-  freinage: "var(--bi-ok)",
-  roues: "var(--bi-warn)",
-  suspension: "#8B7CF8",
-  cockpit: "var(--bi-muted)",
-  eclairage: "var(--bi-muted)",
-  autre: "var(--bi-muted)",
-};
 
 function fmt(n: number) {
   return n.toLocaleString("fr-FR");
@@ -56,6 +47,7 @@ export default async function BikeDetailPage({
 
   const [
     { data: bikeMaintLogs },
+    { data: bikeReplacements },
     maintenanceDefs,
   ] = await Promise.all([
     supabase
@@ -64,8 +56,20 @@ export default async function BikeDetailPage({
       .eq("bike_id", id)
       .not("maintenance_type", "is", null)
       .order("performed_at", { ascending: false }),
+    // Remplacements de pièces de ce vélo (via le composant) — pour la dépense d'entretien
+    supabase
+      .from("maintenance_logs")
+      .select("cost, components!inner(bike_id)")
+      .eq("action", "Remplacement")
+      .eq("components.bike_id", id),
     fetchBikeMaintenanceDefs(supabase, id),
   ]);
+
+  // Dépense d'entretien du vélo = entretiens + remplacements réellement payés
+  const maintenanceSpend = Math.round(
+    (bikeMaintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0) +
+    (bikeReplacements ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0)
+  );
 
   const lastByType: Record<string, MaintenanceLast> = {};
   for (const l of bikeMaintLogs ?? []) {
@@ -102,26 +106,6 @@ export default async function BikeDetailPage({
   });
   const totalKm30d = Math.round(activityChart.reduce((s, v) => s + v, 0));
   const maxActivity = Math.max(...activityChart, 1);
-
-  // Composant le plus critique
-  const mostCritical =
-    components.find((c) => c.status === "bad") ?? components[0] ?? null;
-
-  // Poste le plus coûteux
-  const costByCategory = components.reduce(
-    (acc, c) => {
-      const cat = (c.category as string) ?? "autre";
-      acc[cat] = (acc[cat] ?? 0) + ((c.purchase_price as number) ?? 0);
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-  const topCostEntry = (
-    Object.entries(costByCategory) as [string, number][]
-  ).sort(([, a], [, b]) => b - a)[0];
-  const totalComponentCost = (
-    Object.values(costByCategory) as number[]
-  ).reduce((s, v) => s + v, 0);
 
   return (
     <AppShell nav={<SideNavLoader />}>
@@ -162,7 +146,7 @@ export default async function BikeDetailPage({
         <div className="bi-stats-4" style={{ marginBottom: 14 }}>
           {[
             ["Kilométrage total", fmt(bike.total_km ?? 0), "km"],
-            ["Coût total", fmt(Math.round((bike.total_cost as number) ?? 0)), "€"],
+            ["Dépensé en entretien", fmt(maintenanceSpend), "€"],
             ["Sorties · 12 m", String(totalRides12m), ""],
             ["Moy. par sortie", String(avgKmPerRide), "km"],
           ].map(([k, v, u]) => (
@@ -252,48 +236,6 @@ export default async function BikeDetailPage({
               </div>
             </BiCard>
 
-            {/* Analyse */}
-            <BiCard pad={22}>
-              <BiLabel>Analyse</BiLabel>
-              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
-                {mostCritical ? (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Pièce critique</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: 999, background: STATUS_COLORS[mostCritical.status] ?? "var(--bi-muted)", flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>
-                        {mostCritical.name} · {mostCritical.wear_pct !== null ? `${Math.round(mostCritical.wear_pct as number)} % d'usure` : "à vérifier"}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>État général</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Toutes les pièces OK</div>
-                  </div>
-                )}
-
-                {topCostEntry && totalComponentCost > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 4, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Poste le plus coûteux</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>
-                      {CATEGORY_LABELS[topCostEntry[0]] ?? topCostEntry[0]} · <Mono>{topCostEntry[1]} €</Mono> · {Math.round((topCostEntry[1] / totalComponentCost) * 100)} %
-                    </div>
-                  </div>
-                )}
-
-                {components.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginBottom: 8, letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600 }}>Répartition coûts</div>
-                    <div style={{ height: 6, borderRadius: 999, overflow: "hidden", display: "flex", gap: 2 }}>
-                      {(Object.entries(costByCategory) as [string, number][]).filter(([, v]) => v > 0).map(([cat, val]) => (
-                        <div key={cat} style={{ flex: val, background: CATEGORY_COLORS[cat] ?? "var(--bi-muted)" }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </BiCard>
           </div>
         </div>
       {/* ── Entretien courant ───────────────────────────── */}

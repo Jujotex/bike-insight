@@ -458,9 +458,10 @@ export async function getComponentsData() {
 }
 
 // ── Cost analysis ──────────────────────────────────────────────
-// Page Coût dédiée : agrège le coût des pièces (via bike_stats.total_cost,
-// qui inclut les pièces archivées) + le coût des entretiens courants
-// (maintenance_logs avec maintenance_type, pour ne pas doubler les pièces).
+// Modèle « dépense d'entretien » : on ne compte QUE l'argent réellement
+// déboursé — remplacements de pièces + entretiens (maintenance_logs).
+// Les prix catalogue des pièces d'origine ne sont pas comptés comme dépense
+// (le prix cassette sert juste de référence à l'économie transmission).
 
 export async function getCostData() {
   const supabase = await createSupabaseServerClient()
@@ -473,28 +474,35 @@ export async function getCostData() {
   const [
     { data: components },
     { data: bikes },
+    { data: activities },
     { data: maintLogs },
     { data: replacements },
   ] = await Promise.all([
     supabase
       .from('component_stats')
-      .select('name, category, bike_id, purchase_price, cost_per_km, km_used, installed_at')
+      .select('name, category, bike_id, purchase_price, km_remaining')
       .eq('user_id', user.id)
       .eq('is_active', true),
     supabase
       .from('bike_stats')
-      .select('id, name, total_km, total_cost, cost_per_km')
+      .select('id, name, total_km')
       .eq('user_id', user.id)
       .eq('is_active', true),
+    // Activités 12 mois (rythme km/semaine) pour la projection
+    supabase
+      .from('activities')
+      .select('bike_id, distance_km, started_at')
+      .eq('user_id', user.id)
+      .gte('started_at', twelveMonthsAgo),
     supabase
       .from('maintenance_logs')
       .select('cost, performed_at, maintenance_type, bike_id')
       .eq('user_id', user.id)
       .not('cost', 'is', null),
-    // Remplacements de pièces (tout l'historique) pour longévité + économie transmission
+    // Remplacements de pièces (tout l'historique) — dépense réelle + longévité + éco transmission
     supabase
       .from('maintenance_logs')
-      .select('cost, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
+      .select('cost, performed_at, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
       .eq('user_id', user.id)
       .eq('action', 'Remplacement'),
   ])
@@ -503,89 +511,22 @@ export async function getCostData() {
   const bikeList = bikes ?? []
   const logs = maintLogs ?? []
   const repl = replacements ?? []
+  const acts = activities ?? []
 
-  const bikeNames = Object.fromEntries(bikeList.map(b => [b.id as string, b.name as string]))
-
-  // Coût entretien courant (maintenance_type non nul) — hors remplacements de pièces
-  const maintByBike: Record<string, number> = {}
-  let maintTotal = 0
-  let maint12m = 0
+  // ── Entretien courant (maintenance_type non nul) ──────────────
+  const servicingByBike: Record<string, number> = {}
+  let servicingTotal = 0
+  let servicing12m = 0
   for (const l of logs) {
     if (!l.maintenance_type) continue
     const cost = (l.cost as number) ?? 0
-    maintTotal += cost
+    servicingTotal += cost
     const bid = l.bike_id as string | null
-    if (bid) maintByBike[bid] = (maintByBike[bid] ?? 0) + cost
-    if ((l.performed_at as string) >= twelveMonthsAgo) maint12m += cost
+    if (bid) servicingByBike[bid] = (servicingByBike[bid] ?? 0) + cost
+    if ((l.performed_at as string) >= twelveMonthsAgo) servicing12m += cost
   }
 
-  // Coût pièces (bike_stats.total_cost inclut les pièces archivées)
-  const partsTotal = bikeList.reduce((s, b) => s + ((b.total_cost as number) ?? 0), 0)
-  const parts12m = comps
-    .filter(c => {
-      const d = c.installed_at as string | null
-      return d !== null && d >= twelveMonthsAgo
-    })
-    .reduce((s, c) => s + ((c.purchase_price as number) ?? 0), 0)
-
-  const totalKm = bikeList.reduce((s, b) => s + ((b.total_km as number) ?? 0), 0)
-  const totalCost = partsTotal + maintTotal
-  const costPerKm = totalKm > 0 ? totalCost / totalKm : null
-
-  // Coût par vélo (pièces + entretien)
-  const byBike = bikeList
-    .map(b => {
-      const bid = b.id as string
-      const parts = (b.total_cost as number) ?? 0
-      const maint = maintByBike[bid] ?? 0
-      const km = (b.total_km as number) ?? 0
-      const total = parts + maint
-      return {
-        id: bid,
-        name: b.name as string,
-        totalCost: Math.round(total),
-        totalKm: Math.round(km),
-        costPerKm: km > 0 ? total / km : null,
-      }
-    })
-    .sort((a, b) => b.totalCost - a.totalCost)
-
-  // Classement des pièces par €/km (les plus coûteuses au kilomètre)
-  const topByCpm = comps
-    .filter(c => (c.cost_per_km as number | null) !== null)
-    .map(c => ({
-      name: c.name as string,
-      bikeName: bikeNames[c.bike_id as string] ?? '—',
-      category: (c.category as string) ?? 'autre',
-      costPerKm: c.cost_per_km as number,
-      cost: (c.purchase_price as number | null) ?? null,
-      kmUsed: Math.round((c.km_used as number) ?? 0),
-    }))
-    .sort((a, b) => b.costPerKm - a.costPerKm)
-    .slice(0, 8)
-
-  // Répartition du coût des pièces par catégorie
-  const byCat: Record<string, number> = {}
-  for (const c of comps) {
-    const cat = (c.category as string) ?? 'autre'
-    byCat[cat] = (byCat[cat] ?? 0) + ((c.purchase_price as number) ?? 0)
-  }
-  const categoryBreakdown = Object.entries(byCat)
-    .filter(([, v]) => v > 0)
-    .map(([category, total]) => ({
-      category,
-      total: Math.round(total),
-      pct: partsTotal > 0 ? Math.round((total / partsTotal) * 100) : 0,
-    }))
-    .sort((a, b) => b.total - a.total)
-
-  // ── Bénéfices d'entretien ────────────────────────────────────
-  // Hypothèses de l'estimation transmission (affichées à l'utilisateur)
-  const DEFAULT_CASSETTE = 90        // € si la cassette du vélo n'a pas de prix
-  const CHAINRINGS_ESTIMATE = 50     // € plateaux (estimation)
-  const CHAINS_PER_CASSETTE = 2      // ~2 chaînes à temps préservent 1 transmission
-
-  // Prix cassette par vélo (composant actif dont le nom contient « cassette »)
+  // Prix cassette par vélo (composant actif « cassette ») — référence éco transmission
   const cassettePriceByBike: Record<string, number> = {}
   for (const c of comps) {
     const name = ((c.name as string) ?? '').toLowerCase()
@@ -596,67 +537,152 @@ export async function getCostData() {
     }
   }
 
+  // ── Remplacements de pièces (dépense réelle) ──────────────────
+  const DEFAULT_CASSETTE = 90
+  const CHAINRINGS_ESTIMATE = 50
+  const CHAINS_PER_CASSETTE = 2
+
   type ReplComp = { name: string; category: string; km_max: number | null; installed_km: number | null; bike_id: string | null }
   const normalizeComp = (raw: unknown): ReplComp | null => {
     const c = Array.isArray(raw) ? (raw[0] ?? null) : (raw ?? null)
     return (c as ReplComp | null) ?? null
   }
 
-  let repairTotal = 0
+  const replacementByBike: Record<string, number> = {}
+  const replacementByCat: Record<string, number> = {}
+  let replacementTotal = 0
+  let replacement12m = 0
   let longevityKm = 0
   let longevityParts = 0
   let transmissionSavings = 0
   let onTimeChains = 0
+  let wastedTransmission = 0
+  let lateChains = 0
 
   for (const r of repl) {
-    repairTotal += (r.cost as number) ?? 0
+    const cost = (r.cost as number) ?? 0
+    replacementTotal += cost
+    if ((r.performed_at as string) >= twelveMonthsAgo) replacement12m += cost
+
     const comp = normalizeComp(r.components)
+    const cat = comp?.category ?? 'autre'
+    replacementByCat[cat] = (replacementByCat[cat] ?? 0) + cost
+    const bid = comp?.bike_id ?? null
+    if (bid) replacementByBike[bid] = (replacementByBike[bid] ?? 0) + cost
+
     if (!comp) continue
-
     const kmAt = r.km_at_action as number | null
-    const installedKm = comp.installed_km
+    const lifeKm = (kmAt !== null && comp.installed_km !== null) ? Math.max(0, kmAt - comp.installed_km) : null
     const kmMax = comp.km_max
-    const lifeKm = (kmAt !== null && installedKm !== null) ? Math.max(0, kmAt - installedKm) : null
 
-    // Longévité : km tenus au-delà de l'estimation
     if (lifeKm !== null && kmMax !== null && lifeKm > kmMax) {
       longevityKm += lifeKm - kmMax
       longevityParts++
     }
-
-    // Économie transmission : chaîne remplacée à temps (avant sa durée de vie estimée)
     const name = (comp.name ?? '').toLowerCase()
     const isChain = name.includes('chaîne') || name.includes('chaine') || name.includes('chain')
-    if (isChain && lifeKm !== null && kmMax !== null && lifeKm <= kmMax) {
-      const bid = comp.bike_id
-      const cassette = (bid && cassettePriceByBike[bid]) ? cassettePriceByBike[bid] : DEFAULT_CASSETTE
-      transmissionSavings += (cassette + CHAINRINGS_ESTIMATE) / CHAINS_PER_CASSETTE
-      onTimeChains++
+    if (isChain && lifeKm !== null && kmMax !== null) {
+      const cassette = (comp.bike_id && cassettePriceByBike[comp.bike_id]) ? cassettePriceByBike[comp.bike_id] : DEFAULT_CASSETTE
+      const unit = (cassette + CHAINRINGS_ESTIMATE) / CHAINS_PER_CASSETTE
+      if (lifeKm <= kmMax) {
+        // Changée à temps → transmission préservée
+        transmissionSavings += unit
+        onTimeChains++
+      } else {
+        // Changée en retard → usure prématurée cassette/plateaux (évitable)
+        wastedTransmission += unit
+        lateChains++
+      }
     }
   }
 
-  const preventionCost = Math.round(maintTotal)   // entretien courant
-  const repairCost = Math.round(repairTotal)      // remplacements de pièces
+  // ── Dépense d'entretien = remplacements + entretien courant ───
+  const spendTotal = replacementTotal + servicingTotal
+  const spend12m = replacement12m + servicing12m
+
+  const byBike = bikeList
+    .map(b => {
+      const bid = b.id as string
+      const spend = (replacementByBike[bid] ?? 0) + (servicingByBike[bid] ?? 0)
+      return {
+        id: bid,
+        name: b.name as string,
+        totalKm: Math.round((b.total_km as number) ?? 0),
+        spend: Math.round(spend),
+      }
+    })
+    .filter(b => b.spend > 0)
+    .sort((a, b) => b.spend - a.spend)
+
+  // Où part l'argent : remplacements par catégorie + entretien courant
+  const breakdownRaw = Object.entries(replacementByCat).map(([key, total]) => ({ key, total }))
+  if (servicingTotal > 0) breakdownRaw.push({ key: 'entretien', total: servicingTotal })
+  const breakdown = breakdownRaw
+    .filter(x => x.total > 0)
+    .map(x => ({ key: x.key, total: Math.round(x.total), pct: spendTotal > 0 ? Math.round((x.total / spendTotal) * 100) : 0 }))
+    .sort((a, b) => b.total - a.total)
+
+  // ── Projection : ce qui t'attend ──────────────────────────────
+  // Rythme km/semaine par vélo (90 jours, repli sur 12 mois)
+  const ninetyCut = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+  const km90: Record<string, number> = {}
+  const km12: Record<string, number> = {}
+  for (const a of acts) {
+    const bid = a.bike_id as string | null
+    if (!bid) continue
+    const d = (a.distance_km as number) ?? 0
+    km12[bid] = (km12[bid] ?? 0) + d
+    if ((a.started_at as string) >= ninetyCut) km90[bid] = (km90[bid] ?? 0) + d
+  }
+  const kmPerWeek: Record<string, number> = {}
+  for (const b of bikeList) {
+    const bid = b.id as string
+    kmPerWeek[bid] = (km90[bid] ?? 0) > 0 ? km90[bid] / 13 : (km12[bid] ?? 0) / 52
+  }
+
+  // Pièces actives approchant leur fin de vie, avec un prix estimé de remplacement
+  const upcomingAll = comps
+    .filter(c => (c.km_remaining as number | null) !== null && (c.purchase_price as number | null) !== null)
+    .map(c => {
+      const weekly = kmPerWeek[c.bike_id as string] ?? 0
+      const kmRem = Math.max(0, (c.km_remaining as number) ?? 0)
+      const weeksUntil = weekly > 0 ? Math.max(0, Math.round(kmRem / weekly)) : null
+      return {
+        key: (c.category as string) ?? 'autre',
+        name: c.name as string,
+        cost: Math.round((c.purchase_price as number) ?? 0),
+        weeksUntil,
+      }
+    })
+    .filter((u): u is { key: string; name: string; cost: number; weeksUntil: number } => u.weeksUntil !== null)
+    .sort((a, b) => a.weeksUntil - b.weeksUntil)
+
+  const projected12m = upcomingAll
+    .filter(u => u.weeksUntil <= 52)
+    .reduce((s, u) => s + u.cost, 0)
 
   return {
     kpis: {
-      totalCost: Math.round(totalCost),
-      costPerKm,
-      spend12m: Math.round(parts12m + maint12m),
-      maint12m: Math.round(maint12m),
+      spendTotal: Math.round(spendTotal),
+      spend12m: Math.round(spend12m),
     },
     byBike,
-    topByCpm,
-    categoryBreakdown,
+    breakdown,
+    projection: {
+      total12m: Math.round(projected12m),
+      upcoming: upcomingAll.slice(0, 4),
+    },
     insights: {
       transmissionSavings: Math.round(transmissionSavings),
       onTimeChains,
+      wastedTransmission: Math.round(wastedTransmission),
+      lateChains,
       longevityKm: Math.round(longevityKm),
       longevityParts,
-      preventionCost,
-      repairCost,
+      replacementCost: Math.round(replacementTotal),
+      servicingCost: Math.round(servicingTotal),
     },
-    hasData: comps.length > 0 || maintTotal > 0 || repl.length > 0,
+    hasData: spendTotal > 0 || upcomingAll.length > 0,
   }
 }
 

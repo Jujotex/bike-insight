@@ -5,6 +5,48 @@
 
 ---
 
+## [Unreleased] — Correctifs responsive mobile
+
+### Fixed
+- `src/app/reglages/entretiens/client.tsx` + `globals.css` : suppression du scroll horizontal du tableau des entretiens sur mobile — les colonnes chiffrées se replient (`.bi-mt-num`) et réapparaissent en badges (`.bi-mt-badges`) sous le nom.
+- `src/components/bi/maintenance-card.tsx` + `globals.css` : carte Entretien lisible sur mobile — bouton « Marquer comme fait » raccourci en « Marquer fait » (spans `.bi-inline-desktop/.bi-inline-mobile`), colonne d'action et padding ajustés, nom tronqué proprement.
+- `src/app/cout/page.tsx` : les deux chiffres clés s'empilent sur mobile (retrait d'un `grid-template-columns` inline qui bloquait le responsive) ; en-tête de la projection en `flex-wrap`.
+
+## [Unreleased] — Page Coût : bloc « Bilan entretien chaîne » (fusion)
+
+### Changed
+- `src/app/cout/page.tsx` : les cartes « Économisé grâce à l'entretien » et « Coût du non-entretien » sont fusionnées en un seul bloc compact « Bilan entretien chaîne » à deux colonnes (Économisé vert / Gaspillé ambre), pour alléger la page sans perdre le message d'incitation.
+
+## [Unreleased] — Page Coût : coût du non-entretien
+
+### Added
+- `src/lib/data.ts` (`getCostData`) : `insights.wastedTransmission` + `lateChains` — miroir de l'économie : chaînes remplacées EN RETARD (au-delà de leur durée de vie) qui ont usé prématurément cassette/plateaux, dépense évitable (même unité que l'économie).
+- `src/app/cout/page.tsx` : carte « Coût du non-entretien » (accent ambre), affichée uniquement s'il y a eu des changements de chaîne tardifs, pour inciter à entretenir à temps.
+
+## [Unreleased] — Page Coût : projection « Ce qui t'attend »
+
+### Added
+- `src/lib/data.ts` (`getCostData`) : projection des dépenses à venir — rythme km/semaine par vélo (90 j, repli 12 mois) × pièces actives approchant leur fin de vie × leur prix estimé. Retourne `projection.total12m` (à prévoir sur 12 mois) et `projection.upcoming` (prochaines pièces à remplacer, délai + coût estimé).
+- `src/app/cout/page.tsx` : carte « Ce qui t'attend » (montant à prévoir sur 12 mois + liste des prochains remplacements avec délai et coût estimé), avec mention d'hypothèse.
+
+## [Unreleased] — Modèle de coût = dépense d'entretien réelle
+
+### Changed
+- `src/lib/data.ts` (`getCostData`) : le coût ne compte plus la somme des prix catalogue des pièces, mais uniquement l'argent réellement déboursé — remplacements (`maintenance_logs` action `Remplacement`) + entretiens (avec `maintenance_type`). Nouveaux champs : `spendTotal`, `spend12m`, `breakdown` (par catégorie de remplacement + poste « entretien courant »), `byBike.spend`. Les prix catalogue des pièces d'origine ne sont plus comptés comme dépense (référence uniquement pour l'économie transmission).
+- `src/app/cout/page.tsx` : reformulée autour de la dépense d'entretien (« Dépensé en entretien », « cette année », « où part ton argent », dépense par vélo). Un vélo sans remplacement affiche 0 € (honnête).
+- `src/app/bikes/[id]/page.tsx` : la stat hero « Coût total » devient « Dépensé en entretien » pour ce vélo (entretiens + remplacements réels), calculée via `maintenance_logs`. Le prix d'achat du vélo n'est jamais affiché.
+- `src/app/bikes/page.tsx` : la stat « Coût des pièces » (somme des prix catalogue) devient « Dépensé en entretien » (somme réelle des coûts `maintenance_logs`, tous vélos).
+
+## [Unreleased] — Entretien : bouton « Marquer comme fait »
+
+### Changed
+- `src/components/bi/maintenance-card.tsx` + `src/app/globals.css` : le bouton « Fait ✓ » devient « Marquer comme fait » (la coche laissait croire que l'entretien était déjà fait, alors que c'est une action pour l'enregistrer). Colonne d'action élargie (en-tête + mobile) pour accueillir le libellé.
+
+## [Unreleased] — Fiche vélo : retrait du bloc « Analyse »
+
+### Removed
+- `src/app/bikes/[id]/page.tsx` : suppression de la carte « Analyse » (Pièce critique + Poste le plus coûteux + Répartition coûts). Les infos coût vivent sur la page Coût, et l'usure est déjà visible dans le tableau des pièces. Calculs et constante `CATEGORY_COLORS` associés retirés.
+
 ## [Unreleased] — Coût simplifié et lisible pour tous
 
 ### Changed
