@@ -199,7 +199,7 @@ export default async function BikeDetailPage({
                       </Mono>
                     </div>
                     <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 12 }}>{fmt(c.km_used ?? 0)}</Mono>
+                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
                     </div>
                   </Link>
                 );

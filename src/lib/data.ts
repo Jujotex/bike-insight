@@ -331,7 +331,7 @@ export async function getDashboardData() {
       if (st.dueInWeeks !== null) dueParts.push(st.dueInWeeks >= 5 ? `${Math.round(st.dueInWeeks / 4)} mois` : `${st.dueInWeeks} sem.`)
       const statusLabel = st.state === 'due' ? 'À faire'
         : st.state === 'soon' ? 'Bientôt'
-        : dueParts.length > 0 ? `dans ${dueParts.join(' ou ')}` : 'OK'
+        : dueParts.length > 0 ? `Dans ${dueParts.join(' ou ')}` : 'OK'
       const detail = st.kmSince !== null && def.intervalKm
         ? `fait il y a ${Math.round(st.kmSince).toLocaleString('fr')} km`
         : `fait il y a ${st.weeksSince} sem.`

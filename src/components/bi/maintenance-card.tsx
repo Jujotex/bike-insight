@@ -180,23 +180,25 @@ export function MaintenanceCard({
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastSince}</Mono>
               </div>
 
-              {/* Action */}
+              {/* Action — petit bouton icône (survol = intitulé) */}
               <div style={{ textAlign: "right" }}>
                 <button
                   onClick={() => isOpen ? setOpenId(null) : openForm(t)}
+                  title={isOpen ? "Annuler" : "Marquer comme fait"}
+                  aria-label={isOpen ? "Annuler" : "Marquer comme fait"}
                   style={{
-                    padding: "7px 13px", borderRadius: 999, fontSize: 11.5, fontWeight: 600,
-                    fontFamily: "inherit", cursor: "pointer", whiteSpace: "nowrap",
+                    width: 34, height: 34, borderRadius: 999, flexShrink: 0,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer", fontFamily: "inherit",
                     background: isOpen ? "transparent" : status.state === "due" ? "var(--bi-ink)" : "transparent",
                     color: isOpen ? "var(--bi-muted)" : status.state === "due" ? "var(--bi-bg)" : "var(--bi-ink)",
-                    border: isOpen ? "1px solid var(--bi-line)" : status.state === "due" ? "none" : "1px solid var(--bi-line)",
+                    border: (!isOpen && status.state === "due") ? "none" : "1px solid var(--bi-line)",
                   }}
                 >
-                  {isOpen ? "Annuler" : (
-                    <>
-                      <span className="bi-inline-desktop">Marquer comme fait</span>
-                      <span className="bi-inline-mobile">Marquer fait</span>
-                    </>
+                  {isOpen ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                   )}
                 </button>
               </div>
