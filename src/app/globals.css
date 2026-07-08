@@ -346,12 +346,11 @@ body { overflow-x: hidden; }
 /* ── Info-bulle « i » (survol desktop + tap mobile via focus) ── */
 .bi-info { position: relative; display: inline-flex; vertical-align: middle; }
 .bi-info-btn {
-  width: 15px; height: 15px; border-radius: 999px;
-  border: 1px solid var(--bi-line); background: var(--bi-bg);
-  color: var(--bi-muted); font-size: 10px; font-weight: 700; font-style: italic;
-  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
-  cursor: help; padding: 0; font-family: var(--bi-font-ui);
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; background: none; border: none; cursor: help;
+  color: var(--bi-muted); line-height: 0;
 }
+.bi-info-btn:hover { color: var(--bi-ink); }
 .bi-info-pop {
   position: absolute; top: calc(100% + 8px); left: 0; z-index: 30;
   width: 270px; max-width: 76vw;

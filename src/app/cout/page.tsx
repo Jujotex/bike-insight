@@ -78,6 +78,22 @@ export default async function CostPage() {
               </div>
             </div>
 
+            {/* Activité · 30 j — vue d'ensemble */}
+            {activity.total30d > 0 && (
+              <BiCard pad={22} style={{ marginBottom: 14 }}>
+                <BiLabel>Activité · 30 j</BiLabel>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
+                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total30d)}</Mono>
+                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+                </div>
+                <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
+                  {activity.chart.map((h, i) => (
+                    <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
+                  ))}
+                </div>
+              </BiCard>
+            )}
+
             {/* Ce qui t'attend — projection */}
             {projection.upcoming.length > 0 && (
               <BiCard pad={0} style={{ marginBottom: 14 }}>
@@ -124,7 +140,11 @@ export default async function CostPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <BiLabel>Bilan entretien chaîne</BiLabel>
                       <span className="bi-info">
-                        <button className="bi-info-btn" type="button" aria-label="Pourquoi changer sa chaîne à temps ?">i</button>
+                        <button className="bi-info-btn" type="button" aria-label="Pourquoi changer sa chaîne à temps ?">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                          </svg>
+                        </button>
                         <span className="bi-info-pop">
                           {"Ta chaîne s'allonge et s'use avec les kilomètres. Une chaîne trop usée « lime » les dents de ta cassette et de tes plateaux. Du coup, au lieu de changer juste la chaîne (~30 €), tu dois aussi remplacer cassette + plateaux (souvent 100 € et plus). La changer à temps protège ces pièces et te coûte bien moins cher au final."}
                         </span>
@@ -158,21 +178,24 @@ export default async function CostPage() {
                   <div style={{ fontSize: 15, fontWeight: 600 }}>Où part ton argent</div>
                   <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
                 </div>
-                <div style={{ padding: "16px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
-                  {breakdown.map(({ key, total, pct }) => (
-                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ width: 4, height: 26, background: COLORS[key] ?? "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600 }}>{LABELS[key] ?? key}</span>
-                          <Mono style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{fmt(total)} €</Mono>
-                        </div>
-                        <div style={{ height: 4, borderRadius: 999, background: "var(--bi-line)", overflow: "hidden" }}>
-                          <div style={{ width: `${pct}%`, height: "100%", background: COLORS[key] ?? "var(--bi-muted)", borderRadius: 999 }} />
-                        </div>
+                <div style={{ padding: "18px 22px" }}>
+                  {/* Barre empilée : proportions en un coup d'œil */}
+                  <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
+                    {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
+                      <div key={key} style={{ width: `${pct}%`, background: COLORS[key] ?? "var(--bi-muted)" }} />
+                    ))}
+                  </div>
+                  {/* Légende détaillée : € + % */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    {breakdown.map(({ key, total, pct }) => (
+                      <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
+                        <Mono style={{ fontSize: 12.5, flexShrink: 0 }}>{fmt(total)} €</Mono>
+                        <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </BiCard>
             )}
@@ -195,21 +218,6 @@ export default async function CostPage() {
               </BiCard>
             )}
 
-            {/* Activité · 30 j (contexte usage) */}
-            {activity.total30d > 0 && (
-              <BiCard pad={22} style={{ marginTop: 14 }}>
-                <BiLabel>Activité · 30 j</BiLabel>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total30d)}</Mono>
-                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
-                </div>
-                <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
-                  {activity.chart.map((h, i) => (
-                    <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
-                  ))}
-                </div>
-              </BiCard>
-            )}
           </>
         )}
       </div>
