@@ -5,6 +5,18 @@
 
 ---
 
+## [Unreleased] — Graphe « Activité · 30 j » déplacé vers la page Coût
+
+### Changed
+- `src/app/bikes/[id]/page.tsx` : suppression de la carte « Activité · 30 j » ; le tableau des pièces passe en pleine largeur (calculs locaux retirés).
+- `src/lib/data.ts` (`getCostData`) : calcule le graphe d'activité 30 j (tous vélos) à partir des activités déjà chargées → `activity.chart` + `activity.total30d`.
+- `src/app/cout/page.tsx` : carte « Activité · 30 j » ajoutée en bas de page comme contexte d'usage.
+
+## [Unreleased] — Page Coût : info-bulle explicative « bilan chaîne »
+
+### Added
+- `src/app/cout/page.tsx` + `globals.css` : petit « i » à côté de « Bilan entretien chaîne » qui explique en langage simple pourquoi changer sa chaîne à temps protège cassette et plateaux. Info-bulle en CSS pur (survol desktop + tap mobile via `:focus-within`), classes `.bi-info` / `.bi-info-btn` / `.bi-info-pop`.
+
 ## [Unreleased] — Correctifs responsive mobile
 
 ### Fixed

@@ -85,7 +85,6 @@ export default async function BikeDetailPage({
   // Stats 12 mois
   const now = new Date();
   const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   const activities12m = activities.filter(
     (a) => new Date(a.started_at) >= twelveMonthsAgo
@@ -94,18 +93,6 @@ export default async function BikeDetailPage({
   const totalKm12m = activities12m.reduce((s, a) => s + (a.distance_km ?? 0), 0);
   const avgKmPerRide =
     totalRides12m > 0 ? Math.round(totalKm12m / totalRides12m * 10) / 10 : 0;
-
-  // Graphique 30j
-  const activityChart = Array.from({ length: 30 }, (_, i) => {
-    const day = new Date(thirtyDaysAgo);
-    day.setDate(day.getDate() + i);
-    const dayStr = day.toISOString().slice(0, 10);
-    return activities
-      .filter((a) => a.started_at.slice(0, 10) === dayStr)
-      .reduce((s, a) => s + (a.distance_km ?? 0), 0);
-  });
-  const totalKm30d = Math.round(activityChart.reduce((s, v) => s + v, 0));
-  const maxActivity = Math.max(...activityChart, 1);
 
   return (
     <AppShell nav={<SideNavLoader />}>
@@ -127,9 +114,11 @@ export default async function BikeDetailPage({
                 <span style={{ fontSize: 10, padding: "4px 9px", background: "var(--bi-accent)", color: "#0E0E10", borderRadius: 999, fontWeight: 700, letterSpacing: 0.5 }}>ACTIF</span>
               )}
             </div>
-            <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 6 }}>
-              {bike.brand ? `${bike.brand} · ` : ""}{totalRides12m} sortie{totalRides12m !== 1 ? "s" : ""} enregistrée{totalRides12m !== 1 ? "s" : ""} · 12 mois
-            </div>
+            {(bike.brand || bike.model) && (
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 6 }}>
+                {[bike.brand, bike.model].filter(Boolean).join(" · ")}
+              </div>
+            )}
           </div>
           <div className="bi-bike-header-actions">
             <ManualRideButton bikes={[{ id: bike.id as string, name: bike.name as string }]} defaultBikeId={bike.id as string} />
@@ -160,8 +149,8 @@ export default async function BikeDetailPage({
           ))}
         </div>
 
-        {/* Main grid */}
-        <div className="bi-grid-split-lg" style={{ gap: 14 }}>
+        {/* Pièces (pleine largeur) */}
+        <div>
 
           {/* Components table */}
           <BiCard pad={0}>
@@ -218,25 +207,6 @@ export default async function BikeDetailPage({
             )}
             </div>
           </BiCard>
-
-          {/* Right column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-
-            {/* Activity mini-chart 30j */}
-            <BiCard pad={22}>
-              <BiLabel>Activité · 30 j</BiLabel>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(totalKm30d)}</Mono>
-                <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>km</span>
-              </div>
-              <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
-                {activityChart.map((h, i) => (
-                  <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
-                ))}
-              </div>
-            </BiCard>
-
-          </div>
         </div>
       {/* ── Entretien courant ───────────────────────────── */}
       <MaintenanceCard
