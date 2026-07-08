@@ -95,7 +95,7 @@ export interface DashboardClientProps {
 
 export function DashboardClient({
   userName, todayCap, bikes, kpis,
-  attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike,
+  attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike, readinessByBike,
 }: DashboardClientProps) {
   const router = useRouter();
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
@@ -114,30 +114,23 @@ export function DashboardClient({
 
   // Les entretiens dus comptent dans le statut global du vélo
   const dueMaint = filteredMaintenance.filter(m => m.state === "due");
-  const hasWarnLevel = warnItems.length > 0 || dueMaint.length > 0;
-  const statusColor = badItems.length > 0 ? "var(--bi-bad)"
-    : hasWarnLevel ? "var(--bi-warn)"
-    : "var(--bi-ok)";
-  const statusBg = badItems.length > 0 ? "rgba(200,54,46,0.06)"
-    : hasWarnLevel ? "rgba(208,132,21,0.06)"
-    : "rgba(14,143,90,0.06)";
-  const statusBorder = badItems.length > 0 ? "rgba(200,54,46,0.18)"
-    : hasWarnLevel ? "rgba(208,132,21,0.18)"
-    : "rgba(14,143,90,0.18)";
-  const statusMsg = badItems.length > 0
-    ? `${badItems.length} pièce${badItems.length > 1 ? "s" : ""} à remplacer`
-    : warnItems.length > 0
-    ? `${warnItems.length} pièce${warnItems.length > 1 ? "s" : ""} à surveiller`
+  // ── Score de forme du vélo (pièces ~65% + entretien ~35%) ──
+  const pieceScore = readinessByBike[selectedBikeId]?.value ?? 100;
+  const maintScore = Math.max(0, 100 - 15 * maintenanceSummary.counts.due - 5 * maintenanceSummary.counts.soon);
+  const formeScore = Math.round(0.65 * pieceScore + 0.35 * maintScore);
+  const formeBand = formeScore >= 85 ? { label: "Impeccable", color: "var(--bi-ok)" }
+    : formeScore >= 70 ? { label: "En forme", color: "var(--bi-ok)" }
+    : formeScore >= 50 ? { label: "À surveiller", color: "var(--bi-warn)" }
+    : { label: "Négligé", color: "var(--bi-bad)" };
+  const formeReason = badItems.length > 0
+    ? `${CATEGORY_LABELS[badItems[0].category] ?? badItems[0].name} à ${badItems[0].wearPct} % — à remplacer`
     : dueMaint.length > 0
-    ? `${dueMaint.length} entretien${dueMaint.length > 1 ? "s" : ""} à faire`
-    : "Prêt à rouler";
-  const statusSub = badItems.length > 0
-    ? "Remplace cette pièce avant de rouler."
-    : warnItems.length === 0 && dueMaint.length > 0
-    ? dueMaint[0].label
-    : warnItems.length === 0 && filteredPredictions.length > 0
-    ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} - ${formatWeeks(filteredPredictions[0].weeksUntil)}`
-    : null;
+    ? `Entretien à faire : ${dueMaint[0].label.toLowerCase()}`
+    : warnItems.length > 0
+    ? `${CATEGORY_LABELS[warnItems[0].category] ?? warnItems[0].name} à surveiller (${warnItems[0].wearPct} %)`
+    : filteredPredictions.length > 0
+    ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} dans ${formatWeeks(filteredPredictions[0].weeksUntil)}`
+    : "Tout est au vert, continue comme ça !";
 
   // Le dashboard est la surface des alertes : marque les notifications comme lues
   useEffect(() => {
@@ -234,39 +227,35 @@ export function DashboardClient({
         </BiCard>
       )}
 
-      {/* Status banner */}
+      {/* Score de forme du vélo */}
       {!hasNoComponents && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 16,
-          padding: "18px 22px", borderRadius: 16,
-          background: statusBg, border: `1px solid ${statusBorder}`,
-          marginBottom: 14,
-        }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-            background: badItems.length > 0 ? "rgba(200,54,46,0.12)" : warnItems.length > 0 ? "rgba(208,132,21,0.12)" : "rgba(14,143,90,0.12)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            {badItems.length === 0 && warnItems.length === 0 ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={statusColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12l5 5L20 7" />
+        <BiCard pad={22} style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+            {/* Jauge circulaire */}
+            <div style={{ position: "relative", width: 104, height: 104, flexShrink: 0 }}>
+              <svg width="104" height="104" viewBox="0 0 104 104">
+                <circle cx="52" cy="52" r="45" fill="none" stroke="var(--bi-line)" strokeWidth="8" />
+                <circle
+                  cx="52" cy="52" r="45" fill="none"
+                  stroke={formeBand.color} strokeWidth="8" strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 45}
+                  strokeDashoffset={2 * Math.PI * 45 * (1 - formeScore / 100)}
+                  transform="rotate(-90 52 52)"
+                />
               </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={statusColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-              </svg>
-            )}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: statusColor }}>{statusMsg}</div>
-            {statusSub && <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 3 }}>{statusSub}</div>}
-          </div>
-          {(badItems.length > 0 || warnItems.length > 0 || dueMaint.length > 0) && (
-            <div style={{ fontSize: 22, fontWeight: 700, color: statusColor, fontFamily: "var(--font-jetbrains-mono)", flexShrink: 0 }}>
-              {badItems.length + warnItems.length + dueMaint.length}
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 30, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", lineHeight: 1, color: formeBand.color }}>{formeScore}</span>
+                <span style={{ fontSize: 9.5, color: "var(--bi-muted)", marginTop: 3 }}>/ 100</span>
+              </div>
             </div>
-          )}
-        </div>
+            {/* Détail */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Score de forme</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: formeBand.color, marginTop: 4, letterSpacing: -0.3 }}>{formeBand.label}</div>
+              <div style={{ fontSize: 12.5, color: "var(--bi-muted)", marginTop: 4, lineHeight: 1.5 }}>{formeReason}</div>
+            </div>
+          </div>
+        </BiCard>
       )}
 
       {/* Entretien — résumé compact toujours visible */}

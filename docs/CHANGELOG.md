@@ -5,6 +5,14 @@
 
 ---
 
+## [Unreleased] — Dashboard : score de forme du vélo
+
+### Added
+- `src/app/dashboard/client.tsx` : « Score de forme » /100 par vélo, jauge circulaire ludique. Composite pièces (~65%, usure des composants via `readinessByBike`) + entretien (~35%, malus par entretien dû/à surveiller). Étiquette (Impeccable / En forme / À surveiller / Négligé), couleur, et ligne d'action (ce qui fait baisser le score).
+
+### Removed
+- `src/app/dashboard/client.tsx` : l'ancien bandeau de statut est remplacé par la carte score (mêmes infos, en mieux) ; variables `status*` retirées.
+
 ## [Unreleased] — Graphe « Activité · 30 j » déplacé vers la page Coût
 
 ### Changed
