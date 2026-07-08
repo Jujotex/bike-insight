@@ -189,54 +189,54 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* Chiffres 12 mois + Score de forme (même rangée) */}
+      {/* Score de forme + Chiffres 12 mois (même rangée) */}
       <div className={hasNoComponents ? undefined : "bi-grid-2"} style={{ marginBottom: 14, alignItems: "stretch" }}>
-        {/* Chiffres 12 mois */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ background: "var(--bi-card)", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
-              <span style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5, fontFamily: "var(--font-jetbrains-mono)" }}>{kmFormatted}</span>
-              <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>km</span>
-            </div>
-          </div>
-          <div style={{ background: "var(--bi-card)", padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 6 }}>
-              <span style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5, fontFamily: "var(--font-jetbrains-mono)" }}>{kpis.totalRides12m}</span>
-              <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>sorties</span>
-            </div>
-          </div>
-        </div>
-
         {/* Score de forme */}
         {!hasNoComponents && (
-          <BiCard pad={20}>
-            <div style={{ display: "flex", alignItems: "center", gap: 20, height: "100%" }}>
-              <div style={{ position: "relative", width: 104, height: 104, flexShrink: 0 }}>
-                <svg width="104" height="104" viewBox="0 0 104 104">
-                  <circle cx="52" cy="52" r="45" fill="none" stroke="var(--bi-line)" strokeWidth="8" />
+          <BiCard pad={24}>
+            <div style={{ display: "flex", alignItems: "center", gap: 24, height: "100%" }}>
+              <div style={{ position: "relative", width: 118, height: 118, flexShrink: 0 }}>
+                <svg width="118" height="118" viewBox="0 0 118 118">
+                  <circle cx="59" cy="59" r="51" fill="none" stroke="var(--bi-line)" strokeWidth="9" />
                   <circle
-                    cx="52" cy="52" r="45" fill="none"
-                    stroke={formeBand.color} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 45}
-                    strokeDashoffset={2 * Math.PI * 45 * (1 - formeScore / 100)}
-                    transform="rotate(-90 52 52)"
+                    cx="59" cy="59" r="51" fill="none"
+                    stroke={formeBand.color} strokeWidth="9" strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 51}
+                    strokeDashoffset={2 * Math.PI * 51 * (1 - formeScore / 100)}
+                    transform="rotate(-90 59 59)"
                   />
                 </svg>
                 <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 30, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", lineHeight: 1, color: formeBand.color }}>{formeScore}</span>
-                  <span style={{ fontSize: 9.5, color: "var(--bi-muted)", marginTop: 3 }}>/ 100</span>
+                  <span style={{ fontSize: 38, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", lineHeight: 1, color: formeBand.color }}>{formeScore}</span>
+                  <span style={{ fontSize: 10, color: "var(--bi-muted)", marginTop: 3 }}>/ 100</span>
                 </div>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Score de forme</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: formeBand.color, marginTop: 4, letterSpacing: -0.3 }}>{formeBand.label}</div>
-                <div style={{ fontSize: 12.5, color: "var(--bi-muted)", marginTop: 4, lineHeight: 1.5 }}>{formeReason}</div>
+                <div style={{ fontSize: 26, fontWeight: 700, color: formeBand.color, marginTop: 5, letterSpacing: -0.4 }}>{formeBand.label}</div>
+                <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 5, lineHeight: 1.5 }}>{formeReason}</div>
               </div>
             </div>
           </BiCard>
         )}
+
+        {/* Chiffres 12 mois */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ background: "var(--bi-card)", padding: "22px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 8 }}>
+              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{kmFormatted}</span>
+              <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>km</span>
+            </div>
+          </div>
+          <div style={{ background: "var(--bi-card)", padding: "22px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 8 }}>
+              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{kpis.totalRides12m}</span>
+              <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>sorties</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Empty state */}
