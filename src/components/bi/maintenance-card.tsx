@@ -100,7 +100,7 @@ export function MaintenanceCard({
       <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Entretien · {rows.length}</div>
-          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par échéance — enregistre en un clic, on suit le reste</div>
+          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>Trié par échéance</div>
         </div>
         <Link
           href={`/reglages/entretiens?bike=${bikeId}`}
@@ -119,6 +119,7 @@ export function MaintenanceCard({
       <div className="bi-maint-header-row">
         <span>Entretien</span>
         <span className="bi-maint-col-last">Dernier</span>
+        <span className="bi-maint-col-last">Depuis</span>
         <span>Échéance</span>
         <span style={{ textAlign: "right" }}></span>
       </div>
@@ -130,11 +131,11 @@ export function MaintenanceCard({
         const lastDate = last
           ? new Date(last.performed_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
           : "—";
-        const lastSub = status.state === "never"
+        const lastSince = status.state === "never"
           ? "jamais"
           : status.kmSince !== null
-            ? `il y a ${status.kmSince.toLocaleString("fr")} km`
-            : `il y a ${status.weeksSince} sem.`;
+            ? `${status.kmSince.toLocaleString("fr")} km`
+            : `${status.weeksSince} sem.`;
 
         return (
           <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
@@ -152,10 +153,13 @@ export function MaintenanceCard({
                 </div>
               </Link>
 
-              {/* Dernier — même traitement que la colonne date des composants */}
+              {/* Dernier (date) */}
               <div className="bi-maint-col-last">
-                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", display: "block" }}>{lastDate}</Mono>
-                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{lastSub}</div>
+                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastDate}</Mono>
+              </div>
+              {/* Depuis */}
+              <div className="bi-maint-col-last">
+                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastSince}</Mono>
               </div>
 
               {/* Échéance : progression + % */}

@@ -661,6 +661,20 @@ export async function getCostData() {
     .filter(u => u.weeksUntil <= 52)
     .reduce((s, u) => s + u.cost, 0)
 
+  // ── Activité 30 jours (tous vélos) ────────────────────────────
+  const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const activityChart = Array.from({ length: 30 }, (_, i) => {
+    const day = new Date(thirtyAgo)
+    day.setDate(day.getDate() + i)
+    const dayStr = day.toISOString().slice(0, 10)
+    return Math.round(
+      acts
+        .filter(a => (a.started_at as string).slice(0, 10) === dayStr)
+        .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
+    )
+  })
+  const totalKm30d = activityChart.reduce((s, v) => s + v, 0)
+
   return {
     kpis: {
       spendTotal: Math.round(spendTotal),
@@ -668,6 +682,10 @@ export async function getCostData() {
     },
     byBike,
     breakdown,
+    activity: {
+      chart: activityChart,
+      total30d: totalKm30d,
+    },
     projection: {
       total12m: Math.round(projected12m),
       upcoming: upcomingAll.slice(0, 4),
@@ -682,7 +700,7 @@ export async function getCostData() {
       replacementCost: Math.round(replacementTotal),
       servicingCost: Math.round(servicingTotal),
     },
-    hasData: spendTotal > 0 || upcomingAll.length > 0,
+    hasData: spendTotal > 0 || upcomingAll.length > 0 || totalKm30d > 0,
   }
 }
 

@@ -301,7 +301,7 @@ body { overflow-x: hidden; }
 .bi-maint-header-row {
   padding: 8px 22px 6px;
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1.1fr 150px;
+  grid-template-columns: 1.6fr 0.9fr 0.9fr 1.1fr 150px;
   gap: 14px;
   font-size: 10.5px;
   color: var(--bi-muted);
@@ -312,7 +312,7 @@ body { overflow-x: hidden; }
 }
 .bi-maint-row {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1.1fr 150px;
+  grid-template-columns: 1.6fr 0.9fr 0.9fr 1.1fr 150px;
   gap: 14px;
   align-items: center;
   padding: 13px 22px;
@@ -341,4 +341,30 @@ body { overflow-x: hidden; }
 @media (max-width: 768px) {
   .bi-inline-desktop { display: none; }
   .bi-inline-mobile  { display: inline; }
+}
+
+/* ── Info-bulle « i » (survol desktop + tap mobile via focus) ── */
+.bi-info { position: relative; display: inline-flex; vertical-align: middle; }
+.bi-info-btn {
+  width: 15px; height: 15px; border-radius: 999px;
+  border: 1px solid var(--bi-line); background: var(--bi-bg);
+  color: var(--bi-muted); font-size: 10px; font-weight: 700; font-style: italic;
+  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  cursor: help; padding: 0; font-family: var(--bi-font-ui);
+}
+.bi-info-pop {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 30;
+  width: 270px; max-width: 76vw;
+  background: var(--bi-card); border: 1px solid var(--bi-line);
+  border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 10px 34px rgba(14,14,16,0.14);
+  font-size: 12px; line-height: 1.55; color: var(--bi-muted);
+  font-weight: 400; letter-spacing: 0; text-transform: none;
+  opacity: 0; visibility: hidden; transform: translateY(-2px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  pointer-events: none;
+}
+.bi-info:hover .bi-info-pop,
+.bi-info:focus-within .bi-info-pop {
+  opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
 }

@@ -41,7 +41,8 @@ export default async function CostPage() {
   const data = await getCostData();
   if (!data) redirect("/login");
 
-  const { kpis, byBike, breakdown, projection, insights, hasData } = data;
+  const { kpis, byBike, breakdown, activity, projection, insights, hasData } = data;
+  const maxActivity = Math.max(...activity.chart, 1);
 
   return (
     <AppShell nav={<SideNavLoader />}>
@@ -120,7 +121,15 @@ export default async function CostPage() {
                     </svg>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <BiLabel>Bilan entretien chaîne</BiLabel>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <BiLabel>Bilan entretien chaîne</BiLabel>
+                      <span className="bi-info">
+                        <button className="bi-info-btn" type="button" aria-label="Pourquoi changer sa chaîne à temps ?">i</button>
+                        <span className="bi-info-pop">
+                          {"Ta chaîne s'allonge et s'use avec les kilomètres. Une chaîne trop usée « lime » les dents de ta cassette et de tes plateaux. Du coup, au lieu de changer juste la chaîne (~30 €), tu dois aussi remplacer cassette + plateaux (souvent 100 € et plus). La changer à temps protège ces pièces et te coûte bien moins cher au final."}
+                        </span>
+                      </span>
+                    </div>
                     <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Changer ta chaîne à temps protège ta transmission</div>
                   </div>
                 </div>
@@ -183,6 +192,22 @@ export default async function CostPage() {
                     <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmt(b.spend)} €</Mono>
                   </Link>
                 ))}
+              </BiCard>
+            )}
+
+            {/* Activité · 30 j (contexte usage) */}
+            {activity.total30d > 0 && (
+              <BiCard pad={22} style={{ marginTop: 14 }}>
+                <BiLabel>Activité · 30 j</BiLabel>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
+                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total30d)}</Mono>
+                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+                </div>
+                <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
+                  {activity.chart.map((h, i) => (
+                    <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
+                  ))}
+                </div>
               </BiCard>
             )}
           </>
