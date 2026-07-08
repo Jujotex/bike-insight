@@ -119,8 +119,8 @@ export function MaintenanceCard({
       <div className="bi-maint-header-row">
         <span>Entretien</span>
         <span className="bi-maint-col-last">Dernier</span>
-        <span className="bi-maint-col-last">Depuis</span>
         <span>Échéance</span>
+        <span className="bi-maint-col-last">Depuis</span>
         <span style={{ textAlign: "right" }}></span>
       </div>
       )}
@@ -136,6 +136,9 @@ export function MaintenanceCard({
           : status.kmSince !== null
             ? `${status.kmSince.toLocaleString("fr")} km`
             : `${status.weeksSince} sem.`;
+        const echeanceDetail = status.state === "ok"
+          ? nextDueLabel(status.dueInKm, status.dueInWeeks)
+          : ui.label;
 
         return (
           <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
@@ -157,31 +160,25 @@ export function MaintenanceCard({
               <div className="bi-maint-col-last">
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastDate}</Mono>
               </div>
+
+              {/* Échéance : progression + % (détail au survol) */}
+              {status.state === "never" ? (
+                <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>Jamais enregistré</div>
+              ) : (
+                <div title={echeanceDetail} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "default" }}>
+                  <div style={{ flex: 1 }}>
+                    <ProgressBar value={Math.min(status.pct / 100, 1)} color={ui.color} height={3} />
+                  </div>
+                  <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 32, textAlign: "right" }}>
+                    {status.pct}%
+                  </Mono>
+                </div>
+              )}
+
               {/* Depuis */}
               <div className="bi-maint-col-last">
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastSince}</Mono>
               </div>
-
-              {/* Échéance : progression + % */}
-              {status.state === "never" ? (
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>Jamais enregistré</div>
-              ) : (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ flex: 1 }}>
-                      <ProgressBar value={Math.min(status.pct / 100, 1)} color={ui.color} height={3} />
-                    </div>
-                    <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 32, textAlign: "right" }}>
-                      {status.pct}%
-                    </Mono>
-                  </div>
-                  <div style={{ fontSize: 10.5, fontWeight: 600, color: ui.color, marginTop: 4 }}>
-                    {status.state === "ok"
-                      ? nextDueLabel(status.dueInKm, status.dueInWeeks)
-                      : ui.label}
-                  </div>
-                </div>
-              )}
 
               {/* Action */}
               <div style={{ textAlign: "right" }}>

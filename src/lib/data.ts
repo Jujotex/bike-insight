@@ -496,7 +496,7 @@ export async function getCostData() {
       .gte('started_at', twelveMonthsAgo),
     supabase
       .from('maintenance_logs')
-      .select('cost, performed_at, maintenance_type, bike_id')
+      .select('cost, performed_at, maintenance_type, bike_id, action')
       .eq('user_id', user.id)
       .not('cost', 'is', null),
     // Remplacements de pièces (tout l'historique) — dépense réelle + longévité + éco transmission
@@ -515,6 +515,7 @@ export async function getCostData() {
 
   // ── Entretien courant (maintenance_type non nul) ──────────────
   const servicingByBike: Record<string, number> = {}
+  const servicingItems: Record<string, number> = {} // détail par type d'entretien
   let servicingTotal = 0
   let servicing12m = 0
   for (const l of logs) {
@@ -524,6 +525,8 @@ export async function getCostData() {
     const bid = l.bike_id as string | null
     if (bid) servicingByBike[bid] = (servicingByBike[bid] ?? 0) + cost
     if ((l.performed_at as string) >= twelveMonthsAgo) servicing12m += cost
+    const label = (l.action as string | null) ?? 'Entretien'
+    servicingItems[label] = (servicingItems[label] ?? 0) + cost
   }
 
   // Prix cassette par vélo (composant actif « cassette ») — référence éco transmission
@@ -550,6 +553,7 @@ export async function getCostData() {
 
   const replacementByBike: Record<string, number> = {}
   const replacementByCat: Record<string, number> = {}
+  const replItemsByCat: Record<string, Record<string, number>> = {} // détail par pièce
   let replacementTotal = 0
   let replacement12m = 0
   let longevityKm = 0
@@ -567,6 +571,8 @@ export async function getCostData() {
     const comp = normalizeComp(r.components)
     const cat = comp?.category ?? 'autre'
     replacementByCat[cat] = (replacementByCat[cat] ?? 0) + cost
+    const nm = comp?.name ?? 'Pièce'
+    ;(replItemsByCat[cat] ??= {})[nm] = (replItemsByCat[cat][nm] ?? 0) + cost
     const bid = comp?.bike_id ?? null
     if (bid) replacementByBike[bid] = (replacementByBike[bid] ?? 0) + cost
 
@@ -614,12 +620,24 @@ export async function getCostData() {
     .filter(b => b.spend > 0)
     .sort((a, b) => b.spend - a.spend)
 
-  // Où part l'argent : remplacements par catégorie + entretien courant
+  // Où part l'argent : remplacements par catégorie + entretien courant, avec détail
+  const itemsFor = (key: string): { label: string; total: number }[] => {
+    const src = key === 'entretien' ? servicingItems : (replItemsByCat[key] ?? {})
+    return Object.entries(src)
+      .map(([label, total]) => ({ label, total: Math.round(total) }))
+      .filter(i => i.total > 0)
+      .sort((a, b) => b.total - a.total)
+  }
   const breakdownRaw = Object.entries(replacementByCat).map(([key, total]) => ({ key, total }))
   if (servicingTotal > 0) breakdownRaw.push({ key: 'entretien', total: servicingTotal })
   const breakdown = breakdownRaw
     .filter(x => x.total > 0)
-    .map(x => ({ key: x.key, total: Math.round(x.total), pct: spendTotal > 0 ? Math.round((x.total / spendTotal) * 100) : 0 }))
+    .map(x => ({
+      key: x.key,
+      total: Math.round(x.total),
+      pct: spendTotal > 0 ? Math.round((x.total / spendTotal) * 100) : 0,
+      items: itemsFor(x.key),
+    }))
     .sort((a, b) => b.total - a.total)
 
   // ── Projection : ce qui t'attend ──────────────────────────────

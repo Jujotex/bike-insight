@@ -5,6 +5,17 @@
 
 ---
 
+## [Unreleased] — Page Coût : détail des prix par catégorie
+
+### Added
+- `src/lib/data.ts` (`getCostData`) : le `breakdown` remonte désormais le détail par opération (`items: [{ label, total }]`) — remplacements groupés par pièce, entretien courant groupé par type (champ `action`).
+- `src/app/cout/page.tsx` : « Où part ton argent » affiche le détail (opération + prix) sous chaque catégorie.
+
+## [Unreleased] — Carte Entretien : ordre des colonnes + échéance au survol
+
+### Changed
+- `src/components/bi/maintenance-card.tsx` + `globals.css` : colonnes réordonnées (Entretien · Dernier · Échéance · Depuis) pour coller au tableau des composants (km en dernière colonne). Le détail d'échéance (« dans ~X km ou Y sem. ») n'est plus affiché sous la barre — il passe en info-bulle au survol de la barre.
+
 ## [Unreleased] — Dashboard : score de forme du vélo
 
 ### Added
