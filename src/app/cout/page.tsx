@@ -185,14 +185,26 @@ export default async function CostPage() {
                       <div key={key} style={{ width: `${pct}%`, background: COLORS[key] ?? "var(--bi-muted)" }} />
                     ))}
                   </div>
-                  {/* Légende détaillée : € + % */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                    {breakdown.map(({ key, total, pct }) => (
-                      <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
-                        <Mono style={{ fontSize: 12.5, flexShrink: 0 }}>{fmt(total)} €</Mono>
-                        <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
+                  {/* Légende détaillée : catégorie + détail par opération */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {breakdown.map(({ key, total, pct, items }) => (
+                      <div key={key}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
+                          <Mono style={{ fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>{fmt(total)} €</Mono>
+                          <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
+                        </div>
+                        {items.length > 0 && (
+                          <div style={{ marginLeft: 18, marginTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
+                            {items.map((it, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                                <span style={{ fontSize: 12, color: "var(--bi-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{it.label}</span>
+                                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(it.total)} €</Mono>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
