@@ -121,7 +121,7 @@ export default async function CostPage() {
                   </div>
                 ))}
                 <div style={{ padding: "10px 22px 14px", fontSize: 10.5, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
-                  Estimation basée sur ton rythme récent et le prix de tes pièces — pas une facture ferme.
+                  Estimation basée sur ton rythme récent et le prix de tes pièces.
                 </div>
               </BiCard>
             )}
