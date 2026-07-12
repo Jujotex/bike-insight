@@ -60,12 +60,12 @@ function MiniDashPreview() {
         </div>
       </div>
 
-      {/* Readiness */}
+      {/* Score de forme */}
       <div style={{ background: T.card, borderRadius: 12, border: `1px solid ${T.line}`, padding: 16, marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 14, alignItems: "center" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Dot color={T.warn} size={6} />
-            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Prêt à rouler</span>
+            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Score de forme</span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 4 }}>
             <Mono style={{ fontSize: 42, fontWeight: 400, letterSpacing: -1.4, lineHeight: 1, color: T.warn }}>62</Mono>
@@ -76,7 +76,7 @@ function MiniDashPreview() {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {[["Composants", 55, T.warn], ["Régularité", 95, T.ok], ["Maintenance", 80, T.ok]].map(([k, v, c]) => (
+          {[["Pièces", 52, T.warn], ["Entretien", 80, T.ok]].map(([k, v, c]) => (
             <div key={String(k)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 10, width: 64, color: T.muted }}>{k as string}</span>
               <div style={{ flex: 1, height: 3, background: T.line, borderRadius: 999, overflow: "hidden" }}>
@@ -117,13 +117,13 @@ function MiniDashPreview() {
         })}
       </div>
 
-      {/* Forecast */}
+      {/* Ce qui t'attend */}
       <div style={{ marginTop: 12, background: T.ink, color: "#fff", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Prévision 3 mois</div>
+          <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Ce qui t&apos;attend · 3 mois</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginTop: 3 }}>
             <Mono style={{ fontSize: 24, fontWeight: 500, letterSpacing: -0.6, lineHeight: 1 }}>90</Mono>
-            <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>EUR</Mono>
+            <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>€</Mono>
           </div>
         </div>
         <div style={{ textAlign: "right", fontSize: 10.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
@@ -142,12 +142,12 @@ function LandingHero() {
       <div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: `1px solid ${T.line}`, background: T.card }}>
           <Dot color={T.accent} size={6} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.5 }}>Concu pour cyclistes Strava</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.5 }}>Conçu pour cyclistes Strava</span>
         </div>
 
         <div style={{ marginTop: 24, fontSize: "clamp(40px, 5vw, 76px)", fontWeight: 600, letterSpacing: -3, lineHeight: 0.96 }}>
-          Ton materiel<br />
-          te coute{" "}
+          Ton matériel<br />
+          te coûte{" "}
           <span style={{ position: "relative", display: "inline-block" }}>
             <span style={{ position: "relative", zIndex: 2 }}>plus cher</span>
             <span style={{ position: "absolute", left: -2, right: -4, bottom: 6, height: 14, background: T.accent, zIndex: 1, borderRadius: 2 }} />
@@ -157,7 +157,7 @@ function LandingHero() {
         </div>
 
         <div style={{ marginTop: 24, fontSize: 17, color: T.muted, lineHeight: 1.55, maxWidth: 480 }}>
-          Bike Insight branche tes activites Strava et calcule en temps reel l&apos;usure et le{" "}
+          Bike Insight branche tes activités Strava et suit l&apos;usure et le{" "}
           <Mono style={{ color: T.ink, fontWeight: 600 }}>coût réel</Mono> de chaque composant. Tu sais quand remplacer, combien ça va te coûter, et combien tu peux éviter de gaspiller.
         </div>
 
@@ -171,7 +171,7 @@ function LandingHero() {
           <Link href="/dashboard">
             <button style={{ padding: "15px 20px", background: "transparent", color: T.ink, border: `1px solid ${T.line}`, borderRadius: 12, fontSize: 14, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
-              Voir une demo
+              Voir une démo
             </button>
           </Link>
         </div>
@@ -189,9 +189,9 @@ function LandingMetrics() {
     <div className="bi-land-pad" style={{ padding: "32px 48px", borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.card }}>
       <div className="bi-land-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 48 }}>
         {[
-          ["180 €", "evites en moyenne par utilisateur sur une chaine usee trop tard"],
-          ["2,1x", "de duree de vie en plus quand on respecte le seuil critique"],
-          ["142", "sorties Strava analysees en moyenne par cycliste"],
+          ["180 €", "évités en moyenne sur une chaîne remplacée trop tard"],
+          ["2,1x", "de durée de vie en plus quand on respecte le seuil critique"],
+          ["142", "sorties Strava analysées en moyenne par cycliste"],
           ["< 1 min", "pour synchroniser ton historique complet"],
         ].map(([v, k]) => (
           <div key={String(v)}>
@@ -209,7 +209,7 @@ function LandingHow() {
   const steps = [
     {
       n: "01", title: "Connecte Strava",
-      sub: "On lit tes activites passees et synchronise les nouvelles en temps reel.",
+      sub: "On lit tes activités passées et on synchronise les nouvelles automatiquement.",
       visual: (
         <div style={{ padding: 20, display: "flex", flexDirection: "column" as const, gap: 0 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 16 }}>
@@ -224,20 +224,20 @@ function LandingHow() {
           <div style={{ padding: 12, borderRadius: 10, background: T.bg, border: `1px solid ${T.line}`, fontSize: 11.5, lineHeight: 1.5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.ok, fontWeight: 600, fontSize: 10.5 }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
-              CONNECTE
+              CONNECTÉ
             </div>
             <div style={{ marginTop: 8, color: T.muted }}>
-              <span style={{ color: T.ink, fontWeight: 600 }}>142 activites</span> importees<br/>
-              <span style={{ color: T.ink, fontWeight: 600 }}>3 velos</span> detectes<br/>
-              <span style={{ color: T.ink, fontWeight: 600 }}>4 500 km</span> synchronises
+              <span style={{ color: T.ink, fontWeight: 600 }}>142 activités</span> importées<br/>
+              <span style={{ color: T.ink, fontWeight: 600 }}>3 vélos</span> détectés<br/>
+              <span style={{ color: T.ink, fontWeight: 600 }}>4 500 km</span> synchronisés
             </div>
           </div>
         </div>
       ),
     },
     {
-      n: "02", title: "Declare ton materiel",
-      sub: "Chaîne, pneus, cassette. Prix et date d'installation. On gere le reste.",
+      n: "02", title: "Déclare ton matériel",
+      sub: "Chaîne, pneus, cassette. Prix et date d'installation. On gère le reste.",
       visual: (
         <div style={{ padding: 20, display: "flex", flexDirection: "column" as const, gap: 8 }}>
           {[["Chaîne", "Shimano Ultegra", "38 €"], ["Pneus AR", "Continental GP5000", "52 €"], ["Cassette", "Ultegra 11-30", "85 €"]].map(([n, m, p], i) => (
@@ -256,8 +256,8 @@ function LandingHow() {
       ),
     },
     {
-      n: "03", title: "Recois la decision",
-      sub: "On te dit quand changer, combien, et combien tu economies en agissant maintenant.",
+      n: "03", title: "Reçois la décision",
+      sub: "On te dit quand changer, combien, et combien tu économises en agissant à temps.",
       visual: (
         <div style={{ padding: 20 }}>
           <div style={{ padding: 14, background: T.ink, color: "#fff", borderRadius: 10 }}>
@@ -266,13 +266,13 @@ function LandingHow() {
               <span style={{ fontSize: 9, fontWeight: 700, color: T.bad, letterSpacing: 0.8, textTransform: "uppercase" as const }}>Action prioritaire</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 500, marginTop: 8, lineHeight: 1.3 }}>
-              Remplace ta chaine dans les <Mono style={{ color: T.accent, fontWeight: 600 }}>~160 km</Mono>.
+              Remplace ta chaîne dans les <Mono style={{ color: T.accent, fontWeight: 600 }}>~160 km</Mono>.
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 6, lineHeight: 1.4 }}>
               Si tu attends, tu uses ta cassette et tes plateaux.
             </div>
             <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Cout evite ·</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Coût évité ·</span>
               <Mono style={{ fontSize: 16, fontWeight: 600, color: T.accent }}>180 €</Mono>
             </div>
           </div>
@@ -285,10 +285,10 @@ function LandingHow() {
     <div className="bi-land-pad" style={{ padding: "80px 48px 64px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Comment ca marche</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Comment ça marche</div>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 600 }}>
-            Trois etapes, et{" "}
-            <span style={{ background: T.accent, padding: "0 6px", borderRadius: 4 }}>ton materiel pilote tout seul</span>.
+            Trois étapes, et{" "}
+            <span style={{ background: T.accent, padding: "0 6px", borderRadius: 4 }}>ton matériel se pilote tout seul</span>.
           </div>
         </div>
         <div style={{ fontSize: 13, color: T.muted, maxWidth: 280, lineHeight: 1.55 }}>
@@ -322,19 +322,19 @@ function LandingInsights() {
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Ce que tu vas apprendre</div>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 560 }}>
-            Des decisions, pas des dashboards.
+            Des décisions, pas des dashboards.
           </div>
         </div>
         <div style={{ fontSize: 13, color: T.muted, maxWidth: 320, lineHeight: 1.55 }}>
-          Voici trois insights reels remontés a des beta-testeurs sur les 30 derniers jours.
+          Voici trois insights réels remontés à des beta-testeurs sur les 30 derniers jours.
         </div>
       </div>
 
       <div className="bi-land-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         {[
-          { eyebrow: "Sur-remplacement detecte", color: T.accent, headline: "Tu changes tes chaines 30% trop tot.", body: "Le seuil critique est a 95% d'usure, pas 70%.", impact: "+ 22 €/an" },
-          { eyebrow: "Anomalie mecanique", color: T.warn, headline: "Ton pneu AR s'use 2x plus vite que l'AV.", body: "Probablement une pression mal ajustee ou un poids mal reparti.", impact: "Risque ponction x2" },
-          { eyebrow: "Concentration des couts", color: T.muted, headline: "La transmission represente 60% de ton budget.", body: "Concentre tes efforts d'optimisation ici.", impact: "263 € / 412 €" },
+          { eyebrow: "Sur-remplacement détecté", color: T.accent, headline: "Tu changes tes chaînes 30 % trop tôt.", body: "Le seuil critique est à 95 % d'usure, pas 70 %.", impact: "+ 22 €/an" },
+          { eyebrow: "Anomalie mécanique", color: T.warn, headline: "Ton pneu AR s'use 2x plus vite que l'AV.", body: "Probablement une pression mal ajustée ou un poids mal réparti.", impact: "Risque crevaison x2" },
+          { eyebrow: "Concentration des coûts", color: T.muted, headline: "La transmission représente 60 % de ton budget.", body: "Concentre tes efforts d'optimisation ici.", impact: "263 € / 412 €" },
         ].map((item, idx) => (
           <div key={idx} style={{ borderRadius: 16, background: T.card, border: `1px solid ${T.line}`, padding: 24, borderLeft: `4px solid ${item.color}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -357,11 +357,12 @@ function LandingInsights() {
 // ── Comparison ─────────────────────────────────────────────────
 function LandingComparison() {
   const rows = [
-    ["Sync auto Strava", "check", "dash", "manuel", "cross"],
-    ["Cout par km calcule", "check", "cross", "cross", "manual"],
-    ["Recommandations d'action", "check", "cross", "basic", "cross"],
-    ["Cout evite chiffre", "check", "cross", "cross", "cross"],
-    ["Score de pret a rouler", "check", "cross", "cross", "cross"],
+    ["Sync auto Strava", "check", "partiel", "manuel", "cross"],
+    ["Suivi de la dépense d'entretien", "check", "cross", "basique", "manuel"],
+    ["Score de forme du vélo", "check", "cross", "cross", "cross"],
+    ["Alerte d'usure écrite sur Strava", "check", "cross", "cross", "cross"],
+    ["Projection des dépenses à venir", "check", "cross", "cross", "cross"],
+    ["Coût évité chiffré", "check", "cross", "cross", "cross"],
     ["Comparateur de remplacement", "check", "cross", "cross", "cross"],
   ];
 
@@ -370,7 +371,7 @@ function LandingComparison() {
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Pourquoi pas Strava, ProBikeGarage ou un tableur ?</div>
-          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Ils tracent. On decide.</div>
+          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Ils tracent. On décide.</div>
         </div>
 
         <div className="bi-land-table-wrap" style={{ background: T.bg, borderRadius: 16, border: `1px solid ${T.line}`, overflow: "hidden" }}>
@@ -413,13 +414,13 @@ function LandingCTA() {
     <div className="bi-land-pad" style={{ padding: "80px 48px", background: T.ink, color: "#fff", textAlign: "center", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 60%)" }} />
       <div style={{ position: "relative" }}>
-        <div style={{ fontSize: 10.5, fontWeight: 600, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>Beta · acces libre</div>
+        <div style={{ fontSize: 10.5, fontWeight: 600, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>Beta · accès libre</div>
         <div style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: 600, letterSpacing: -2, lineHeight: 1.05, marginTop: 16 }}>
           Connecte ton Strava.<br />
           On s&apos;occupe du reste.
         </div>
         <div style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", marginTop: 20, maxWidth: 480, margin: "20px auto 0", lineHeight: 1.55 }}>
-          30 secondes de setup. Tu vois tes premiers insights immediatement.
+          30 secondes de setup. Tu vois tes premiers insights immédiatement.
         </div>
         <div style={{ marginTop: 36, display: "flex", justifyContent: "center", gap: 12 }}>
           <Link href="/signup">
@@ -447,13 +448,13 @@ function LandingFooter() {
             <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
           </div>
           <div style={{ fontSize: 12, color: T.muted, marginTop: 12, lineHeight: 1.55, maxWidth: 280 }}>
-            L&apos;outil de gestion matériel pour cyclistes Strava.
+            L&apos;outil de gestion du matériel pour cyclistes Strava.
           </div>
         </div>
         {[
-          ["Produit", ["Fonctionnalites", "Tarifs", "Roadmap", "Statut"]],
-          ["Ressources", ["Blog", "Guide entretien", "Methodologie", "API"]],
-          ["Legal", ["Confidentialite", "Conditions", "Cookies", "Contact"]],
+          ["Produit", ["Fonctionnalités", "Tarifs", "Roadmap", "Statut"]],
+          ["Ressources", ["Blog", "Guide entretien", "Méthodologie", "API"]],
+          ["Legal", ["Confidentialité", "Conditions", "Cookies", "Contact"]],
         ].map(([h, items]) => (
           <div key={h as string}>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>{h as string}</div>
@@ -464,7 +465,7 @@ function LandingFooter() {
         ))}
       </div>
       <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: T.muted }}>
-        <Mono>© 2026 Bike Insight · v 0.4.2 beta</Mono>
+        <Mono>© 2026 Bike Insight · v 0.5 beta</Mono>
       </div>
     </div>
   );
@@ -479,6 +480,7 @@ export default function Home() {
       <LandingMetrics />
       <LandingHow />
       <LandingInsights />
+      <LandingComparison />
       <LandingCTA />
       <LandingFooter />
     </main>

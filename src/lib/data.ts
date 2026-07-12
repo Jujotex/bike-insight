@@ -679,19 +679,18 @@ export async function getCostData() {
     .filter(u => u.weeksUntil <= 52)
     .reduce((s, u) => s + u.cost, 0)
 
-  // ── Activité 30 jours (tous vélos) ────────────────────────────
-  const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  const activityChart = Array.from({ length: 30 }, (_, i) => {
-    const day = new Date(thirtyAgo)
-    day.setDate(day.getDate() + i)
-    const dayStr = day.toISOString().slice(0, 10)
-    return Math.round(
-      acts
-        .filter(a => (a.started_at as string).slice(0, 10) === dayStr)
-        .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
-    )
-  })
-  const totalKm30d = activityChart.reduce((s, v) => s + v, 0)
+  // ── Activité 3 mois (tous vélos, agrégée par semaine) ─────────
+  const WEEKS = 13
+  const nowMs = Date.now()
+  const weekly = new Array(WEEKS).fill(0)
+  for (const a of acts) {
+    const daysAgo = (nowMs - new Date(a.started_at as string).getTime()) / 86400000
+    if (daysAgo < 0 || daysAgo >= WEEKS * 7) continue
+    const idx = WEEKS - 1 - Math.floor(daysAgo / 7) // semaine la plus récente = dernière barre
+    weekly[idx] += (a.distance_km as number) ?? 0
+  }
+  const activityChart = weekly.map(v => Math.round(v))
+  const totalKm90d = activityChart.reduce((s, v) => s + v, 0)
 
   return {
     kpis: {
@@ -702,7 +701,7 @@ export async function getCostData() {
     breakdown,
     activity: {
       chart: activityChart,
-      total30d: totalKm30d,
+      total: totalKm90d,
     },
     projection: {
       total12m: Math.round(projected12m),
@@ -718,7 +717,7 @@ export async function getCostData() {
       replacementCost: Math.round(replacementTotal),
       servicingCost: Math.round(servicingTotal),
     },
-    hasData: spendTotal > 0 || upcomingAll.length > 0 || totalKm30d > 0,
+    hasData: spendTotal > 0 || upcomingAll.length > 0 || totalKm90d > 0,
   }
 }
 
