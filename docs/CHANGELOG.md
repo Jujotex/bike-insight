@@ -5,6 +5,11 @@
 
 ---
 
+## [Unreleased] — Landing : contenu réaligné sur l'app
+
+### Changed
+- `src/app/page.tsx` : contenu de la page d'accueil remis en cohérence avec l'app (design inchangé) — mockup héro passe de « Prêt à rouler » à « Score de forme » (sous-scores Pièces/Entretien) et « Ce qui t'attend », tableau comparatif mis à jour (retrait « coût/km », ajout Score de forme, Alerte d'usure Strava, Projection des dépenses, Suivi de la dépense d'entretien) et ré-activé dans le rendu, accents corrigés partout, version footer → v0.5.
+
 ## [Unreleased] — Page Coût : détail des prix par catégorie
 
 ### Added

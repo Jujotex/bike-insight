@@ -78,12 +78,12 @@ export default async function CostPage() {
               </div>
             </div>
 
-            {/* Activité · 30 j — vue d'ensemble */}
-            {activity.total30d > 0 && (
+            {/* Activité · 3 mois — vue d'ensemble */}
+            {activity.total > 0 && (
               <BiCard pad={22} style={{ marginBottom: 14 }}>
-                <BiLabel>Activité · 30 j</BiLabel>
+                <BiLabel>Activité · 3 mois</BiLabel>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total30d)}</Mono>
+                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total)}</Mono>
                   <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
                 </div>
                 <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
