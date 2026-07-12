@@ -3,6 +3,7 @@
 ## [Non publié] — setup Capacitor (apps iOS/Android)
 
 ### Ajouté
+- **Icône et splash screen mobiles** : sources 1024/2732 px dans `assets/` (logo « pulse » sur fond lime, splash clair + sombre), déclinées pour iOS et Android via `npx @capacitor/assets generate` (voir `docs/mobile-setup.md`).
 - **Capacitor 8 en mode remote URL** : `capacitor.config.ts` (appId `com.bikeinsight.app`, WebView pointant vers la prod Vercel), coquille `capacitor-shell/`, dépendances `@capacitor/{core,ios,android,cli}`. La version web est inchangée. Voir `docs/mobile-setup.md` pour générer les projets natifs (`npx cap add ios android`) et la marche à suivre stores (Codemagic pour iOS sans Mac).
 
 ## [Non publié] — icône vélo cartoon

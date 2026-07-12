@@ -39,7 +39,20 @@ Après tout changement de `capacitor.config.ts` : `npx cap sync`.
    d'écran par taille d'appareil, texte de présentation, **politique de
    confidentialité** (URL publique obligatoire).
 
-## 4. Risque Apple guideline 4.2 (« simple site web emballé »)
+## 4. Icône et splash screen
+
+Les sources sont dans `assets/` (générées depuis le logo « pulse » du site,
+fond lime `#C7FF3F`) : `icon-only.png`, `icon-foreground.png` +
+`icon-background.png` (icône adaptive Android), `splash.png` et `splash-dark.png`.
+
+Pour générer toutes les tailles iOS/Android (à relancer si les sources changent) :
+
+```bash
+npx @capacitor/assets generate
+npx cap sync
+```
+
+## 5. Risque Apple guideline 4.2 (« simple site web emballé »)
 
 Pour maximiser les chances d'acceptation, prévoir avant la soumission App Store :
 
