@@ -5,6 +5,14 @@
 
 ---
 
+## [Unreleased] — Design : convention de tableaux unifiée
+
+### Changed
+- `src/app/globals.css` : en-têtes des trois tableaux (`.bi-comp-table-header-row`, `.bi-maint-header-row`) passés de 10,5 px à 11 px (aligné sur `.bi-label`) ; `.bi-maint-row` : padding de ligne 13 → 14 px 22 px (même valeur que `.bi-comp-table-data-row`). Hover `var(--bi-bg)` déjà commun aux trois tables.
+- `src/app/bikes/[id]/page.tsx` : colonne « Installé » (date) alignée à droite pour homogénéiser les colonnes numériques.
+- `src/components/bi/maintenance-card.tsx` : colonnes « Dernier » (date) et « Depuis » (km) alignées à droite en `Mono`.
+- `src/app/reglages/entretiens/client.tsx` : en-tête du tableau des types passé à 11 px, padding de ligne harmonisé à `14px 22px` (colonnes numériques déjà à droite en `Mono`).
+
 ## [Unreleased] — Landing : contenu réaligné sur l'app
 
 ### Changed

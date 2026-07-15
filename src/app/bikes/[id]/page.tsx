@@ -163,7 +163,7 @@ export default async function BikeDetailPage({
             </div>
             <div className="bi-comp-table-header-row">
               <span>Pièce</span>
-              <span className="bi-comp-col-installed">Installé</span>
+              <span className="bi-comp-col-installed" style={{ textAlign: "right" }}>Installé</span>
               <span>Usure</span>
               <span className="bi-comp-col-km" style={{ textAlign: "right" }}>Km</span>
             </div>
@@ -187,7 +187,7 @@ export default async function BikeDetailPage({
                         <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
                       </div>
                     </div>
-                    <div className="bi-comp-col-installed">
+                    <div className="bi-comp-col-installed" style={{ textAlign: "right" }}>
                       <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{installedDate}</Mono>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

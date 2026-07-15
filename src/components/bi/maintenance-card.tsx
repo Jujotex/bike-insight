@@ -118,9 +118,9 @@ export function MaintenanceCard({
       ) : (
       <div className="bi-maint-header-row">
         <span>Entretien</span>
-        <span className="bi-maint-col-last">Dernier</span>
+        <span className="bi-maint-col-last" style={{ textAlign: "right" }}>Dernier</span>
         <span>Échéance</span>
-        <span className="bi-maint-col-last">Depuis</span>
+        <span className="bi-maint-col-last" style={{ textAlign: "right" }}>Depuis</span>
         <span style={{ textAlign: "right" }}></span>
       </div>
       )}
@@ -157,7 +157,7 @@ export function MaintenanceCard({
               </Link>
 
               {/* Dernier (date) */}
-              <div className="bi-maint-col-last">
+              <div className="bi-maint-col-last" style={{ textAlign: "right" }}>
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastDate}</Mono>
               </div>
 
@@ -176,7 +176,7 @@ export function MaintenanceCard({
               )}
 
               {/* Depuis */}
-              <div className="bi-maint-col-last">
+              <div className="bi-maint-col-last" style={{ textAlign: "right" }}>
                 <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastSince}</Mono>
               </div>
 

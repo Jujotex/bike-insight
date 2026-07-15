@@ -7,7 +7,9 @@
   /* Palette */
   --bi-bg:          #F4F4EF;   /* warm off-white page background */
   --bi-card:        #FFFFFF;   /* card surface */
+  --bi-white:       #FFFFFF;   /* pure white (texte sur fond sombre, etc.) */
   --bi-ink:         #0E0E10;   /* primary text, buttons */
+  /* Mapping encre : l'ancien doublon #14141a doit être remplacé par var(--bi-ink) */
   --bi-muted:       #6B6B72;   /* secondary text, labels */
   --bi-line:        rgba(14,14,16,0.08);  /* borders, dividers */
   --bi-soft-line:   rgba(14,14,16,0.04); /* internal card dividers */
@@ -20,6 +22,15 @@
   --bi-ok:          #0E8F5A;   /* green — component OK */
   --bi-warn:        #D08415;   /* amber — to watch */
   --bi-bad:         #C8362E;   /* red — to replace */
+
+  /* Status — teintes douces (fonds de badges, encarts, pastilles) */
+  --bi-ok-soft:     rgba(14,143,90,0.08);
+  --bi-warn-soft:   rgba(208,132,21,0.08);
+  --bi-bad-soft:    rgba(200,54,46,0.08);
+  --bi-accent-soft: rgba(199,255,63,0.10);
+
+  /* Marque Strava */
+  --bi-strava:      #FC4C02;
 
   /* Typography */
   --bi-font-ui:     "Geist", -apple-system, system-ui, sans-serif;
@@ -53,6 +64,17 @@ body {
   text-transform: uppercase;
   color: var(--bi-muted);
 }
+
+/* ── Échelle typographique ──────────────────────────────────────
+   Tailles autorisées (font-size uniquement, pas de graisse/couleur).
+   Mapping des demi-pixels existants lors des passes de nettoyage :
+   9.5→10 · 10.5→11 · 11.5→12 · 12.5→13 · 13.5→13 · 14.5→14 */
+.bi-text-2xs  { font-size: 10px; }
+.bi-text-xs   { font-size: 11px; }
+.bi-text-sm   { font-size: 12px; }
+.bi-text-base { font-size: 13px; }
+.bi-text-md   { font-size: 14px; }
+.bi-text-lg   { font-size: 16px; }
 
 /* ── Animations ─────────────────────────────────────────────── */
 @keyframes blink {
@@ -122,6 +144,14 @@ body {
   .bi-pagehead-row > *:last-child button,
   .bi-pagehead-row > *:last-child a > button { flex: 1; min-width: 120px; justify-content: center; }
 }
+/* ── Rayons & espacements de référence ──────────────────────────
+   Radius autorisés (pas d'autre valeur en inline) :
+   2 (barres de progression uniquement) · 6 · 8 · 10 · 14 · 18 · 999 (pilule).
+   Mapping des valeurs existantes lors des passes de nettoyage :
+   4/5/7→6 · 9→8 · 12→10 ou 14 (selon le rôle) · 16/20→18.
+   Espacements de rôle (padding) :
+   carte 20px 22px · ligne de tableau 14px 22px · bouton 10px 16px · badge 3px 8px. */
+
 /* ── Shadcn/Tailwind radius token ───────────────────────────── */
 @theme inline {
   --radius-sm: 6px;
@@ -215,7 +245,7 @@ body {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1.4fr 0.6fr;
   gap: 14px;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--bi-muted);
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -303,7 +333,7 @@ body { overflow-x: hidden; }
   display: grid;
   grid-template-columns: 1.6fr 0.9fr 1.1fr 0.9fr 52px;
   gap: 14px;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--bi-muted);
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -315,7 +345,7 @@ body { overflow-x: hidden; }
   grid-template-columns: 1.6fr 0.9fr 1.1fr 0.9fr 52px;
   gap: 14px;
   align-items: center;
-  padding: 13px 22px;
+  padding: 14px 22px;
   transition: background 0.1s;
 }
 .bi-maint-row:hover { background: var(--bi-bg); }
