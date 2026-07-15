@@ -285,7 +285,7 @@ export function MaintenanceSettingsClient({
         {bikeTypes.length > 0 && (
           <>
             {/* En-têtes de colonnes */}
-            <div className="bi-mt-row" style={{ padding: "8px 20px", fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
+            <div className="bi-mt-row" style={{ padding: "8px 22px", fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", borderBottom: "1px solid var(--bi-line)" }}>
               <span>Entretien</span>
               <span className="bi-mt-num" style={{ textAlign: "right" }}>Échéance km</span>
               <span className="bi-mt-num" style={{ textAlign: "right" }}>Échéance temps</span>
@@ -301,7 +301,7 @@ export function MaintenanceSettingsClient({
                   key={t.id}
                   className="bi-component-row bi-mt-row"
                   onClick={() => openEdit(t)}
-                  style={{ padding: "14px 20px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer" }}
+                  style={{ padding: "14px 22px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                     <div style={{ width: 4, height: 28, background: "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
