@@ -7,9 +7,14 @@
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+// Photon (Komoot) : moteur de géocodage OSM pensé pour l'autocomplétion
+// type-ahead (Nominatim l'interdit sur son serveur public). Gratuit, sans clé.
+const PHOTON_URL = "https://photon.komoot.io/api/";
 const USER_AGENT = "BikeInsight/1.0 (assistant d'entretien vélo)";
 
 export type GeoPoint = { lat: number; lon: number; label: string };
+
+export type AddressSuggestion = { label: string; lat: number; lon: number };
 
 export type Velociste = {
   id: string;
@@ -67,6 +72,40 @@ export async function geocodeAddress(query: string): Promise<GeoPoint | null> {
   if (!Array.isArray(data) || data.length === 0) return null;
   const hit = data[0];
   return { lat: Number(hit.lat), lon: Number(hit.lon), label: hit.display_name };
+}
+
+// Autocomplétion d'adresse (type-ahead) via Photon. Renvoie quelques
+// suggestions avec leurs coordonnées, pour lancer la recherche sans
+// second géocodage. Tolérant : liste vide en cas d'échec.
+export async function suggestAddresses(query: string): Promise<AddressSuggestion[]> {
+  const url = `${PHOTON_URL}?q=${encodeURIComponent(query)}&lang=fr&limit=6`;
+  const res = await fetchWithTimeout(
+    url,
+    { headers: { "User-Agent": USER_AGENT }, cache: "no-store" },
+    6000
+  );
+  if (!res.ok) return [];
+  const json = (await res.json()) as {
+    features?: Array<{
+      geometry?: { coordinates?: [number, number] };
+      properties?: Record<string, string>;
+    }>;
+  };
+
+  const out: AddressSuggestion[] = [];
+  const seen = new Set<string>();
+  for (const f of json.features ?? []) {
+    const coords = f.geometry?.coordinates;
+    if (!coords || coords.length < 2) continue;
+    const p = f.properties ?? {};
+    const line1 = p.name || [p.housenumber, p.street].filter(Boolean).join(" ");
+    const line2 = [p.postcode, p.city].filter(Boolean).join(" ");
+    const label = [line1, line2, p.country].filter(Boolean).join(", ");
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    out.push({ label, lat: coords[1], lon: coords[0] });
+  }
+  return out;
 }
 
 type OverpassElement = {
