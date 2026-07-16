@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
 import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
-import { matchBikeModel } from "@/lib/bike-models";
+import { resolveBikeModel, type Confidence } from "@/lib/bike-models";
 
 type Bike = {
   id: string;
@@ -91,6 +91,8 @@ export function OnboardingWizard({
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
   const [modelHint, setModelHint] = useState("");
+  const [modelConfidence, setModelConfidence] = useState<Confidence | null>(null);
+  const [modelNote, setModelNote] = useState("");
 
   const selectedBike = bikes.find(b => b.id === selectedBikeId);
   const availableTemplates = getTemplatesForType(bikeType);
@@ -101,14 +103,18 @@ export function OnboardingWizard({
   useEffect(() => {
     const b = bikes.find(x => x.id === selectedBikeId);
     if (!b) return;
-    const m = matchBikeModel(`${b.brand ?? ""} ${b.model ?? ""} ${b.name}`);
+    const m = resolveBikeModel(`${b.brand ?? ""} ${b.model ?? ""} ${b.name}`);
     if (m && !templateId) {
       setBikeType(m.bikeType);
       setTemplateId(m.templateId);
       setBrakeType(m.brakeType);
       setModelHint(m.label);
+      setModelConfidence(m.confidence);
+      setModelNote(m.note ?? "");
     } else if (!m) {
       setModelHint("");
+      setModelConfidence(null);
+      setModelNote("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBikeId]);
@@ -285,7 +291,21 @@ export function OnboardingWizard({
 
             {modelHint && (
               <div style={{ marginBottom: 18, padding: "10px 14px", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.35)", fontSize: 13, color: T.ink }}>
-                Pré-rempli d&apos;après ton vélo (<strong>{modelHint}</strong>) — vérifie que ça correspond à ta monte réelle.
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span>Pré-rempli d&apos;après ton vélo (<strong>{modelHint}</strong>)</span>
+                  {modelConfidence && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                      background: modelConfidence === "high" ? "var(--bi-ok-soft)" : modelConfidence === "medium" ? "var(--bi-warn-soft)" : "var(--bi-bad-soft)",
+                      color: modelConfidence === "high" ? "var(--bi-ok)" : modelConfidence === "medium" ? "var(--bi-warn)" : "var(--bi-bad)",
+                    }}>
+                      {modelConfidence === "high" ? "Confiance élevée" : modelConfidence === "medium" ? "À confirmer" : "Groupe supposé"}
+                    </span>
+                  )}
+                </div>
+                <div style={{ marginTop: 4, fontSize: 12, color: "var(--bi-muted)" }}>
+                  {modelNote || "Vérifie que ça correspond à ta monte réelle."}
+                </div>
               </div>
             )}
 

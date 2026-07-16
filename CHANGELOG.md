@@ -1,5 +1,18 @@
 # Changelog
 
+## [Non publié] — feat : identification modèle précise + confiance (Phases 2 & 3)
+
+### Ajouté
+- **`src/lib/bike-models.ts`** (Phase 2) : les familles peuvent porter des **finitions** (`trims`) avec **année** (ex. « Addict 30 » 105 11v ≤2021 / 105 12v ≥2022). Nouveau `resolveBikeModel(text)` qui renvoie le groupe **+ un niveau de confiance** (`high` finition+année, `medium` finition seule, `low` famille seule) et une note honnête. `matchBikeModel` conservé pour compat.
+
+### Modifié
+- **`src/app/onboarding/client.tsx`** (Phase 3) : le pré-remplissage utilise `resolveBikeModel` et affiche un **badge de confiance** (Confiance élevée / À confirmer / Groupe supposé) + la note. Fini le « pré-rempli » présenté comme certain.
+- **`src/app/components/[id]/compare/page.tsx`** (Phase 3) : encart honnête pour les freins — « le modèle exact dépend de ton étrier, vérifie le code gravé (L03A/K02S = route, M06/B01S = VTT), sinon ton vélociste ». Ancre la reco sur la vraie pièce pour un client non-mécano.
+
+### Reste à faire
+- La table des finitions est **amorcée** (Scott Addict, Canyon Endurace/Ultimate, Trek Domane…) et doit grandir dans le temps (ou être alimentée par une source externe plus tard).
+- Split route/VTT côté SRAM (plaquettes) encore ouvert.
+
 ## [Non publié] — feat : moteur de règles de compatibilité (source de vérité) — Phase 1
 
 ### Ajouté
