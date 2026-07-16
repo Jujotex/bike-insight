@@ -1,5 +1,19 @@
 # Changelog
 
+## [Non publié] — style : liste des vélocistes retravaillée (pastilles + scroll)
+
+### Modifié
+- **`src/components/bi/velociste-finder.tsx`** : refonte visuelle de la liste des résultats. Chaque vélociste a une pastille générée (initiale du nom sur fond encre + accent — visuel sans requête, OSM ne fournissant pas de photos fiables), un badge de distance, l'adresse, les horaires si disponibles, et des chips d'action (Itinéraire / Site / Appeler). La liste est désormais **scrollable à hauteur fixe** (`max-height` + `overflow-y`) avec un en-tête de comptage, pour ne plus allonger la page. Ajout d'un `chipStyle` réutilisable.
+
+## [Non publié] — feat : autocomplétion d'adresse dans la recherche de vélocistes
+
+### Ajouté
+- **`src/lib/velocistes.ts`** : `suggestAddresses` (type-ahead) via **Photon (Komoot)** — moteur de géocodage OSM conçu pour l'autocomplétion, contrairement à Nominatim qui l'interdit sur son serveur public. Gratuit, sans clé. Renvoie label + coordonnées, dédupliqué.
+- **`src/app/api/velocistes/suggest/route.ts`** : route handler `GET` authentifiée renvoyant les suggestions d'adresse (min. 3 caractères).
+
+### Modifié
+- **`src/components/bi/velociste-finder.tsx`** : le champ adresse propose une liste de suggestions au fil de la frappe (debounce 250 ms, dropdown). Sélectionner une suggestion lance directement la recherche avec ses coordonnées (plus précis, pas de second géocodage). Le bouton « Chercher » reste un repli si l'utilisateur ne pique pas de suggestion.
+
 ## [Non publié] — feat : recherche de vélocistes par adresse (page tuto)
 
 ### Ajouté
