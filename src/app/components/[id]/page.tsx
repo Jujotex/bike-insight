@@ -6,7 +6,7 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { findRepairGuide } from "@/lib/repair-guides";
+import { findRepairGuide, DIFFICULTY_LABELS, formatRepairTime } from "@/lib/repair-guides";
 import { redirect } from "next/navigation";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -402,27 +402,32 @@ export default async function ComponentDetailPage({
 
         {(comp.status as string) !== "archived" && (
           <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
-            <div style={{ padding: "22px 22px 12px" }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Et maintenant ?</div>
-              <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{repairGuide.operation}</div>
-            </div>
-            <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)", borderTop: "1px solid var(--bi-line)" }}>
-              <a href={repairGuide.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", color: "var(--bi-ink)" }}>
-                <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
-                <div style={{ fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                  Voir le tuto
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+            <Link href={"/components/" + id + "/tuto"} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+              {/* En-tête accentué : action à venir */}
+              <div style={{ padding: "18px 22px", background: "var(--bi-accent-soft)", borderBottom: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <BiLabel style={{ fontSize: 10 }}>Et maintenant ?</BiLabel>
+                  <div style={{ fontSize: 16, fontWeight: 600, marginTop: 4 }}>{repairGuide.operation}</div>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>
-                  Niveau {repairGuide.difficulty} · {repairGuide.tutorialSource}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
+                  Voir le détail
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </div>
-              </a>
-              <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
-                <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
-                <Mono style={{ fontSize: 16, fontWeight: 500 }}>{repairGuide.laborMin}–{repairGuide.laborMax} €</Mono>
-                <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Main-d&apos;œuvre indicative, hors pièces</div>
               </div>
-            </div>
+              {/* Arbitrage : temps (soi-même) vs coût (vélociste) */}
+              <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)" }}>
+                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
+                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{formatRepairTime(repairGuide.timeMin, repairGuide.timeMax)}</Mono>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Niveau {DIFFICULTY_LABELS[repairGuide.difficulty].toLowerCase()} · avec tuto</div>
+                </div>
+                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
+                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{repairGuide.laborMin}–{repairGuide.laborMax} €</Mono>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Main-d&apos;œuvre indicative, hors pièces</div>
+                </div>
+              </div>
+            </Link>
           </BiCard>
         )}
 

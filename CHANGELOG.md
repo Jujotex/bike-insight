@@ -1,5 +1,15 @@
 # Changelog
 
+## [Non publié] — feat : page tuto dédiée + carte « Et maintenant ? » renforcée
+
+### Ajouté
+- **`src/app/components/[id]/tuto/page.tsx`** : nouvelle page hub contextuelle par composant. Reprend le modèle de `/compare` (Server Component, auth, `component_stats` + `bikes`, `PageHead` avec bouton Retour). Affiche l'opération de réparation, un bandeau difficulté (libellé + description) et temps DIY indicatif, puis un arbitrage détaillé « je le fais moi-même » (temps, niveau, outils indicatifs sous forme de pills, bouton vers le tuto externe hébergé par la source) vs « je passe chez le vélociste » (fourchette main-d'œuvre). Note de prudence en pied (ordres de grandeur, pas un devis, vérifier la compatibilité). Zéro contenu maison : la page agrège du contexte + un lien tuto externe, conforme à la vision (aide à la décision, pas producteur de tutos).
+
+### Modifié
+- **`src/lib/repair-guides.ts`** : le type `RepairGuide` gagne trois champs indicatifs — `timeMin`/`timeMax` (temps DIY en minutes) et `tools` (outils indicatifs) — renseignés sur chaque guide et le repli générique. Ajout des helpers exportés `DIFFICULTY_LABELS`, `DIFFICULTY_DESC` et `formatRepairTime(min, max)`. Données 100 % statiques, ordres de grandeur documentés en tête de fichier ; aucune nouvelle dépendance.
+- **`src/app/components/[id]/page.tsx`** : la carte « Et maintenant ? » est renforcée et rendue plus visible. En-tête accentué (`--bi-accent-soft`) avec l'opération en titre et une affordance « Voir le détail → ». L'arbitrage est symétrisé (temps si l'on fait soi-même vs coût atelier) plutôt que « lien tuto » vs « prix ». Toute la carte est désormais un `Link` vers la nouvelle page `/components/[id]/tuto` (le lien direct vers le tuto externe vit maintenant sur cette page de détail). Import de `DIFFICULTY_LABELS` et `formatRepairTime`.
+- Vérification : ⚠️ `npx tsc --noEmit` / `npm run lint` non concluants dans le sandbox — le mount bash sert toujours des instantanés **tronqués** des fichiers (ex. `repair-guides.ts` coupé à ~181 lignes sur ~264, octets NUL en fin), ce qui génère de fausses erreurs de parsing en fin de fichier y compris sur des fichiers non touchés. Les fichiers réels écrits sont complets et bien formés (patterns, imports et JSX calqués sur `/compare` et la carte existante). À confirmer par un `tsc` + `lint` local, faisant foi.
+
 ## [Non publié] — chore : vérification finale de la roadmap (chantier 4.3)
 
 ### Vérifié
