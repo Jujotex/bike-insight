@@ -1,5 +1,30 @@
 # Changelog
 
+## [Non publié] — feat : recherche de vélocistes par adresse (page tuto)
+
+### Ajouté
+- **`src/lib/velocistes.ts`** : logique de recherche 100 % OpenStreetMap, sans clé API ni dépendance. `geocodeAddress` (Nominatim) transforme une adresse en point ; `findVelocistes` (Overpass, `shop=bicycle`) renvoie les magasins vélo dans un rayon de 15 km, triés par distance (Haversine), avec nom, adresse, téléphone/site/horaires si dispo et un lien itinéraire externe. `fetchWithTimeout` pour ne pas laisser pendre les requêtes.
+- **`src/app/api/velocistes/route.ts`** : route handler `GET` authentifiée. Deux modes — `?q=adresse` (géocodage) ou `?lat=&lon=` (géolocalisation). Gère les erreurs (adresse introuvable → 404, service indispo → 502).
+- **`src/components/bi/velociste-finder.tsx`** : composant client. Champ adresse + bouton « Utiliser ma position » (géolocalisation navigateur), résultats rendus **en liste** (pas de carte, app légère) avec distance, itinéraire, site et appel. États chargement / erreur / vide gérés.
+
+### Modifié
+- **`src/app/components/[id]/tuto/page.tsx`** : le finder est intégré dans la carte « Je passe chez le vélociste ». Grille des deux options alignée en haut (`align-items: start`) pour que la carte DIY ne s'étire pas quand la liste s'allonge.
+
+## [Non publié] — fix : tutos de réparation pointant au bon endroit
+
+### Corrigé
+- **`src/lib/repair-guides.ts`** : deux bugs de mapping des tutos.
+  - **Collision de mots-clés** : « Boîtier de pédalier » était capté par le guide « plateaux » (mot-clé « pédalier ») et proposait le mauvais tuto. Ajout d'un guide `boitier` dédié, placé **avant** `plateaux` dans l'ordre de priorité, avec son propre tuto (roulements de pédalier externes).
+  - **Replis génériques** : plusieurs pièces tombaient sur le hub d'entretien générique faute de guide. Ajout de guides dédiés `derailleur` (galets/dérailleur), `roulements` (roulements de roue) et `chambre` (chambre à air), pointant vers les vrais tutos Alltricks correspondants.
+  - **URLs** : toutes les URLs Alltricks re-vérifiées (juillet 2026) contre le hub d'entretien officiel ; `chaine` → URL canonique `remplacer-sa-chaine`, `cable` → `remplacementdescables_v2`, `cat-transmission` → `entretien-transmission-velo`.
+  - **Flag `generic`** : les guides sans tuto dédié (plateaux, disque, catégories freinage/roues/cockpit, repli générique) sont marqués `generic: true` — ils pointent honnêtement le hub d'entretien.
+- **`src/app/components/[id]/tuto/page.tsx`** : quand `guide.generic`, le CTA affiche « Voir les tutos d'entretien » (au lieu de « Voir le tuto ») avec une note « Pas de tuto dédié pour cette pièce » — plus de fausse promesse de tuto précis.
+
+## [Non publié] — feat : lien « Prochaines étapes » → page tuto (compare)
+
+### Modifié
+- **`src/app/components/[id]/compare/page.tsx`** : l'étape 2 de « Prochaines étapes » (« Fais-la poser ou installe-la toi-même ») faisait doublon avec la nouvelle page tuto. Elle pointe désormais vers `/components/[id]/tuto` via un lien « Voir le tuto et les options », reliant le cycle de remplacement (commander → poser → marquer → suivi) au détail DIY vs vélociste au lieu de le répéter. Tableau des étapes typé explicitement (`href`/`linkLabel` optionnels).
+
 ## [Non publié] — fix : alignement des tableaux Pièces et Entretien (détail vélo)
 
 ### Modifié
