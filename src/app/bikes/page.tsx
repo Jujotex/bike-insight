@@ -103,14 +103,14 @@ export default async function BikesPage() {
         />
 
         {/* Summary strip */}
-        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }}>
+        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 22 }}>
           {[
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
             ["Distance totale", `${totalKm.toLocaleString("fr-FR")} km`],
             ["Dépensé en entretien", `${totalCost.toLocaleString("fr-FR")} €`],
           ].map(([k, v]) => (
-            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "18px 22px" }}>
+            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
               <BiLabel>{k}</BiLabel>
               <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.7, marginTop: 8 }}>{v}</Mono>
             </div>
@@ -150,7 +150,7 @@ export default async function BikesPage() {
                     {/* Hero — fond sombre + quadrillage + SVG coloré */}
                     <div style={{
                       height: 160,
-                      background: "#14141A",
+                      background: "var(--bi-ink)",
                       backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
                       backgroundSize: "20px 20px",
                       position: "relative",
@@ -162,8 +162,8 @@ export default async function BikesPage() {
                       <svg width="140" height="94" viewBox="0 0 150 100" fill="none">
                         <g stroke={bikeColor} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round">
                           {/* Roues (fond = hero sombre) */}
-                          <circle cx="34" cy="66" r="22" fill="#14141A"/>
-                          <circle cx="116" cy="66" r="22" fill="#14141A"/>
+                          <circle cx="34" cy="66" r="22" fill="var(--bi-ink)"/>
+                          <circle cx="116" cy="66" r="22" fill="var(--bi-ink)"/>
                           {/* Cadre losange + fourche */}
                           <path d="M34 66 L70 66 L58 34 L92 34 M70 66 L92 34 M92 34 L116 66"/>
                           {/* Tige de selle + selle */}
@@ -180,9 +180,9 @@ export default async function BikesPage() {
                       {/* Badge STRAVA ou MANUEL */}
                       <span style={{
                         position: "absolute", top: 12, left: 12,
-                        fontSize: 9.5, padding: "3px 8px",
-                        background: isStrava ? "#FC4C02" : "rgba(255,255,255,0.12)",
-                        color: "#fff",
+                        fontSize: 10, padding: "3px 8px",
+                        background: isStrava ? "var(--bi-strava)" : "rgba(255,255,255,0.12)",
+                        color: "var(--bi-white)",
                         borderRadius: 999, fontWeight: 700, letterSpacing: 0.8,
                       }}>
                         {isStrava ? "STRAVA" : "MANUEL"}
@@ -191,7 +191,7 @@ export default async function BikesPage() {
                       {/* Km en bas à droite */}
                       <span style={{
                         position: "absolute", bottom: 12, right: 12,
-                        fontSize: 11.5, fontWeight: 600,
+                        fontSize: 12, fontWeight: 600,
                         color: bikeColor,
                         fontFamily: "var(--bi-font-mono)",
                       }}>
@@ -202,7 +202,7 @@ export default async function BikesPage() {
                       {isActive && (
                         <span style={{
                           position: "absolute", top: 12, right: 12,
-                          fontSize: 10, padding: "4px 9px",
+                          fontSize: 10, padding: "3px 8px",
                           background: "var(--bi-accent)", color: "var(--bi-accent-ink)",
                           borderRadius: 999, fontWeight: 700, letterSpacing: 0.5,
                         }}>
@@ -214,7 +214,7 @@ export default async function BikesPage() {
 
                     <div style={{ padding: 18 }}>
                       <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name as string}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
                         {(b.brand as string | null) ? `${b.brand}${(b.model as string | null) ? ` · ${b.model}` : ""}` : ((b.model as string | null) ?? "Vélo")}
                       </div>
 
@@ -237,7 +237,7 @@ export default async function BikesPage() {
                             </span>
                           )}
                         </div>
-                        <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>
+                        <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>
                           {stats.rides} sortie{stats.rides !== 1 ? "s" : ""}
                         </Mono>
                       </div>
@@ -246,7 +246,7 @@ export default async function BikesPage() {
                       {!isConfigured && (
                         <Link
                           href={`/onboarding?bike_id=${b.id}`}
-                          style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
+                          style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-ok)" }}>Configurer le matériel</span>

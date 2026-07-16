@@ -22,7 +22,7 @@ export default async function EditComponentPage({
     .eq("user_id", user.id)
     .single();
 
-  if (!comp) redirect("/components");
+  if (!comp) redirect("/bikes");
 
   const { data: bike } = await supabase
     .from("bikes")

@@ -34,12 +34,12 @@ export function ArchiveButton({ componentId, isArchived }: ArchiveButtonProps) {
       onClick={handleArchive}
       disabled={loading}
       style={{
-        padding: "9px 16px",
+        padding: "10px 16px",
         background: isArchived ? "var(--bi-ink)" : "transparent",
         color: isArchived ? "var(--bi-bg)" : "var(--bi-ink)",
         border: "1px solid var(--bi-line)",
         borderRadius: 10,
-        fontSize: 12.5,
+        fontSize: 13,
         fontWeight: 600,
         fontFamily: "inherit",
         cursor: loading ? "not-allowed" : "pointer",

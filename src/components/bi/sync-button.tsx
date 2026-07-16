@@ -41,11 +41,11 @@ export function SyncButton({ stravaConnected }: Props) {
     return (
       <a href="/connect/strava" style={{ textDecoration: "none" }}>
         <button style={{
-          padding: "9px 16px", background: "#FC4C02", color: "#fff", border: "none",
-          borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+          padding: "10px 16px", background: "var(--bi-strava)", color: "var(--bi-white)", border: "none",
+          borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit",
           display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
         }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="2" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
           </svg>
           Connecter Strava
@@ -70,17 +70,17 @@ export function SyncButton({ stravaConnected }: Props) {
         onClick={handleSync}
         disabled={status === "loading"}
         style={{
-          padding: "9px 16px",
-          background: status === "loading" ? "rgba(252,76,2,0.6)" : "#FC4C02",
-          color: "#fff", border: "none", borderRadius: 10,
-          fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+          padding: "10px 16px",
+          background: status === "loading" ? "rgba(252,76,2,0.6)" : "var(--bi-strava)",
+          color: "var(--bi-white)", border: "none", borderRadius: 10,
+          fontSize: 13, fontWeight: 600, fontFamily: "inherit",
           display: "flex", alignItems: "center", gap: 6,
           cursor: status === "loading" ? "not-allowed" : "pointer",
         }}
       >
         <svg
           width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="#fff" strokeWidth="2" strokeLinecap="round"
+          stroke="var(--bi-white)" strokeWidth="2" strokeLinecap="round"
           style={{ animation: status === "loading" ? "spin 1s linear infinite" : "none" }}
         >
           <path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3" />

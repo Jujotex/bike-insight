@@ -31,7 +31,7 @@ export function SkelCard({ h, style }: { h: number; style?: React.CSSProperties 
     <div
       style={{
         height: h,
-        borderRadius: 16,
+        borderRadius: 18,
         background: "var(--bi-card)",
         border: "1px solid var(--bi-line)",
         padding: 20,

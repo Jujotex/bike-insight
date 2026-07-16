@@ -124,9 +124,9 @@ export function ActivityChart({ activities }: ActivityChartProps) {
         ))}
       </div>
 
-      <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+      <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
         {labels.map((l, i) => (
-          <Mono key={i} style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>{l}</Mono>
+          <Mono key={i} style={{ fontSize: 11, color: "var(--bi-muted)" }}>{l}</Mono>
         ))}
       </div>
     </div>

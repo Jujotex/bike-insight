@@ -30,7 +30,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
         position: "absolute", top: 3,
         left: enabled ? 21 : 3,
         width: 16, height: 16, borderRadius: 999,
-        background: "#fff",
+        background: "var(--bi-white)",
         transition: "left 0.2s",
         boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
       }} />
@@ -122,7 +122,7 @@ export function NotificationSettings() {
       <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 600 }}>Alertes</div>
-          <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>Activer et régler les seuils d&apos;alerte d&apos;usure</div>
+          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Activer et régler les seuils d&apos;alerte d&apos;usure</div>
         </div>
         {saved && (
           <span style={{ fontSize: 11, color: "var(--bi-ok)", fontWeight: 600 }}>✓ Sauvegardé</span>
@@ -130,7 +130,7 @@ export function NotificationSettings() {
       </div>
 
       {settings === null ? (
-        <div style={{ padding: "24px", fontSize: 12.5, color: "var(--bi-muted)" }}>Chargement des réglages…</div>
+        <div style={{ padding: "24px", fontSize: 13, color: "var(--bi-muted)" }}>Chargement des réglages…</div>
       ) : (
         <>
           {/* Alerte "À remplacer" — bad */}
@@ -139,7 +139,7 @@ export function NotificationSettings() {
               <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-bad)", flexShrink: 0, marginTop: 4 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 500 }}>À remplacer</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>À remplacer</span>
                   <Toggle
                     enabled={settings.notify_bad}
                     onChange={() => save({ ...settings, notify_bad: !settings.notify_bad })}
@@ -147,7 +147,7 @@ export function NotificationSettings() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                   <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Alerte critique — défaut</span>
-                  <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>100%</span>
+                  <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>100%</span>
                 </div>
               </div>
             </div>
@@ -167,7 +167,7 @@ export function NotificationSettings() {
               <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-warn)", flexShrink: 0, marginTop: 4 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 500 }}>À surveiller</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>À surveiller</span>
                   <Toggle
                     enabled={settings.notify_warn}
                     onChange={() => save({ ...settings, notify_warn: !settings.notify_warn })}
@@ -175,7 +175,7 @@ export function NotificationSettings() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                   <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Alerte préventive — défaut</span>
-                  <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>80%</span>
+                  <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", fontWeight: 600 }}>80%</span>
                 </div>
               </div>
             </div>
@@ -192,10 +192,10 @@ export function NotificationSettings() {
           {/* Commentaire d'usure sur Strava */}
           <div style={{ padding: "18px 24px", borderTop: "1px solid var(--bi-line)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ width: 8, height: 8, borderRadius: 999, background: "#FC4C02", flexShrink: 0, marginTop: 4 }} />
+              <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-strava)", flexShrink: 0, marginTop: 4 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 500 }}>Alerte dans la description Strava</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>Alerte dans la description Strava</span>
                   <Toggle
                     enabled={settings.strava_wear_comment}
                     onChange={() => save({ ...settings, strava_wear_comment: !settings.strava_wear_comment })}

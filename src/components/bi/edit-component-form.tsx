@@ -18,7 +18,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   border: "1px solid var(--bi-line)",
   background: "var(--bi-bg)",
-  fontSize: 13.5,
+  fontSize: 13,
   fontWeight: 500,
   color: "var(--bi-ink)",
   fontFamily: "inherit",
@@ -155,7 +155,7 @@ export function EditComponentForm({ component }: { component: EditableComponent 
                 {l.km.toLocaleString("fr")} km
               </Mono>
               <div style={{
-                fontSize: 10.5,
+                fontSize: 11,
                 color: kmMax === String(l.km) ? "rgba(255,255,255,0.6)" : "var(--bi-muted)",
                 marginTop: 2,
               }}>{l.label}</div>
@@ -175,7 +175,7 @@ export function EditComponentForm({ component }: { component: EditableComponent 
         </div>
 
         {error && (
-          <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>
+          <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
             {error}
           </div>
         )}

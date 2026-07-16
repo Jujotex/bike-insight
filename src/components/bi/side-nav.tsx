@@ -80,7 +80,7 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
                 padding: "10px 12px", borderRadius: 10, textDecoration: "none",
                 background: on ? "rgba(14,14,16,0.05)" : "transparent",
                 color: on ? "var(--bi-ink)" : "var(--bi-muted)",
-                fontSize: 13.5, fontWeight: on ? 600 : 500,
+                fontSize: 13, fontWeight: on ? 600 : 500,
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -104,8 +104,8 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
           {userInitials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
-          <div style={{ fontSize: 10.5, color: "var(--bi-muted)" }}>
+          <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
+          <div style={{ fontSize: 11, color: "var(--bi-muted)" }}>
             {bikeCount !== undefined ? `${bikeCount} vélo${bikeCount !== 1 ? "s" : ""} actif${bikeCount !== 1 ? "s" : ""}` : ""}
           </div>
         </div>

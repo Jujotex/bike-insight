@@ -6,6 +6,7 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { findRepairGuide } from "@/lib/repair-guides";
 import { redirect } from "next/navigation";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -63,7 +64,7 @@ export default async function ComponentDetailPage({
       .order("performed_at", { ascending: true }),
   ]);
 
-  if (!comp) redirect("/components");
+  if (!comp) redirect("/bikes");
 
   const { data: bike } = await supabase
     .from("bikes")
@@ -162,6 +163,8 @@ export default async function ComponentDetailPage({
 
   const maintenanceLogs = logs ?? [];
 
+  const repairGuide = findRepairGuide(comp.name as string, comp.category as string);
+
   const statusBgColor = (comp.status as string) === "bad"
     ? "rgba(200,54,46,0.04)"
     : (comp.status as string) === "warn"
@@ -178,14 +181,14 @@ export default async function ComponentDetailPage({
           actions={
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <Link href={"/components/" + id + "/edit"}>
-                <button style={{ padding: "9px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                <button style={{ padding: "10px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   Modifier
                 </button>
               </Link>
               {(comp.status as string) !== "archived" && (
                 <Link href={"/components/" + id + "/compare"}>
-                  <button style={{ padding: "9px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                  <button style={{ padding: "10px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                     Voir les options
                   </button>
                 </Link>
@@ -209,7 +212,7 @@ export default async function ComponentDetailPage({
         />
 
         <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <div className="bi-comp-hero" style={{ background: "#0E0E10", color: "#fff", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
+          <div className="bi-comp-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
@@ -245,7 +248,7 @@ export default async function ComponentDetailPage({
                 <div style={{ marginTop: 22, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
                   <div style={{ width: wearPct + "%", height: "100%", background: statusColor, borderRadius: 999 }} />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10.5, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains-mono)" }}>
                   <span>0 km</span>
                   <span>{Math.round(kmMax / 3).toLocaleString("fr")}</span>
                   <span>{Math.round(kmMax * 2 / 3).toLocaleString("fr")}</span>
@@ -256,12 +259,12 @@ export default async function ComponentDetailPage({
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ padding: 22, border: "1.5px solid " + statusColor, borderRadius: 16, background: statusBgColor }}>
+            <div style={{ padding: 22, border: "1.5px solid " + statusColor, borderRadius: 18, background: statusBgColor }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={statusColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 9v4M12 17h.01M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/>
                 </svg>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase" }}>
                   Recommandation
                 </span>
               </div>
@@ -271,7 +274,7 @@ export default async function ComponentDetailPage({
                 {(comp.status as string) === "ok" && "Pièce en bon état."}
                 {(comp.status as string) === "archived" && "Pièce archivée."}
               </div>
-              <div style={{ fontSize: 12.5, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", lineHeight: 1.5 }}>
                 {(comp.status as string) === "bad" && "Continuer risque d'endommager les pièces adjacentes."}
                 {(comp.status as string) === "warn" && "Surveille cette pièce — elle approche de sa limite."}
                 {(comp.status as string) === "ok" && "Aucune action requise pour l'instant."}
@@ -299,7 +302,7 @@ export default async function ComponentDetailPage({
             <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation depuis l'installation</div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation depuis l'installation</div>
               </div>
               <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>% usure</Mono>
             </div>
@@ -345,7 +348,7 @@ export default async function ComponentDetailPage({
                     })()}
                   </svg>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 24px 16px", fontSize: 10.5, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 24px 16px", fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
                   {[chartPoints[0], chartPoints[Math.floor(chartPoints.length / 2)], chartPoints[chartPoints.length - 1]].map((p, i) => (
                     <span key={i}>{p.label}</span>
                   ))}
@@ -362,7 +365,7 @@ export default async function ComponentDetailPage({
           <BiCard pad={0}>
             <div style={{ padding: "22px 22px 12px" }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
                 {maintenanceLogs.length + " événement" + (maintenanceLogs.length !== 1 ? "s" : "")}
               </div>
             </div>
@@ -380,7 +383,7 @@ export default async function ComponentDetailPage({
                   <div key={i} style={{ padding: "14px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)", display: "flex", alignItems: "flex-start", gap: 14 }}>
                     <div style={{ width: 8, height: 8, borderRadius: 999, background: dotColor, flexShrink: 0, marginTop: 4 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{log.action as string}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{log.action as string}</div>
                       <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
                         {logDate}{logKm ? " - " + logKm : ""}
                       </div>
@@ -397,6 +400,32 @@ export default async function ComponentDetailPage({
           </BiCard>
           )}
 
+        {(comp.status as string) !== "archived" && (
+          <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
+            <div style={{ padding: "22px 22px 12px" }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Et maintenant ?</div>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{repairGuide.operation}</div>
+            </div>
+            <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)", borderTop: "1px solid var(--bi-line)" }}>
+              <a href={repairGuide.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", color: "var(--bi-ink)" }}>
+                <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
+                <div style={{ fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  Voir le tuto
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>
+                  Niveau {repairGuide.difficulty} · {repairGuide.tutorialSource}
+                </div>
+              </a>
+              <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
+                <Mono style={{ fontSize: 16, fontWeight: 500 }}>{repairGuide.laborMin}–{repairGuide.laborMax} €</Mono>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Main-d&apos;œuvre indicative, hors pièces</div>
+              </div>
+            </div>
+          </BiCard>
+        )}
+
         <BiCard pad={24}>
           <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
           <div className="bi-stats-4" style={{ gap: 20, background: "transparent", borderRadius: 0 }}>
@@ -408,7 +437,7 @@ export default async function ComponentDetailPage({
             ].map(([k, v]) => (
               <div key={String(k)}>
                 <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
-                <div style={{ fontSize: 13.5, fontWeight: 500, marginTop: 6 }}>{v as string}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, marginTop: 6 }}>{v as string}</div>
               </div>
             ))}
           </div>

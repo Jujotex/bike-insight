@@ -9,8 +9,8 @@ type Reason = "usure" | "crevaison" | "casse" | "anticipé";
 
 const REASONS: { value: Reason; label: string; color: string; bg: string }[] = [
   { value: "usure",     label: "Usure normale", color: "var(--bi-muted)",       bg: "transparent" },
-  { value: "crevaison", label: "Crevaison",      color: "var(--bi-warn)",        bg: "rgba(208,132,21,0.06)" },
-  { value: "casse",     label: "Casse",          color: "var(--bi-bad)",         bg: "rgba(200,54,46,0.06)" },
+  { value: "crevaison", label: "Crevaison",      color: "var(--bi-warn)",        bg: "var(--bi-warn-soft)" },
+  { value: "casse",     label: "Casse",          color: "var(--bi-bad)",         bg: "var(--bi-bad-soft)" },
   { value: "anticipé",  label: "Anticipé",       color: "var(--bi-accent-ink)",  bg: "var(--bi-accent)" },
 ];
 
@@ -96,7 +96,7 @@ export function ReplaceButton({
       if (newComp?.id) {
         router.push(`/components/${newComp.id}`);
       } else {
-        router.push(`/components`);
+        router.push(`/bikes`);
       }
       router.refresh();
       return;
@@ -221,7 +221,7 @@ export function ReplaceButton({
             <button
               onClick={handleReplace}
               disabled={loading}
-              style={{ flex: 2, padding: "10px 16px", background: "var(--bi-bad)", color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer" }}
+              style={{ flex: 2, padding: "10px 16px", background: "var(--bi-bad)", color: "var(--bi-white)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer" }}
             >
               {loading ? "…" : "Confirmer le remplacement"}
             </button>
@@ -244,7 +244,7 @@ export function ReplaceButton({
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
             <div style={{ width: 28, height: 28, borderRadius: 999, background: "var(--bi-ok)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7"/></svg>
             </div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Composant archivé</div>
           </div>
@@ -253,7 +253,7 @@ export function ReplaceButton({
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
-              onClick={() => router.push("/components")}
+              onClick={() => router.push("/bikes")}
               style={{ flex: 1, padding: "10px 14px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)", fontWeight: 600 }}
             >
               Plus tard
@@ -277,13 +277,13 @@ export function ReplaceButton({
     <button
       onClick={() => setStep("reason")}
       style={{
-        padding: label ? "13px 0" : "9px 16px",
+        padding: label ? "13px 0" : "10px 16px",
         width: fullWidth ? "100%" : undefined,
         background: isAccent ? "var(--bi-accent)" : "transparent",
         color: isAccent ? "var(--bi-accent-ink)" : "var(--bi-ink)",
         border: isAccent ? "none" : "1px solid var(--bi-line)",
         borderRadius: 10,
-        fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
+        fontSize: 13, fontWeight: 600, fontFamily: "inherit",
         cursor: "pointer",
         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       }}

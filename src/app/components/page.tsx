@@ -1,22 +1,7 @@
-import { AppShell } from "@/components/bi/app-shell";
-import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { redirect } from "next/navigation";
-import { getComponentsData } from "@/lib/data";
-import { ComponentsClient } from "./client";
 
-export default async function ComponentsPage() {
-  const data = await getComponentsData();
-  if (!data) redirect("/login");
-
-  return (
-    <AppShell nav={<SideNavLoader />}>
-      <ComponentsClient
-        components={data.components}
-        bikes={data.bikes}
-        bikeNames={data.bikeNames}
-        replacementLogs={data.replacementLogs}
-        kpis={data.kpis}
-      />
-    </AppShell>
-  );
+// La liste globale des pièces n'a plus d'entrée de navigation : les composants
+// se consultent depuis le détail de chaque vélo. On redirige vers /bikes.
+export default function ComponentsPage() {
+  redirect("/bikes");
 }

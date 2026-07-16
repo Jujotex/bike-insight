@@ -33,7 +33,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   border: "1px solid var(--bi-line)",
   background: "var(--bi-bg)",
-  fontSize: 13.5,
+  fontSize: 13,
   fontWeight: 500,
   color: "var(--bi-ink)",
   fontFamily: "inherit",
@@ -143,7 +143,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
                 background: selectedType.name === t.name ? "var(--bi-ink)" : "var(--bi-card)",
                 color: selectedType.name === t.name ? "var(--bi-bg)" : "var(--bi-ink)",
                 border: `1px solid ${selectedType.name === t.name ? "var(--bi-ink)" : "var(--bi-line)"}`,
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: selectedType.name === t.name ? 600 : 500,
                 cursor: "pointer",
                 fontFamily: "inherit",
@@ -179,7 +179,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
             />
             {/* Compatibility warning */}
             {!compatCheck.compatible && compatCheck.warning && (
-              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "rgba(208,132,21,0.07)", border: "1px solid rgba(208,132,21,0.25)" }}>
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "var(--bi-warn-soft)", border: "1px solid rgba(208,132,21,0.25)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-warn)" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                 <span style={{ fontSize: 12, color: "var(--bi-warn)", fontWeight: 500 }}>{compatCheck.warning}</span>
               </div>
@@ -199,14 +199,14 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
                   setKmMax(String(p.lifeKm));
                 }} style={{
                   display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 14px", borderRadius: 12,
+                  padding: "12px 14px", borderRadius: 14,
                   border: `1px solid var(--bi-line)`,
                   background: "var(--bi-bg)",
                   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--bi-ink)" }}>{p.name}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ink)" }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>{p.price} €</div>
@@ -280,7 +280,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
                 {l.km.toLocaleString("fr")} km
               </Mono>
               <div style={{
-                fontSize: 10.5,
+                fontSize: 11,
                 color: kmMax === String(l.km) ? "rgba(255,255,255,0.6)" : "var(--bi-muted)",
                 marginTop: 2
               }}>
@@ -292,7 +292,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
 
         {/* Error */}
         {error && (
-          <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>
+          <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
             {error}
           </div>
         )}
@@ -338,7 +338,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
         <BiCard pad={22} style={{ border: "1px solid var(--bi-accent)", background: "rgba(199,255,63,0.04)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
             <Dot color="var(--bi-accent)" />
-            <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>
               Aperçu
             </span>
           </div>
@@ -365,7 +365,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
 
         <BiCard pad={22}>
           <BiLabel style={{ marginBottom: 10 }}>Comment ça marche ?</BiLabel>
-          <div style={{ fontSize: 12.5, color: "var(--bi-muted)", lineHeight: 1.55 }}>
+          <div style={{ fontSize: 13, color: "var(--bi-muted)", lineHeight: 1.55 }}>
             L&apos;usure est calculée automatiquement à chaque synchronisation Strava.{" "}
             <strong style={{ color: "var(--bi-ink)" }}>Km à l&apos;installation</strong> = kilométrage de ton vélo au moment où tu poses le composant.
           </div>

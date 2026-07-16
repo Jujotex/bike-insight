@@ -46,8 +46,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 const REASON_CONFIG: Record<string, { label: string; color: string; bg: string; border: boolean }> = {
   usure:     { label: "Usure normale", color: "var(--bi-muted)",      bg: "transparent",             border: true  },
-  crevaison: { label: "Crevaison",     color: "var(--bi-warn)",       bg: "rgba(208,132,21,0.08)",   border: false },
-  casse:     { label: "Casse",         color: "var(--bi-bad)",        bg: "rgba(200,54,46,0.08)",    border: false },
+  crevaison: { label: "Crevaison",     color: "var(--bi-warn)",       bg: "var(--bi-warn-soft)",   border: false },
+  casse:     { label: "Casse",         color: "var(--bi-bad)",        bg: "var(--bi-bad-soft)",    border: false },
   anticipé:  { label: "Anticipé",      color: "var(--bi-accent-ink)", bg: "var(--bi-accent)",        border: false },
 };
 
@@ -69,7 +69,7 @@ function ReasonBadge({ reason }: { reason: string | null }) {
       padding: "3px 8px", borderRadius: 999,
       background: cfg.bg,
       border: cfg.border ? "1px solid var(--bi-line)" : "none",
-      color: cfg.color, fontSize: 10.5, fontWeight: 600,
+      color: cfg.color, fontSize: 11, fontWeight: 600,
     }}>
       <Dot color={cfg.color} size={5} />
       {cfg.label}
@@ -120,7 +120,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
         sub={`${kpis.activeCount} pièce${kpis.activeCount !== 1 ? "s" : ""} suivie${kpis.activeCount !== 1 ? "s" : ""} · ${kpis.replacedCount} remplacé${kpis.replacedCount !== 1 ? "s" : ""} · suivi sur ${bikes.length} vélo${bikes.length !== 1 ? "s" : ""}`}
         actions={
           <Link href={kpis.activeCount === 0 ? "/onboarding" : "/components/new"}>
-            <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            <button style={{ padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
               Ajouter une pièce
             </button>
@@ -129,7 +129,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
       />
 
       {/* ── KPI strip ─────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 16, overflow: "hidden", marginBottom: 22 }} className="bi-grid-4">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 22 }} className="bi-grid-4">
         {[
           { label: "Composants actifs",  value: String(kpis.activeCount),                                                                         sub: null,           color: null },
           { label: "Remplacés · 12 mois",value: String(kpis.replacedCount),                                                                       sub: null,           color: null },
@@ -141,8 +141,8 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
             color: kpis.avgBeat !== null ? (kpis.avgBeat >= 0 ? "var(--bi-ok)" : "var(--bi-bad)") : null,
           },
         ].map(({ label, value, sub, color }) => (
-          <div key={label} style={{ background: "var(--bi-card)", padding: "18px 22px" }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>
+          <div key={label} style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>
               {label}
             </div>
             <Mono style={{ display: "block", fontSize: 22, fontWeight: 500, letterSpacing: -0.5, marginTop: 8, color: color ?? "var(--bi-ink)" }}>
@@ -173,11 +173,11 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
             >
               {TAB_LABELS[t]}
               <span style={{
-                padding: "2px 7px", borderRadius: 999,
+                padding: "3px 8px", borderRadius: 999,
                 background: on ? "var(--bi-ink)" : "transparent",
                 color: on ? "var(--bi-bg)" : "var(--bi-muted)",
                 border: on ? "none" : "1px solid var(--bi-line)",
-                fontSize: 10.5, fontFamily: "var(--bi-font-mono)", fontWeight: 600,
+                fontSize: 11, fontFamily: "var(--bi-font-mono)", fontWeight: 600,
               }}>
                 {TAB_COUNTS[t]}
               </span>
@@ -193,7 +193,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
           <div style={{ padding: "20px 22px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, borderBottom: "1px solid var(--bi-line)" }}>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600 }}>Composants actifs</div>
-              <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
                 Tous tes composants en cours d'usage, triés par taux d'usure
               </div>
             </div>
@@ -238,11 +238,11 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
               <div style={{
                 padding: "8px 22px", display: "grid",
                 gridTemplateColumns: "1.4fr 1fr 1fr 1.4fr 0.6fr",
-                gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600,
+                gap: 14, fontSize: 11, color: "var(--bi-muted)", fontWeight: 600,
                 letterSpacing: "0.07em", textTransform: "uppercase",
                 borderBottom: "1px solid var(--bi-line)",
               }}>
-                <span>Composant</span><span>Vélo</span><span>Installé</span>
+                <span>Composant</span><span>Vélo</span><span style={{ textAlign: "right" }}>Installé</span>
                 <span>Usure</span>
                 <span style={{ textAlign: "right" }}>Km</span>
               </div>
@@ -277,7 +277,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                       <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>
                         {bikeNames[c.bike_id as string] ?? "—"}
                       </span>
-                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>
+                      <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
                         {formatDate(c.installed_at as string | null)}
                       </Mono>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -309,12 +309,12 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                       <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name as string}</div>
-                        <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{bikeNames[c.bike_id as string] ?? "—"}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name as string}</div>
+                        <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>{bikeNames[c.bike_id as string] ?? "—"}</div>
                       </div>
                     </div>
                     <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={4} />
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11.5, color: "var(--bi-muted)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 12, color: "var(--bi-muted)" }}>
                       <Mono>{Math.round(wearPct)} % usure</Mono>
                       <Mono>{((c.km_used as number) ?? 0).toLocaleString("fr")} km</Mono>
                     </div>
@@ -335,7 +335,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
           }}>
             <div>
               <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.5 }}>Historique des remplacements</div>
-              <div style={{ fontSize: 12.5, color: "var(--bi-muted)", marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 4 }}>
                 Chaque composant qui a quitté ton vélo, avec ce qu'il a tenu et combien il t'a coûté.
               </div>
             </div>
@@ -361,15 +361,15 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                   <div style={{
                     padding: "12px 22px", display: "grid",
                     gridTemplateColumns: "0.9fr 1.4fr 1fr 1.2fr 0.9fr 0.6fr 1fr 0.3fr",
-                    gap: 14, fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600,
+                    gap: 14, fontSize: 11, color: "var(--bi-muted)", fontWeight: 600,
                     letterSpacing: "0.07em", textTransform: "uppercase",
                     borderBottom: "1px solid var(--bi-line)",
                   }}>
-                    <span>Date</span>
+                    <span style={{ textAlign: "right" }}>Date</span>
                     <span>Composant</span>
                     <span>Vélo</span>
                     <span>Durée de vie</span>
-                    <span>Vs prévu</span>
+                    <span style={{ textAlign: "right" }}>Vs prévu</span>
                     <span style={{ textAlign: "right" }}>Coût</span>
                     <span>Raison</span>
                     <span />
@@ -387,14 +387,14 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                       <div
                         key={r.id}
                         style={{
-                          padding: "16px 22px", display: "grid",
+                          padding: "14px 22px", display: "grid",
                           gridTemplateColumns: "0.9fr 1.4fr 1fr 1.2fr 0.9fr 0.6fr 1fr 0.3fr",
                           gap: 14, alignItems: "center",
                           borderBottom: isLast ? "none" : "1px solid var(--bi-line)",
                         }}
                       >
                         {/* Date */}
-                        <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>
+                        <Mono style={{ fontSize: 12, color: "var(--bi-muted)", textAlign: "right" }}>
                           {formatDate(r.performedAt)}
                         </Mono>
 
@@ -429,10 +429,10 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                                 {/* Tick at expected */}
                                 <div style={{
                                   position: "absolute", right: 0, top: -2,
-                                  width: 1.5, height: 7, background: "var(--bi-muted)", borderRadius: 1,
+                                  width: 1.5, height: 7, background: "var(--bi-muted)", borderRadius: 2,
                                 }} />
                               </div>
-                              <Mono style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 4 }}>
+                              <Mono style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 4 }}>
                                 cible {r.kmMax.toLocaleString("fr")}
                               </Mono>
                             </>
@@ -440,7 +440,7 @@ export function ComponentsClient({ components, bikes, bikeNames, replacementLogs
                         </div>
 
                         {/* Vs prévu */}
-                        <Mono style={{ fontSize: 12, fontWeight: 600, color: r.beat !== null ? beatColor : "var(--bi-muted)" }}>
+                        <Mono style={{ fontSize: 12, fontWeight: 600, color: r.beat !== null ? beatColor : "var(--bi-muted)", textAlign: "right" }}>
                           {r.beat !== null
                             ? `${r.beat >= 0 ? "+" : ""}${r.beat.toLocaleString("fr")} km`
                             : "—"}

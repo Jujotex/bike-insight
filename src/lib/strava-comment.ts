@@ -16,23 +16,20 @@ function shortType(name: string): string {
 }
 
 function buildPhrase(comps: { name: string; wear: number }[]): string {
-  // Regroupe par type court, garde l'usure la plus élevée, trie décroissant
+  // Une seule ligne discrète : la pièce la plus usée + lien app.
+  // (un bloc multiligne sur une sortie publique peut passer pour du spam)
   const worstByType = new Map<string, number>()
   for (const c of comps) {
     const type = shortType(c.name)
     if (c.wear > (worstByType.get(type) ?? 0)) worstByType.set(type, c.wear)
   }
-  const lines = [...worstByType.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([type, wear]) => `🔴 ${type} · ${Math.round(wear)}%`)
+  const worst = [...worstByType.entries()].sort((a, b) => b[1] - a[1])[0]
 
-  const parts = [
-    `🚴 ${MARKER}`,
-    ...lines,
-  ]
+  let line = `🚴 ${MARKER}`
+  if (worst) line += ` · ${worst[0]} à remplacer (${Math.round(worst[1])}%)`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (appUrl) parts.push(`Suis l'usure de ton vélo → ${appUrl}`)
-  return parts.join('\n')
+  if (appUrl) line += ` → ${appUrl}`
+  return line
 }
 
 export async function commentWearOnActivities(

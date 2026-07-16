@@ -4,6 +4,7 @@ import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCostData } from "@/lib/data";
+import { MAINTENANCE_COST_PER_KM, KM_PER_YEAR, benchmarkVerdict } from "@/lib/benchmarks";
 
 const LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -31,6 +32,10 @@ function fmt(n: number) {
   return n.toLocaleString("fr-FR");
 }
 
+function fmtPerKm(n: number) {
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function delay(w: number): string {
   if (w <= 0) return "à remplacer";
   if (w < 5) return `dans ~${w} sem.`;
@@ -43,6 +48,10 @@ export default async function CostPage() {
 
   const { kpis, byBike, breakdown, activity, projection, insights, hasData } = data;
   const maxActivity = Math.max(...activity.chart, 1);
+
+  const costVerdict = kpis.costPerKm !== null ? benchmarkVerdict(kpis.costPerKm, MAINTENANCE_COST_PER_KM) : null;
+  const costColor = costVerdict === "below" ? "var(--bi-ok)" : costVerdict === "above" ? "var(--bi-warn)" : "var(--bi-muted)";
+  const costWord = costVerdict === "below" ? "économe" : costVerdict === "above" ? "au-dessus" : "dans la moyenne";
 
   return (
     <AppShell nav={<SideNavLoader />}>
@@ -66,7 +75,7 @@ export default async function CostPage() {
                   <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spendTotal)}</Mono>
                   <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 4 }}>remplacements + entretiens</div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>remplacements + entretiens</div>
               </div>
               <div style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
                 <BiLabel>Cette année</BiLabel>
@@ -74,9 +83,50 @@ export default async function CostPage() {
                   <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spend12m)}</Mono>
                   <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
               </div>
             </div>
+
+            {/* Où tu te situes — repères indicatifs */}
+            {kpis.km12m > 0 && (
+              <BiCard pad={0} style={{ marginBottom: 14 }}>
+                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>Où tu te situes</div>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Repères indicatifs pour {MAINTENANCE_COST_PER_KM.label}</div>
+                </div>
+                {kpis.costPerKm !== null && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Coût d&apos;entretien</div>
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Repère : {fmtPerKm(MAINTENANCE_COST_PER_KM.min)}–{fmtPerKm(MAINTENANCE_COST_PER_KM.max)} €/km</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                        <Mono style={{ fontSize: 14, fontWeight: 600 }}>{fmtPerKm(kpis.costPerKm)}</Mono>
+                        <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€/km</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: costColor, fontWeight: 600, marginTop: 1 }}>{costWord}</div>
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px", borderTop: kpis.costPerKm !== null ? "1px solid var(--bi-line)" : "none" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>Distance</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Repère : {fmt(KM_PER_YEAR.min)}–{fmt(KM_PER_YEAR.max)} km/an</div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                      <Mono style={{ fontSize: 14, fontWeight: 600 }}>{fmt(kpis.km12m)}</Mono>
+                      <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km/an</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>sur 12 mois</div>
+                  </div>
+                </div>
+                <div style={{ padding: "10px 22px 14px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
+                  Ordres de grandeur indicatifs, à comparer avec prudence à ta pratique.
+                </div>
+              </BiCard>
+            )}
 
             {/* Activité · 3 mois — vue d'ensemble */}
             {activity.total > 0 && (
@@ -100,18 +150,18 @@ export default async function CostPage() {
                 <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 600 }}>Ce qui t&apos;attend</div>
-                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Estimé d&apos;après ton rythme et l&apos;usure de tes pièces</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Estimé d&apos;après ton rythme et l&apos;usure de tes pièces</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
                       <Mono style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5 }}>{fmt(projection.total12m)}</Mono>
                       <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                     </div>
-                    <div style={{ fontSize: 10.5, color: "var(--bi-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}>à prévoir · 12 mois</div>
+                    <div style={{ fontSize: 11, color: "var(--bi-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}>à prévoir · 12 mois</div>
                   </div>
                 </div>
                 {projection.upcoming.map((u, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
                     <div style={{ width: 4, height: 26, background: COLORS[u.key] ?? "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</div>
@@ -120,7 +170,7 @@ export default async function CostPage() {
                     <Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>~{fmt(u.cost)} €</Mono>
                   </div>
                 ))}
-                <div style={{ padding: "10px 22px 14px", fontSize: 10.5, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
+                <div style={{ padding: "10px 22px 14px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
                   Estimation basée sur ton rythme récent et le prix de tes pièces.
                 </div>
               </BiCard>
@@ -130,7 +180,7 @@ export default async function CostPage() {
             {(insights.onTimeChains > 0 || insights.lateChains > 0) && (
               <BiCard pad={22} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 14, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
                       <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
@@ -150,7 +200,7 @@ export default async function CostPage() {
                         </span>
                       </span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Changer ta chaîne à temps protège ta transmission</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Changer ta chaîne à temps protège ta transmission</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "stretch" }}>
@@ -176,9 +226,9 @@ export default async function CostPage() {
               <BiCard pad={0} style={{ marginBottom: 14 }}>
                 <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>Où part ton argent</div>
-                  <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
                 </div>
-                <div style={{ padding: "18px 22px" }}>
+                <div style={{ padding: "20px 22px" }}>
                   {/* Barre empilée : proportions en un coup d'œil */}
                   <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
                     {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
@@ -192,15 +242,15 @@ export default async function CostPage() {
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
                           <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
-                          <Mono style={{ fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>{fmt(total)} €</Mono>
-                          <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
+                          <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{fmt(total)} €</Mono>
+                          <Mono style={{ fontSize: 12, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
                         </div>
                         {items.length > 0 && (
                           <div style={{ marginLeft: 18, marginTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
                             {items.map((it, i) => (
                               <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                                 <span style={{ fontSize: 12, color: "var(--bi-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{it.label}</span>
-                                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(it.total)} €</Mono>
+                                <Mono style={{ fontSize: 12, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(it.total)} €</Mono>
                               </div>
                             ))}
                           </div>
@@ -219,10 +269,10 @@ export default async function CostPage() {
                   <div style={{ fontSize: 15, fontWeight: 600 }}>Dépense par vélo</div>
                 </div>
                 {byBike.map((b, i) => (
-                  <Link key={b.id} href={`/bikes/${b.id}`} className="bi-component-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 22px", textDecoration: "none", color: "inherit", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
+                  <Link key={b.id} href={`/bikes/${b.id}`} className="bi-component-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px", textDecoration: "none", color: "inherit", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.name}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>{fmt(b.totalKm)} km parcourus</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>{fmt(b.totalKm)} km parcourus</div>
                     </div>
                     <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmt(b.spend)} €</Mono>
                   </Link>

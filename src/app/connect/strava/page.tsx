@@ -17,15 +17,15 @@ function StepIntro() {
       headline={<>Sans Strava,<br />pas de calcul<br />d&apos;usure.</>}
       sub="Ton historique Strava est la matière première qui rend cette app possible. Chaque km roulé alimente automatiquement l'usure et le coût de tes composants."
     >
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 999, background: "#FC4C02", color: "#fff", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.07em", alignSelf: "flex-start" }}>
-        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "#fff" }} />
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 999, background: "var(--bi-strava)", color: "var(--bi-white)", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", alignSelf: "flex-start" }}>
+        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "var(--bi-white)" }} />
         STRAVA
       </div>
 
       <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 14 }}>
         Connecte ton compte Strava
       </div>
-      <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
+      <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
         Accès en lecture seule. Tu peux révoquer l&apos;autorisation à tout moment depuis tes réglages Strava.
       </div>
 
@@ -36,12 +36,12 @@ function StepIntro() {
           ["Nouvelles sorties", "Synchro temps réel"],
           ["Données privées", "Jamais partagé"],
         ].map(([k, v]) => (
-          <div key={k} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 12, background: "var(--bi-card)" }}>
+          <div key={k} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-card)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
               </div>
-              <span style={{ fontSize: 13.5, fontWeight: 500 }}>{k}</span>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{k}</span>
             </div>
             <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{v}</Mono>
           </div>
@@ -51,7 +51,7 @@ function StepIntro() {
       <div style={{ marginTop: 24 }}>
         <a
           href="/api/strava/auth"
-          style={{ background: "#FC4C02", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, textDecoration: "none" }}
+          style={{ background: "var(--bi-strava)", color: "var(--bi-white)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, textDecoration: "none" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3" /></svg>
           Se connecter avec Strava
@@ -101,14 +101,14 @@ function StepSuccess() {
       }
       sub="Tout ton historique Strava est synchronisé. Prochaine étape : configure ton matériel pour démarrer le suivi d'usure."
     >
-      <div style={{ width: 56, height: 56, borderRadius: 16, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 56, height: 56, borderRadius: 18, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
       </div>
 
       <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 18 }}>
         C&apos;est prêt.
       </div>
-      <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
+      <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
         {loading ? "Synchronisation de tes activités Strava… (moins d\u2019une minute)" : `On a détecté ${bikes.length} vélo${bikes.length > 1 ? "s" : ""}. Vérifie qu'ils sont corrects avant de configurer ton matériel.`}
       </div>
 
@@ -124,10 +124,10 @@ function StepSuccess() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="17" r="3" /><circle cx="19" cy="17" r="3" /><path d="M12 7l-3 10h6l-3-10zM12 7V4h3" /></svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{b.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{b.name}</div>
                   {b.model && <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{b.model}</div>}
                 </div>
-                <Mono style={{ fontSize: 12.5, fontWeight: 500 }}>{(b.total_km ?? 0).toLocaleString("fr")} km</Mono>
+                <Mono style={{ fontSize: 13, fontWeight: 500 }}>{(b.total_km ?? 0).toLocaleString("fr")} km</Mono>
               </div>
             ))}
           </div>
@@ -136,7 +136,7 @@ function StepSuccess() {
 
       <div style={{ marginTop: 24 }}>
         <Link href="/onboarding" style={{ textDecoration: "none" }}>
-          <button style={{ width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+          <button style={{ width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             Configurer mon matériel
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
           </button>
@@ -164,11 +164,11 @@ function StravaConnectRouter() {
     };
     return (
       <AuthShell step={2} total={3} eyebrow="Erreur" headline={<>Connexion<br />échouée.</>} sub="">
-        <div style={{ padding: "20px", borderRadius: 14, background: "rgba(200,54,46,0.06)", border: "1px solid rgba(200,54,46,0.15)", marginTop: 24 }}>
+        <div style={{ padding: "20px", borderRadius: 14, background: "var(--bi-bad-soft)", border: "1px solid rgba(200,54,46,0.15)", marginTop: 24 }}>
           <div style={{ fontSize: 14, color: "var(--bi-bad)", fontWeight: 600, marginBottom: 8 }}>Erreur de connexion</div>
           <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>{errorMessages[error] ?? "Une erreur est survenue."}</div>
         </div>
-        <a href="/api/strava/auth" style={{ marginTop: 20, display: "block", width: "100%", background: "#FC4C02", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", textAlign: "center", textDecoration: "none" }}>
+        <a href="/api/strava/auth" style={{ marginTop: 20, display: "block", width: "100%", background: "var(--bi-strava)", color: "var(--bi-white)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", textAlign: "center", textDecoration: "none" }}>
           Réessayer
         </a>
       </AuthShell>

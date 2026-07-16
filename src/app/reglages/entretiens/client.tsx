@@ -10,7 +10,7 @@ import { showToast } from "@/components/bi/toast";
 const mtBadge: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 600,
-  padding: "2px 7px",
+  padding: "3px 8px",
   borderRadius: 999,
   background: "var(--bi-bg)",
   border: "1px solid var(--bi-line)",
@@ -38,7 +38,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   border: "1px solid var(--bi-line)",
   background: "var(--bi-bg)",
-  fontSize: 13.5,
+  fontSize: 13,
   color: "var(--bi-ink)",
   fontFamily: "inherit",
   outline: "none",
@@ -46,7 +46,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 10.5,
+  fontSize: 11,
   fontWeight: 600,
   letterSpacing: "0.05em",
   textTransform: "uppercase",
@@ -158,7 +158,7 @@ export function MaintenanceSettingsClient({
 
   if (bikes.length === 0) {
     return (
-      <BiCard pad={28} style={{ textAlign: "center", color: "var(--bi-muted)", fontSize: 13.5 }}>
+      <BiCard pad={28} style={{ textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
         Ajoute d&apos;abord un vélo pour configurer ses entretiens.
       </BiCard>
     );
@@ -204,18 +204,18 @@ export function MaintenanceSettingsClient({
       <div style={{ fontSize: 11, color: "var(--bi-muted)" }}>
         La première échéance atteinte (km ou temps) déclenche l&apos;entretien. Renseigne au moins l&apos;une des deux.
       </div>
-      {error && <div style={{ fontSize: 12.5, color: "var(--bi-bad)" }}>{error}</div>}
+      {error && <div style={{ fontSize: 13, color: "var(--bi-bad)" }}>{error}</div>}
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={cancel}
-          style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}
+          style={{ padding: "10px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}
         >
           Annuler
         </button>
         <button
           onClick={save}
           disabled={saving || !fLabel.trim()}
-          style={{ padding: "9px 18px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: !fLabel.trim() ? 0.5 : 1 }}
+          style={{ padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: !fLabel.trim() ? 0.5 : 1 }}
         >
           {saving ? "Enregistrement…" : "Enregistrer"}
         </button>
@@ -254,14 +254,14 @@ export function MaintenanceSettingsClient({
         <div style={{ padding: "20px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, borderBottom: "1px solid var(--bi-line)" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Entretiens</div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
               {bikeTypes.length} entretien{bikeTypes.length !== 1 ? "s" : ""} · clique une ligne pour la modifier
             </div>
           </div>
           {editing !== "new" && (
             <button
               onClick={openNew}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               Ajouter

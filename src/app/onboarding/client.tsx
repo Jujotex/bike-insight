@@ -49,7 +49,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   border: "1px solid var(--bi-line)",
   background: "var(--bi-bg)",
-  fontSize: 13.5,
+  fontSize: 13,
   color: "var(--bi-ink)",
   fontFamily: "inherit",
   outline: "none",
@@ -193,11 +193,11 @@ export function OnboardingWizard({
       <div style={{ minHeight: "100dvh", background: T.bg, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px" }}>
         <div style={{ width: "100%", maxWidth: 480 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 18, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5 }}>{selectedBike?.name} est configuré !</div>
-            <div style={{ fontSize: 13.5, color: T.muted, marginTop: 8, lineHeight: 1.55 }}>
+            <div style={{ fontSize: 13, color: T.muted, marginTop: 8, lineHeight: 1.55 }}>
               L&apos;usure de tes pièces évolue maintenant automatiquement avec tes sorties Strava.
               {remaining.length > 0 && (
                 <> Tu pourras configurer {remaining.length > 1 ? `tes ${remaining.length} autres vélos` : "ton autre vélo"} plus tard depuis Mes vélos.</>
@@ -207,7 +207,7 @@ export function OnboardingWizard({
 
           <button
             onClick={() => router.push("/dashboard")}
-            style={{ width: "100%", padding: "14px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+            style={{ width: "100%", padding: "14px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 14, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
           >
             Accéder au dashboard →
           </button>
@@ -234,13 +234,13 @@ export function OnboardingWizard({
 
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
             </div>
             <span style={{ fontSize: 16, fontWeight: 600 }}>Bike Insight</span>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.6 }}>Configure ton vélo</div>
-          <div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}>3 étapes, 2 minutes</div>
+          <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>3 étapes, 2 minutes</div>
         </div>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
@@ -249,7 +249,7 @@ export function OnboardingWizard({
           ))}
         </div>
 
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
           Étape {step + 1} · {STEPS[step]}
         </div>
 
@@ -263,13 +263,13 @@ export function OnboardingWizard({
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {bikes.map(b => (
                     <button key={b.id} onClick={() => !b.isConfigured && setSelectedBikeId(b.id)} disabled={b.isConfigured}
-                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, border: `1.5px solid ${selectedBikeId === b.id ? T.ink : T.line}`, background: b.isConfigured ? "rgba(14,14,16,0.02)" : selectedBikeId === b.id ? "rgba(14,14,16,0.04)" : "transparent", cursor: b.isConfigured ? "default" : "pointer", textAlign: "left", fontFamily: "inherit", opacity: b.isConfigured ? 0.6 : 1 }}>
+                      style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 14, border: `1.5px solid ${selectedBikeId === b.id ? T.ink : T.line}`, background: b.isConfigured ? "rgba(14,14,16,0.02)" : selectedBikeId === b.id ? "rgba(14,14,16,0.04)" : "transparent", cursor: b.isConfigured ? "default" : "pointer", textAlign: "left", fontFamily: "inherit", opacity: b.isConfigured ? 0.6 : 1 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{b.name}</div>
-                        <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{b.totalKm.toLocaleString("fr")} km · {b.isStrava ? "Strava" : "Manuel"}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{b.name}</div>
+                        <div style={{ fontSize: 12, color: T.muted, marginTop: 1 }}>{b.totalKm.toLocaleString("fr")} km · {b.isStrava ? "Strava" : "Manuel"}</div>
                       </div>
                       {b.isConfigured
-                        ? <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "rgba(14,143,90,0.1)", color: "var(--bi-ok)", fontWeight: 600 }}>Configuré</span>
+                        ? <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "var(--bi-ok-soft)", color: "var(--bi-ok)", fontWeight: 600 }}>Configuré</span>
                         : selectedBikeId === b.id
                           ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
                           : null}
@@ -284,7 +284,7 @@ export function OnboardingWizard({
             )}
 
             {modelHint && (
-              <div style={{ marginBottom: 18, padding: "10px 14px", borderRadius: 10, background: "rgba(199,255,63,0.10)", border: "1px solid rgba(199,255,63,0.35)", fontSize: 12.5, color: T.ink }}>
+              <div style={{ marginBottom: 18, padding: "10px 14px", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.35)", fontSize: 13, color: T.ink }}>
                 Pré-rempli d&apos;après ton vélo (<strong>{modelHint}</strong>) — vérifie que ça correspond à ta monte réelle.
               </div>
             )}
@@ -306,19 +306,19 @@ export function OnboardingWizard({
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {availableTemplates.map(tmpl => (
                   <button key={tmpl.id} onClick={() => setTemplateId(tmpl.id)}
-                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === tmpl.id ? T.ink : T.line}`, background: templateId === tmpl.id ? "rgba(14,14,16,0.04)" : "transparent" }}>
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === tmpl.id ? T.ink : T.line}`, background: templateId === tmpl.id ? "rgba(14,14,16,0.04)" : "transparent" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{tmpl.label}</div>
-                      <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{tmpl.level} · {tmpl.speeds} vitesses</div>
+                      <div style={{ fontSize: 12, color: T.muted, marginTop: 1 }}>{tmpl.level} · {tmpl.speeds} vitesses</div>
                     </div>
                     {templateId === tmpl.id && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                   </button>
                 ))}
                 <button onClick={() => setTemplateId("custom")}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${templateId === "custom" ? T.ink : T.line}`, background: templateId === "custom" ? "rgba(14,14,16,0.04)" : "transparent" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>Je ne sais pas / Autre</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>Pièces génériques proposées</div>
+                    <div style={{ fontSize: 12, color: T.muted, marginTop: 1 }}>Pièces génériques proposées</div>
                   </div>
                   {templateId === "custom" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                 </button>
@@ -330,10 +330,10 @@ export function OnboardingWizard({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {([{ value: "disc", label: "Disque", sub: "Métal au centre de la roue" }, { value: "rim", label: "Patins", sub: "Caoutchouc sur la jante" }] as const).map(opt => (
                   <button key={opt.value} onClick={() => setBrakeType(opt.value)}
-                    style={{ padding: "12px 14px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${brakeType === opt.value ? T.ink : T.line}`, background: brakeType === opt.value ? "rgba(14,14,16,0.04)" : "transparent", display: "flex", alignItems: "center", gap: 10 }}>
+                    style={{ padding: "12px 14px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${brakeType === opt.value ? T.ink : T.line}`, background: brakeType === opt.value ? "rgba(14,14,16,0.04)" : "transparent", display: "flex", alignItems: "center", gap: 10 }}>
                     {brakeType === opt.value && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}><path d="M4 12l5 5L20 7"/></svg>}
                     <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{opt.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{opt.label}</div>
                       <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{opt.sub}</div>
                     </div>
                   </button>
@@ -353,10 +353,10 @@ export function OnboardingWizard({
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
               {WEAR_OPTIONS.map(opt => (
                 <button key={opt.value} onClick={() => setWearState(opt.value)}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${wearState === opt.value ? T.ink : T.line}`, background: wearState === opt.value ? "rgba(14,14,16,0.04)" : "transparent" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", border: `1.5px solid ${wearState === opt.value ? T.ink : T.line}`, background: wearState === opt.value ? "rgba(14,14,16,0.04)" : "transparent" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>{opt.label}</div>
-                    <div style={{ fontSize: 11.5, color: T.muted, marginTop: 1 }}>{opt.sub}</div>
+                    <div style={{ fontSize: 12, color: T.muted, marginTop: 1 }}>{opt.sub}</div>
                   </div>
                   {wearState === opt.value && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.ok} strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                 </button>
@@ -377,21 +377,21 @@ export function OnboardingWizard({
                       Optionnel <span style={{ textTransform: "none", fontWeight: 400 }}>— pièces à usure lente, coche ce que tu veux suivre</span>
                     </div>
                   )}
-                  <div style={{ borderRadius: 12, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
+                  <div style={{ borderRadius: 14, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
                     {/* Header row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
                       <button onClick={() => { updateComponent(idx, "enabled", !c.enabled); if (!c.enabled) setSwappingIdx(null); }}
-                        style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, border: `2px solid ${c.enabled ? T.ink : T.line}`, background: c.enabled ? T.ink : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                        {c.enabled && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
+                        style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, border: `2px solid ${c.enabled ? T.ink : T.line}`, background: c.enabled ? T.ink : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        {c.enabled && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                       </button>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink }}>{c.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{c.name}</div>
                         <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km · {c.purchase_price} €</div>
                       </div>
                       {c.enabled && (
                         <button
                           onClick={() => setSwappingIdx(swappingIdx === idx ? null : idx)}
-                          style={{ fontSize: 11.5, padding: "5px 12px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, flexShrink: 0 }}
+                          style={{ fontSize: 12, padding: "5px 12px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, flexShrink: 0 }}
                         >
                           {swappingIdx === idx ? "Fermer" : "Modifier"}
                         </button>
@@ -405,7 +405,7 @@ export function OnboardingWizard({
                         {/* Alternatives catalogue */}
                         {catalogEntry && (
                           <div>
-                            <div style={{ fontSize: 10.5, color: T.muted, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8 }}>
+                            <div style={{ fontSize: 11, color: T.muted, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8 }}>
                               Suggestions compatibles
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -430,8 +430,8 @@ export function OnboardingWizard({
                                       <div style={{ fontSize: 11, color: T.muted }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
                                     </div>
                                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                                      <div style={{ fontSize: 13.5, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>{p.price} €</div>
-                                      <div style={{ fontSize: 9.5, color: T.muted, textTransform: "uppercase" as const, letterSpacing: 0.4 }}>{TIER_LABELS[p.tier]}</div>
+                                      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>{p.price} €</div>
+                                      <div style={{ fontSize: 10, color: T.muted, textTransform: "uppercase" as const, letterSpacing: 0.4 }}>{TIER_LABELS[p.tier]}</div>
                                     </div>
                                   </button>
                                 );
@@ -443,28 +443,28 @@ export function OnboardingWizard({
                         {/* Separateur */}
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ flex: 1, height: 1, background: T.line }} />
-                          <span style={{ fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase" }}>Personnaliser</span>
+                          <span style={{ fontSize: 11, color: T.muted, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase" }}>Personnaliser</span>
                           <div style={{ flex: 1, height: 1, background: T.line }} />
                         </div>
 
                         {/* Champs libres */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                           <div>
-                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
+                            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
                             <input value={c.name} onChange={e => updateComponent(idx, "name", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} placeholder="ex. Shimano HG601" />
                           </div>
                           <div>
-                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>
+                            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>
                             <input value={c.brand} onChange={e => updateComponent(idx, "brand", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} placeholder="ex. Shimano" />
                           </div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                           <div>
-                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
+                            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Prix (€)</div>
                             <input type="number" value={c.purchase_price} onChange={e => updateComponent(idx, "purchase_price", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
                           </div>
                           <div>
-                            <div style={{ fontSize: 10.5, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km max</div>
+                            <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Km max</div>
                             <input type="number" value={c.km_max} onChange={e => updateComponent(idx, "km_max", Number(e.target.value))} style={{ ...inputStyle, fontSize: 13 }} />
                           </div>
                         </div>
@@ -494,13 +494,13 @@ export function OnboardingWizard({
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: T.bg }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{c.name}</span>
-                    <span style={{ fontSize: 11.5, color: wearColor, fontWeight: 600 }}>usure {wear} %</span>
+                    <span style={{ fontSize: 12, color: wearColor, fontWeight: 600 }}>usure {wear} %</span>
                     <span style={{ fontSize: 12, color: T.muted, fontFamily: "var(--bi-font-mono)" }}>{c.purchase_price} €</span>
                   </div>
                 );
               })}
             </div>
-            {error && <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>{error}</div>}
+            {error && <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>{error}</div>}
           </div>
         )}
 
@@ -508,20 +508,20 @@ export function OnboardingWizard({
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           {step > 0 && (
             <button onClick={() => setStep(s => s - 1)}
-              style={{ flex: 1, padding: "13px 0", background: "transparent", border: `1px solid ${T.line}`, borderRadius: 12, fontSize: 13.5, fontFamily: "inherit", cursor: "pointer", color: T.muted }}>
+              style={{ flex: 1, padding: "13px 0", background: "transparent", border: `1px solid ${T.line}`, borderRadius: 14, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: T.muted }}>
               ← Retour
             </button>
           )}
           {step < STEPS.length - 1 ? (
             <button onClick={goNext}
               disabled={(step === 0 && (!selectedBikeId || !templateId)) || (step === 1 && !wearState)}
-              style={{ flex: 2, padding: "13px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", opacity: ((step === 0 && (!selectedBikeId || !templateId)) || (step === 1 && !wearState)) ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              style={{ flex: 2, padding: "13px 0", background: T.ink, color: T.bg, border: "none", borderRadius: 14, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", opacity: ((step === 0 && (!selectedBikeId || !templateId)) || (step === 1 && !wearState)) ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               Continuer
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </button>
           ) : (
             <button onClick={handleConfirm} disabled={saving}
-              style={{ flex: 2, padding: "13px 0", background: "var(--bi-ok)", color: "#fff", border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 700, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              style={{ flex: 2, padding: "13px 0", background: "var(--bi-ok)", color: "var(--bi-white)", border: "none", borderRadius: 14, fontSize: 13, fontWeight: 700, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {saving ? "Création en cours…" : "Démarrer le suivi"}
               {!saving && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>}
             </button>

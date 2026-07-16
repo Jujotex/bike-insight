@@ -13,6 +13,9 @@ const T = {
   ok: "var(--bi-ok)",
   warn: "var(--bi-warn)",
   bad: "var(--bi-bad)",
+  white: "var(--bi-white)",
+  strava: "var(--bi-strava)",
+  accentSoft: "var(--bi-accent-soft)",
 };
 
 function Dot({ color, size = 7 }: { color: string; size?: number }) {
@@ -32,12 +35,12 @@ function LandingNav() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
         </div>
         <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Bike Insight</span>
-        <span style={{ fontSize: 10, padding: "3px 7px", borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontWeight: 600, letterSpacing: 0.5, marginLeft: 6 }}>BETA</span>
+        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontWeight: 600, letterSpacing: 0.5, marginLeft: 6 }}>BETA</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Link href="/login" style={{ fontSize: 13, color: T.ink, padding: "8px 14px", fontWeight: 500, textDecoration: "none" }}>Se connecter</Link>
         <Link href="/signup">
-          <button style={{ padding: "9px 16px", background: T.ink, color: T.bg, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", marginLeft: 4 }}>
+          <button style={{ padding: "10px 16px", background: T.ink, color: T.bg, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", marginLeft: 4 }}>
             Commencer
           </button>
         </Link>
@@ -55,13 +58,13 @@ function MiniDashPreview() {
           <div style={{ fontSize: 9, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>Canyon Aeroad · vélo actif</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>Bonjour, Leo</div>
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "4px 8px", border: `1px solid ${T.line}`, borderRadius: 999, fontSize: 9.5, color: T.muted }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "4px 8px", border: `1px solid ${T.line}`, borderRadius: 999, fontSize: 10, color: T.muted }}>
           <Dot color={T.ok} size={5} />Sync · 4 min
         </div>
       </div>
 
       {/* Score de forme */}
-      <div style={{ background: T.card, borderRadius: 12, border: `1px solid ${T.line}`, padding: 16, marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 14, alignItems: "center" }}>
+      <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.line}`, padding: 16, marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 14, alignItems: "center" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Dot color={T.warn} size={6} />
@@ -89,9 +92,9 @@ function MiniDashPreview() {
       </div>
 
       {/* Attention */}
-      <div style={{ marginTop: 12, background: T.card, borderRadius: 12, border: `1px solid ${T.line}`, overflow: "hidden" }}>
+      <div style={{ marginTop: 12, background: T.card, borderRadius: 14, border: `1px solid ${T.line}`, overflow: "hidden" }}>
         <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 16, height: 16, borderRadius: 999, background: T.bad, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>2</div>
+          <div style={{ width: 16, height: 16, borderRadius: 999, background: T.bad, color: T.white, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>2</div>
           <span style={{ fontSize: 11, fontWeight: 600 }}>Ce qui nécessite ton attention</span>
         </div>
         {[
@@ -118,7 +121,7 @@ function MiniDashPreview() {
       </div>
 
       {/* Ce qui t'attend */}
-      <div style={{ marginTop: 12, background: T.ink, color: "#fff", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ marginTop: 12, background: T.ink, color: T.white, borderRadius: 14, padding: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Ce qui t&apos;attend · 3 mois</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginTop: 3 }}>
@@ -126,9 +129,9 @@ function MiniDashPreview() {
             <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>€</Mono>
           </div>
         </div>
-        <div style={{ textAlign: "right", fontSize: 10.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
-          Chaîne <span style={{ color: "#fff", fontWeight: 600 }}>~3 sem.</span><br/>
-          Pneus AR <span style={{ color: "#fff", fontWeight: 600 }}>~10 sem.</span>
+        <div style={{ textAlign: "right", fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
+          Chaîne <span style={{ color: T.white, fontWeight: 600 }}>~3 sem.</span><br/>
+          Pneus AR <span style={{ color: T.white, fontWeight: 600 }}>~10 sem.</span>
         </div>
       </div>
     </div>
@@ -163,13 +166,13 @@ function LandingHero() {
 
         <div style={{ marginTop: 36, display: "flex", alignItems: "center", gap: 12 }}>
           <Link href="/signup">
-            <button style={{ padding: "15px 22px", background: T.ink, color: T.bg, border: "none", borderRadius: 12, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <button style={{ padding: "15px 22px", background: T.ink, color: T.bg, border: "none", borderRadius: 14, fontSize: 14, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               Connecter mon Strava
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </button>
           </Link>
           <Link href="/dashboard">
-            <button style={{ padding: "15px 20px", background: "transparent", color: T.ink, border: `1px solid ${T.line}`, borderRadius: 12, fontSize: 14, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <button style={{ padding: "15px 20px", background: "transparent", color: T.ink, border: `1px solid ${T.line}`, borderRadius: 14, fontSize: 14, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
               Voir une démo
             </button>
@@ -219,10 +222,10 @@ function LandingHow() {
             <div style={{ display: "flex", gap: 3 }}>
               {[0,1,2].map(i => <div key={i} style={{ width: 3, height: 3, borderRadius: 999, background: T.muted }} />)}
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "#FC4C02", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>St</div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: T.strava, color: T.white, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>St</div>
           </div>
-          <div style={{ padding: 12, borderRadius: 10, background: T.bg, border: `1px solid ${T.line}`, fontSize: 11.5, lineHeight: 1.5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.ok, fontWeight: 600, fontSize: 10.5 }}>
+          <div style={{ padding: 12, borderRadius: 10, background: T.bg, border: `1px solid ${T.line}`, fontSize: 12, lineHeight: 1.5 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.ok, fontWeight: 600, fontSize: 11 }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
               CONNECTÉ
             </div>
@@ -260,7 +263,7 @@ function LandingHow() {
       sub: "On te dit quand changer, combien, et combien tu économises en agissant à temps.",
       visual: (
         <div style={{ padding: 20 }}>
-          <div style={{ padding: 14, background: T.ink, color: "#fff", borderRadius: 10 }}>
+          <div style={{ padding: 14, background: T.ink, color: T.white, borderRadius: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <Dot color={T.bad} size={6} />
               <span style={{ fontSize: 9, fontWeight: 700, color: T.bad, letterSpacing: 0.8, textTransform: "uppercase" as const }}>Action prioritaire</span>
@@ -288,7 +291,7 @@ function LandingHow() {
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Comment ça marche</div>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 600 }}>
             Trois étapes, et{" "}
-            <span style={{ background: T.accent, padding: "0 6px", borderRadius: 4 }}>ton matériel se pilote tout seul</span>.
+            <span style={{ background: T.accent, padding: "0 6px", borderRadius: 6 }}>ton matériel se pilote tout seul</span>.
           </div>
         </div>
         <div style={{ fontSize: 13, color: T.muted, maxWidth: 280, lineHeight: 1.55 }}>
@@ -298,13 +301,13 @@ function LandingHow() {
 
       <div className="bi-land-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         {steps.map(s => (
-          <div key={s.n} style={{ borderRadius: 16, border: `1px solid ${T.line}`, background: T.card, overflow: "hidden" }}>
+          <div key={s.n} style={{ borderRadius: 18, border: `1px solid ${T.line}`, background: T.card, overflow: "hidden" }}>
             <div style={{ padding: "24px 24px 0" }}>
               <Mono style={{ fontSize: 12, fontWeight: 600, color: T.muted }}>{s.n}</Mono>
               <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5, marginTop: 6 }}>{s.title}</div>
               <div style={{ fontSize: 13, color: T.muted, marginTop: 8, lineHeight: 1.5 }}>{s.sub}</div>
             </div>
-            <div style={{ background: T.bg, margin: 20, marginTop: 24, borderRadius: 12, border: `1px solid ${T.line}`, minHeight: 180 }}>
+            <div style={{ background: T.bg, margin: 20, marginTop: 24, borderRadius: 14, border: `1px solid ${T.line}`, minHeight: 180 }}>
               {s.visual}
             </div>
           </div>
@@ -336,15 +339,15 @@ function LandingInsights() {
           { eyebrow: "Anomalie mécanique", color: T.warn, headline: "Ton pneu AR s'use 2x plus vite que l'AV.", body: "Probablement une pression mal ajustée ou un poids mal réparti.", impact: "Risque crevaison x2" },
           { eyebrow: "Concentration des coûts", color: T.muted, headline: "La transmission représente 60 % de ton budget.", body: "Concentre tes efforts d'optimisation ici.", impact: "263 € / 412 €" },
         ].map((item, idx) => (
-          <div key={idx} style={{ borderRadius: 16, background: T.card, border: `1px solid ${T.line}`, padding: 24, borderLeft: `4px solid ${item.color}` }}>
+          <div key={idx} style={{ borderRadius: 18, background: T.card, border: `1px solid ${T.line}`, padding: 24, borderLeft: `4px solid ${item.color}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <Dot color={item.color} size={6} />
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.8, textTransform: "uppercase" as const }}>{item.eyebrow}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: item.color, letterSpacing: 0.8, textTransform: "uppercase" as const }}>{item.eyebrow}</span>
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.5, marginTop: 14, lineHeight: 1.3 }}>{item.headline}</div>
             <div style={{ fontSize: 13, color: T.muted, marginTop: 10, lineHeight: 1.55, minHeight: 60 }}>{item.body}</div>
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${T.soft}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: T.muted, letterSpacing: 0.6, textTransform: "uppercase" as const }}>Impact</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.6, textTransform: "uppercase" as const }}>Impact</span>
               <Mono style={{ fontSize: 14, fontWeight: 600 }}>{item.impact}</Mono>
             </div>
           </div>
@@ -374,8 +377,8 @@ function LandingComparison() {
           <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Ils tracent. On décide.</div>
         </div>
 
-        <div className="bi-land-table-wrap" style={{ background: T.bg, borderRadius: 16, border: `1px solid ${T.line}`, overflow: "hidden" }}>
-          <div className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 10.5, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
+        <div className="bi-land-table-wrap" style={{ background: T.bg, borderRadius: 18, border: `1px solid ${T.line}`, overflow: "hidden" }}>
+          <div className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 11, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
             <span></span>
             <span style={{ textAlign: "center", color: T.ink }}>Bike Insight</span>
             <span style={{ textAlign: "center" }}>Strava</span>
@@ -389,7 +392,7 @@ function LandingComparison() {
                 const v = row[j];
                 const isBI = j === 1;
                 return (
-                  <div key={j} style={{ textAlign: "center", background: isBI ? "rgba(199,255,63,0.08)" : "transparent", padding: "6px 0", borderRadius: 6 }}>
+                  <div key={j} style={{ textAlign: "center", background: isBI ? T.accentSoft : "transparent", padding: "6px 0", borderRadius: 6 }}>
                     {v === "check" ? (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isBI ? T.ok : T.muted} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle" }}><path d="M4 12l5 5L20 7"/></svg>
                     ) : v === "cross" ? (
@@ -411,10 +414,10 @@ function LandingComparison() {
 // ── CTA ────────────────────────────────────────────────────────
 function LandingCTA() {
   return (
-    <div className="bi-land-pad" style={{ padding: "80px 48px", background: T.ink, color: "#fff", textAlign: "center", position: "relative", overflow: "hidden" }}>
+    <div className="bi-land-pad" style={{ padding: "80px 48px", background: T.ink, color: T.white, textAlign: "center", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 60%)" }} />
       <div style={{ position: "relative" }}>
-        <div style={{ fontSize: 10.5, fontWeight: 600, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>Beta · accès libre</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: T.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>Beta · accès libre</div>
         <div style={{ fontSize: "clamp(36px, 4.5vw, 56px)", fontWeight: 600, letterSpacing: -2, lineHeight: 1.05, marginTop: 16 }}>
           Connecte ton Strava.<br />
           On s&apos;occupe du reste.
@@ -424,7 +427,7 @@ function LandingCTA() {
         </div>
         <div style={{ marginTop: 36, display: "flex", justifyContent: "center", gap: 12 }}>
           <Link href="/signup">
-            <button style={{ padding: "17px 28px", background: T.accent, color: T.accentInk, border: "none", borderRadius: 12, fontSize: 15, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <button style={{ padding: "17px 28px", background: T.accent, color: T.accentInk, border: "none", borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               Commencer maintenant
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </button>
@@ -442,7 +445,7 @@ function LandingFooter() {
       <div className="bi-land-footer" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 40 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
             </div>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
@@ -459,7 +462,7 @@ function LandingFooter() {
           <div key={h as string}>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>{h as string}</div>
             <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-              {(items as string[]).map(item => <span key={item} style={{ fontSize: 12.5, color: T.ink, cursor: "pointer" }}>{item}</span>)}
+              {(items as string[]).map(item => <span key={item} style={{ fontSize: 13, color: T.ink, cursor: "pointer" }}>{item}</span>)}
             </div>
           </div>
         ))}

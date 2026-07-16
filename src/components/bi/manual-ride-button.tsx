@@ -115,11 +115,11 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
       <button
         onClick={() => { reset(); setOpen(true); }}
         style={{
-          padding: "9px 16px",
+          padding: "10px 16px",
           background: "transparent",
           border: "1px solid var(--bi-line)",
           borderRadius: 10,
-          fontSize: 12.5,
+          fontSize: 13,
           fontWeight: 600,
           fontFamily: "inherit",
           cursor: "pointer",
@@ -208,7 +208,7 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
             </div>
 
             {error && (
-              <div style={{ marginTop: 14, padding: "10px 13px", borderRadius: 9, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 12.5 }}>
+              <div style={{ marginTop: 14, padding: "10px 13px", borderRadius: 8, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
                 {error}
               </div>
             )}
