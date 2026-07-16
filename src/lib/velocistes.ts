@@ -106,28 +106,28 @@ export async function findVelocistes(
   const json = (await res.json()) as { elements?: OverpassElement[] };
   const elements = json.elements ?? [];
 
-  return elements
-    .map((el) => {
-      const tags = el.tags ?? {};
-      const eLat = el.lat ?? el.center?.lat;
-      const eLon = el.lon ?? el.center?.lon;
-      if (eLat === undefined || eLon === undefined) return null;
-      const name = tags.name?.trim();
-      if (!name) return null; // on ignore les magasins sans nom
-      return {
-        id: `${el.type}/${el.id}`,
-        name,
-        distanceKm: haversineKm(lat, lon, eLat, eLon),
-        address: formatAddress(tags),
-        lat: eLat,
-        lon: eLon,
-        phone: tags.phone ?? tags["contact:phone"] ?? null,
-        website: tags.website ?? tags["contact:website"] ?? null,
-        openingHours: tags.opening_hours ?? null,
-        mapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${eLat},${eLon}`,
-      } satisfies Velociste;
-    })
-    .filter((v): v is Velociste => v !== null)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, max);
+  const shops: Velociste[] = [];
+  for (const el of elements) {
+    const tags = el.tags ?? {};
+    const eLat = el.lat ?? el.center?.lat;
+    const eLon = el.lon ?? el.center?.lon;
+    if (eLat === undefined || eLon === undefined) continue;
+    const name = tags.name?.trim();
+    if (!name) continue; // on ignore les magasins sans nom
+    shops.push({
+      id: `${el.type}/${el.id}`,
+      name,
+      distanceKm: haversineKm(lat, lon, eLat, eLon),
+      address: formatAddress(tags),
+      lat: eLat,
+      lon: eLon,
+      phone: tags.phone ?? tags["contact:phone"] ?? null,
+      website: tags.website ?? tags["contact:website"] ?? null,
+      openingHours: tags.opening_hours ?? null,
+      mapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${eLat},${eLon}`,
+    });
+  }
+
+  shops.sort((a, b) => a.distanceKm - b.distanceKm);
+  return shops.slice(0, max);
 }
