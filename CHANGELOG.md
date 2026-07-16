@@ -1,5 +1,20 @@
 # Changelog
 
+## [Non publié] — feat : moteur de règles de compatibilité (source de vérité) — Phase 1
+
+### Ajouté
+- **`src/lib/groupsets.ts`** : **source de vérité** de la compatibilité. Registre typé des 25 groupes (`GROUPSETS`) décrivant discipline, vitesses et **type d'étrier → type de plaquette** de façon déterministe. `resolvePadCatalogId(groupsetId)` remplace la déduction par mots-clés. `findBikeDataIssues()` audite les templates et remonte toute incohérence (ex. plaquette VTT sur groupe route).
+- **`src/instrumentation.ts`** : hook de démarrage Next qui exécute `findBikeDataIssues()` et logue les incohérences — filet anti-régression, sans nouvelle dépendance.
+
+### Modifié
+- **`src/lib/components-catalog.ts`** : `getCatalogForTemplate` reçoit l'`id` du groupe et route les plaquettes disque via `resolvePadCatalogId` (déterministe) ; les anciens replis marque/type de vélo restent en secours si le groupe est inconnu.
+- **`src/lib/bike-templates.ts`** : Sora, Tiagra et Claris route corrigés (plaquettes `M04`/génériques VTT → `L03A` route type L), pour que les données passent le validateur.
+- **`compare/page.tsx`**, **`new-component-form.tsx`**, **`onboarding/client.tsx`** : passent l'`id` du groupe à `getCatalogForTemplate`.
+
+### Reste à faire (prochaines phases)
+- Le split route/VTT côté **SRAM** (les plaquettes route SRAM pointent encore l'entrée VTT) est désormais trivial à corriger via la source de vérité.
+- Phase 2 : base modèles avec finition + année (lever l'ambiguïté « Addict » vs « Addict 30 »). Phase 3 : niveaux de confiance + repli honnête.
+
 ## [Non publié] — fix : compatibilité plaquettes route vs VTT (M06)
 
 ### Corrigé

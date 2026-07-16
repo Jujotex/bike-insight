@@ -1,6 +1,8 @@
 // Catalogue de composants vélo avec recommandations concrètes
 // Détection automatique de compatibilité depuis le nom du composant
 
+import { resolvePadCatalogId } from "./groupsets";
+
 export type CatalogProduct = {
   name: string;
   brand: string;
@@ -545,7 +547,8 @@ export function getCatalogForTemplate(
   componentCategory: string,
   templateBrand: string,
   templateSpeeds: number,
-  templateBikeTypes: string[] = []
+  templateBikeTypes: string[] = [],
+  templateId: string = ""
 ): CatalogEntry | null {
   const brand = templateBrand.toLowerCase();
   const name = componentName.toLowerCase();
@@ -576,6 +579,12 @@ export function getCatalogForTemplate(
       ?? null;
   }
   if (isDiscBrake) {
+    // Source de vérité : le groupe détermine le type de plaquette (déterministe).
+    if (templateId) {
+      const padId = resolvePadCatalogId(templateId);
+      if (padId) return CATALOG.find(e => e.id === padId) ?? null;
+    }
+    // Replis si le groupe est inconnu : route Shimano → type L/K, sinon par marque.
     if (brand === "shimano" && isRoadish) {
       return CATALOG.find(e => e.id === `brake-disc-shimano-road-${sv}`)
         ?? CATALOG.find(e => e.id === "brake-disc-shimano-road-11v")

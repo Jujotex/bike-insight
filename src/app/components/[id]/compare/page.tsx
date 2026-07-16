@@ -86,7 +86,7 @@ export default async function ComparePage({
     ? BIKE_TEMPLATES.find(t => t.id === bike.groupset_template_id) ?? null
     : null;
   const catalogEntry = bikeTemplate
-    ? getCatalogForTemplate(comp.name as string, comp.category as string, bikeTemplate.brand, bikeTemplate.speeds, bikeTemplate.bikeTypes)
+    ? getCatalogForTemplate(comp.name as string, comp.category as string, bikeTemplate.brand, bikeTemplate.speeds, bikeTemplate.bikeTypes, bikeTemplate.id)
       ?? findCatalogEntry(comp.name as string, comp.category as string)
     : findCatalogEntry(comp.name as string, comp.category as string);
   const products: CatalogProduct[] = catalogEntry

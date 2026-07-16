@@ -83,7 +83,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
 
   // Suggestions catalog pour le type selectionne
   const catalogEntry: CatalogEntry | null = currentTemplate
-    ? getCatalogForTemplate(selectedType.name, selectedType.category, currentTemplate.brand, currentTemplate.speeds, currentTemplate.bikeTypes)
+    ? getCatalogForTemplate(selectedType.name, selectedType.category, currentTemplate.brand, currentTemplate.speeds, currentTemplate.bikeTypes, currentTemplate.id)
     : null;
 
   // Verification compatibilite
