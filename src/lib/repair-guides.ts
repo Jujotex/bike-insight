@@ -2,6 +2,9 @@
 // ou « je passe chez le vélociste » (fourchette main-d'œuvre indicative).
 // Données 100 % statiques, aucune donnée maison, à visée indicative.
 //
+// Le temps (timeMin/timeMax, minutes) et les outils (tools) sont des ordres de
+// grandeur pour aider à l'arbitrage DIY vs vélociste — pas un pas-à-pas maison.
+//
 // Sources (validées juillet 2026) :
 // - Tutos publics réputés fr : Alltricks (pages « surl » maintenues) et Probikeshop.
 // - Fourchettes main-d'œuvre : ordres de grandeur ateliers fr (hors pièces),
@@ -20,7 +23,31 @@ export type RepairGuide = {
   tutorialSource: string;   // nom de la source, ex. « Alltricks »
   laborMin: number;         // main-d'œuvre atelier indicative, hors pièces (€)
   laborMax: number;
+  timeMin: number;          // temps DIY indicatif (minutes)
+  timeMax: number;
+  tools: string[];          // outils indicatifs pour le faire soi-même
 };
+
+// Libellés et descriptions courtes des niveaux de difficulté (réutilisés
+// par la carte « Et maintenant ? » et le hub tuto).
+export const DIFFICULTY_LABELS: Record<RepairDifficulty, string> = {
+  facile: "Facile",
+  moyen: "Intermédiaire",
+  expert: "Expert",
+};
+
+export const DIFFICULTY_DESC: Record<RepairDifficulty, string> = {
+  facile: "Faisable en autonomie avec des outils de base.",
+  moyen: "Quelques outils spécifiques et un peu de méthode.",
+  expert: "Réglages précis — mieux vaut être équipé et expérimenté.",
+};
+
+// Formate une fourchette de temps indicative en texte court.
+export function formatRepairTime(min: number, max: number): string {
+  if (max < 60) return `${min}–${max} min`;
+  const h = (m: number) => (m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60}`);
+  return `${min < 60 ? min + " min" : h(min)}–${h(max)}`;
+}
 
 // Entrée interne : le guide + les mots-clés qui le déclenchent.
 // `names` matche le nom de la pièce, `categories` sert de repli par catégorie.
@@ -46,6 +73,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 10,
       laborMax: 20,
+      timeMin: 15,
+      timeMax: 30,
+      tools: ["Dérive-chaîne", "Pince à maillon rapide"],
     },
   },
   {
@@ -58,6 +88,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 15,
+      timeMax: 25,
+      tools: ["Fouet à chaîne", "Démonte-cassette", "Clé plate"],
     },
   },
   {
@@ -70,6 +103,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 22,
       laborMax: 45,
+      timeMin: 30,
+      timeMax: 60,
+      tools: ["Jeu de clés Allen", "Clé démonte-manivelle"],
     },
   },
   {
@@ -82,6 +118,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Probikeshop",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 10,
+      timeMax: 20,
+      tools: ["Démonte-pneus", "Pompe"],
     },
   },
   {
@@ -94,6 +133,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 15,
+      timeMax: 30,
+      tools: ["Jeu de clés Allen", "Repousse-piston"],
     },
   },
   {
@@ -106,6 +148,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 10,
       laborMax: 20,
+      timeMin: 15,
+      timeMax: 25,
+      tools: ["Clé Torx ou Allen", "Clé pour écrou Center-Lock"],
     },
   },
   {
@@ -118,6 +163,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 20,
+      timeMax: 40,
+      tools: ["Pince coupe-câble", "Jeu de clés Allen"],
     },
   },
 
@@ -133,6 +181,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 35,
+      timeMin: 20,
+      timeMax: 45,
+      tools: ["Jeu de clés Allen", "Dérive-chaîne"],
     },
   },
   {
@@ -146,6 +197,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 30,
+      timeMin: 20,
+      timeMax: 40,
+      tools: ["Jeu de clés Allen", "Clé Torx"],
     },
   },
   {
@@ -159,6 +213,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 10,
+      timeMax: 25,
+      tools: ["Démonte-pneus", "Pompe"],
     },
   },
   {
@@ -172,6 +229,9 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 15,
+      timeMax: 30,
+      tools: ["Jeu de clés Allen", "Clé dynamométrique"],
     },
   },
 ];
@@ -185,6 +245,9 @@ const GENERIC_GUIDE: RepairGuide = {
   tutorialSource: "Alltricks",
   laborMin: 15,
   laborMax: 40,
+  timeMin: 20,
+  timeMax: 45,
+  tools: ["Outils de base"],
 };
 
 // Renvoie le guide le plus pertinent pour une pièce. Ne renvoie jamais null :
