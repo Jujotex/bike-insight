@@ -59,7 +59,7 @@ export default async function TutoPage({
       <div className="bi-page" style={{ maxWidth: 900 }}>
         {/* Barre de retour + fil d'ariane */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>
+          <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>
             <Link href="/bikes" style={{ color: "var(--bi-muted)", textDecoration: "none" }}>Composants</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
             <Link href={"/components/" + id} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{comp.name as string}</Link>
@@ -74,7 +74,7 @@ export default async function TutoPage({
         </div>
 
         {/* ── Héros : encre + accent lime ─────────────────────────── */}
-        <div style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+        <div className="bi-tuto-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             {/* Pastille outil accent */}
             <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -82,7 +82,7 @@ export default async function TutoPage({
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--bi-accent)" }}>Prochaine étape</div>
-              <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.6, marginTop: 4 }}>{guide.operation}</div>
+              <div className="bi-tuto-hero-title" style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.6, marginTop: 4 }}>{guide.operation}</div>
               <div style={{ fontSize: 13, color: "var(--bi-white)", opacity: 0.6, marginTop: 4 }}>{comp.name as string} · {bike?.name ?? "Ton vélo"} · {categoryLabel}</div>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default async function TutoPage({
 
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--bi-muted)", marginBottom: 2 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.2 7a6 7 0 1 0 0 10"/><path d="M13 10H5"/><path d="M13 14H5"/></svg>
                 Main-d&apos;œuvre
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>

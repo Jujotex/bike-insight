@@ -1,5 +1,20 @@
 # Changelog
 
+## [Non publié] — refactor : suppression de la carte « Informations » (détail composant)
+
+### Supprimé
+- **`src/app/components/[id]/page.tsx`** : carte « Informations » (Vélo / Catégorie / Installé le / Km vélo à la pose) retirée — redondante avec l'en-tête (vélo, catégorie) et le sous-titre (date d'installation).
+
+## [Non publié] — style : alignement du héros composant (colonne de droite)
+
+### Modifié
+- **`src/app/components/[id]/page.tsx`** : dans le bloc héros de la page composant, la colonne de droite (recommandation + stats) laissait un vide en bas car plus courte que la carte d'usure de gauche. La grille de stats prend désormais `flex: 1` pour combler l'espace et aligner le bas des deux colonnes ; le contenu des cellules est centré verticalement.
+
+## [Non publié] — style : page tuto responsive (mobile)
+
+### Modifié
+- **`src/app/globals.css`** + **`src/app/components/[id]/tuto/page.tsx`** : ajout de règles responsive pour la page tuto (les bouts en styles inline ne réagissaient pas aux media queries). Sous 768 px : le fil d'ariane est masqué (le bouton Retour suffit, évite le débordement avec un nom de pièce long), et le héros est plus compact (padding réduit, titre 22 px). Le reste était déjà responsive : les deux cartes DIY/vélociste passent en 1 colonne via `bi-grid-2`, et le finder (champ, chips, liste scrollable) s'adapte en flex.
+
 ## [Non publié] — style : cartes DIY / vélociste à hauteur égale
 
 ### Modifié
