@@ -292,6 +292,15 @@ body {
   .bi-compare-options { grid-template-columns: 1fr; }
 }
 
+/* ── Page tuto responsive ────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Fil d'ariane masqué (le bouton Retour suffit) pour éviter le débordement */
+  .bi-tuto-crumb { display: none !important; }
+  /* Héros plus compact */
+  .bi-tuto-hero { padding: 20px !important; }
+  .bi-tuto-hero-title { font-size: 22px !important; }
+}
+
 /* ── Skeletons & toasts ──────────────────────────────────────── */
 @keyframes bi-pulse {
   0%, 100% { opacity: 0.45; }

@@ -86,7 +86,7 @@ export default async function ComparePage({
     ? BIKE_TEMPLATES.find(t => t.id === bike.groupset_template_id) ?? null
     : null;
   const catalogEntry = bikeTemplate
-    ? getCatalogForTemplate(comp.name as string, comp.category as string, bikeTemplate.brand, bikeTemplate.speeds)
+    ? getCatalogForTemplate(comp.name as string, comp.category as string, bikeTemplate.brand, bikeTemplate.speeds, bikeTemplate.bikeTypes, bikeTemplate.id)
       ?? findCatalogEntry(comp.name as string, comp.category as string)
     : findCatalogEntry(comp.name as string, comp.category as string);
   const products: CatalogProduct[] = catalogEntry
@@ -268,6 +268,16 @@ export default async function ComparePage({
           })}
         </div>
 
+
+        {/* Repli honnête : pour les freins, la réf exacte dépend de l'étrier */}
+        {(comp.category as string) === "freinage" && (
+          <div style={{ marginBottom: 22, padding: "14px 16px", borderRadius: 14, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+            <div style={{ fontSize: 13, color: "var(--bi-muted)", lineHeight: 1.55 }}>
+              <strong style={{ color: "var(--bi-ink)" }}>Comment être sûr :</strong> le modèle exact de plaquette dépend de ton étrier. Vérifie le code gravé au dos de la plaquette usée — <strong style={{ color: "var(--bi-ink)" }}>L03A / K02S</strong> = route, <strong style={{ color: "var(--bi-ink)" }}>M06 / B01S</strong> = VTT. En cas de doute, ton vélociste l&apos;identifie en 30 secondes.
+            </div>
+          </div>
+        )}
 
         {/* Raisonnement + prochaines étapes */}
         <div className="bi-grid-split">

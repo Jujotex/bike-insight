@@ -41,7 +41,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne KMC Z8", category: "transmission", brand: "KMC", purchase_price: 12, km_max: 2500 },
         { name: "Cassette Shimano CS-HG31 8v", category: "transmission", brand: "Shimano", purchase_price: 18, km_max: 12000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 18, km_max: 3000, note: "Remplacer par ton modèle" },
-        { name: "Plaquettes disque Shimano", category: "freinage", brand: "Shimano", purchase_price: 15, km_max: 2500 },
+        { name: "Plaquettes disque Shimano L03A (route)", category: "freinage", brand: "Shimano", purchase_price: 16, km_max: 2500, note: "Plaquettes route type L — étrier flat-mount route" },
       ],
       rim: [
         { name: "Chaîne KMC Z8", category: "transmission", brand: "KMC", purchase_price: 12, km_max: 2500 },
@@ -64,7 +64,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne KMC X9", category: "transmission", brand: "KMC", purchase_price: 14, km_max: 2500 },
         { name: "Cassette Shimano CS-HG400 9v", category: "transmission", brand: "Shimano", purchase_price: 22, km_max: 12000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 22, km_max: 3500 },
-        { name: "Plaquettes disque Shimano M04", category: "freinage", brand: "Shimano", purchase_price: 14, km_max: 2500 },
+        { name: "Plaquettes disque Shimano L03A (route)", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 2500, note: "Plaquettes route type L — étrier flat-mount route" },
       ],
       rim: [
         { name: "Chaîne KMC X9", category: "transmission", brand: "KMC", purchase_price: 14, km_max: 2500 },
@@ -87,7 +87,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne Shimano HG54 10v", category: "transmission", brand: "Shimano", purchase_price: 16, km_max: 3000 },
         { name: "Cassette Shimano Tiagra CS-HG500 10v", category: "transmission", brand: "Shimano", purchase_price: 28, km_max: 15000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 28, km_max: 4000 },
-        { name: "Plaquettes disque Shimano M04", category: "freinage", brand: "Shimano", purchase_price: 14, km_max: 2500 },
+        { name: "Plaquettes disque Shimano L03A (route)", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 2500, note: "Plaquettes route type L — étrier flat-mount route" },
       ],
       rim: [
         { name: "Chaîne Shimano HG54 10v", category: "transmission", brand: "Shimano", purchase_price: 16, km_max: 3000 },
@@ -110,7 +110,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne Shimano HG601-11", category: "transmission", brand: "Shimano", purchase_price: 28, km_max: 4000, note: "Chaîne de série 105" },
         { name: "Cassette Shimano 105 CS-HG700-11", category: "transmission", brand: "Shimano", purchase_price: 50, km_max: 20000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 40, km_max: 4500, note: "Remplacer par ton modèle exact" },
-        { name: "Plaquettes disque Shimano M06", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 3000 },
+        { name: "Plaquettes disque Shimano L03A (route)", category: "freinage", brand: "Shimano", purchase_price: 20, km_max: 2500, note: "Plaquettes route type L — étrier flat-mount 11v (R7070)" },
       ],
       rim: [
         { name: "Chaîne Shimano HG601-11", category: "transmission", brand: "Shimano", purchase_price: 28, km_max: 4000 },
@@ -133,7 +133,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne Shimano CN-HG601-12", category: "transmission", brand: "Shimano", purchase_price: 32, km_max: 4000 },
         { name: "Cassette Shimano 105 CS-R7100-12", category: "transmission", brand: "Shimano", purchase_price: 65, km_max: 20000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 50, km_max: 5000 },
-        { name: "Plaquettes disque Shimano M06", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 3000 },
+        { name: "Plaquettes disque Shimano K02S (route)", category: "freinage", brand: "Shimano", purchase_price: 22, km_max: 2500, note: "Plaquettes route type K — étrier flat-mount 12v (R7170)" },
       ],
       rim: [
         { name: "Chaîne Shimano CN-HG601-12", category: "transmission", brand: "Shimano", purchase_price: 32, km_max: 4000 },
@@ -156,7 +156,7 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
         { name: "Chaîne Shimano Ultegra HG701-11", category: "transmission", brand: "Shimano", purchase_price: 38, km_max: 4500 },
         { name: "Cassette Shimano Ultegra CS-R8000", category: "transmission", brand: "Shimano", purchase_price: 80, km_max: 25000 },
         { name: "Pneus route 700c", category: "roues", brand: "Continental", purchase_price: 52, km_max: 5000, note: "Continental GP5000 recommandé" },
-        { name: "Plaquettes disque Shimano M06", category: "freinage", brand: "Shimano", purchase_price: 20, km_max: 3500 },
+        { name: "Plaquettes disque Shimano L03A (route)", category: "freinage", brand: "Shimano", purchase_price: 20, km_max: 2500, note: "Plaquettes route type L — étrier flat-mount (R8070)" },
       ],
       rim: [
         { name: "Chaîne Shimano Ultegra HG701-11", category: "transmission", brand: "Shimano", purchase_price: 38, km_max: 4500 },

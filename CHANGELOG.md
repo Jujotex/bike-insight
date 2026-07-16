@@ -1,5 +1,57 @@
 # Changelog
 
+## [Non publié] — feat : identification modèle précise + confiance (Phases 2 & 3)
+
+### Ajouté
+- **`src/lib/bike-models.ts`** (Phase 2) : les familles peuvent porter des **finitions** (`trims`) avec **année** (ex. « Addict 30 » 105 11v ≤2021 / 105 12v ≥2022). Nouveau `resolveBikeModel(text)` qui renvoie le groupe **+ un niveau de confiance** (`high` finition+année, `medium` finition seule, `low` famille seule) et une note honnête. `matchBikeModel` conservé pour compat.
+
+### Modifié
+- **`src/app/onboarding/client.tsx`** (Phase 3) : le pré-remplissage utilise `resolveBikeModel` et affiche un **badge de confiance** (Confiance élevée / À confirmer / Groupe supposé) + la note. Fini le « pré-rempli » présenté comme certain.
+- **`src/app/components/[id]/compare/page.tsx`** (Phase 3) : encart honnête pour les freins — « le modèle exact dépend de ton étrier, vérifie le code gravé (L03A/K02S = route, M06/B01S = VTT), sinon ton vélociste ». Ancre la reco sur la vraie pièce pour un client non-mécano.
+
+### Reste à faire
+- La table des finitions est **amorcée** (Scott Addict, Canyon Endurace/Ultimate, Trek Domane…) et doit grandir dans le temps (ou être alimentée par une source externe plus tard).
+- Split route/VTT côté SRAM (plaquettes) encore ouvert.
+
+## [Non publié] — feat : moteur de règles de compatibilité (source de vérité) — Phase 1
+
+### Ajouté
+- **`src/lib/groupsets.ts`** : **source de vérité** de la compatibilité. Registre typé des 25 groupes (`GROUPSETS`) décrivant discipline, vitesses et **type d'étrier → type de plaquette** de façon déterministe. `resolvePadCatalogId(groupsetId)` remplace la déduction par mots-clés. `findBikeDataIssues()` audite les templates et remonte toute incohérence (ex. plaquette VTT sur groupe route).
+- **`src/instrumentation.ts`** : hook de démarrage Next qui exécute `findBikeDataIssues()` et logue les incohérences — filet anti-régression, sans nouvelle dépendance.
+
+### Modifié
+- **`src/lib/components-catalog.ts`** : `getCatalogForTemplate` reçoit l'`id` du groupe et route les plaquettes disque via `resolvePadCatalogId` (déterministe) ; les anciens replis marque/type de vélo restent en secours si le groupe est inconnu.
+- **`src/lib/bike-templates.ts`** : Sora, Tiagra et Claris route corrigés (plaquettes `M04`/génériques VTT → `L03A` route type L), pour que les données passent le validateur.
+- **`compare/page.tsx`**, **`new-component-form.tsx`**, **`onboarding/client.tsx`** : passent l'`id` du groupe à `getCatalogForTemplate`.
+
+### Reste à faire (prochaines phases)
+- Le split route/VTT côté **SRAM** (les plaquettes route SRAM pointent encore l'entrée VTT) est désormais trivial à corriger via la source de vérité.
+- Phase 2 : base modèles avec finition + année (lever l'ambiguïté « Addict » vs « Addict 30 »). Phase 3 : niveaux de confiance + repli honnête.
+
+## [Non publié] — fix : compatibilité plaquettes route vs VTT (M06)
+
+### Corrigé
+- Les groupes route Shimano proposaient des plaquettes **M06**, qui sont des plaquettes **VTT** (étriers Deore 2 pistons) — incompatibles avec un 105 route à disque (étriers flat-mount type L/K).
+- **`src/lib/bike-templates.ts`** : les templates route (105 11v, 105 12v, Ultegra 11v) installent désormais les bonnes plaquettes — `L03A` (type L, 11v) et `K02S` (type K, 12v) — au lieu de M06.
+- **`src/lib/components-catalog.ts`** : ajout de deux entrées catalogue `brake-disc-shimano-road-11v` (type L : L03A/L04C) et `-12v` (type K : K02S). `getCatalogForTemplate` reçoit désormais le type de vélo et route route/gravel Shimano vers les plaquettes flat-mount ; le VTT garde M06. L'entrée VTT est reclassée « Shimano VTT » pour lever l'ambiguïté.
+- **`src/app/components/[id]/compare/page.tsx`**, **`src/components/bi/new-component-form.tsx`**, **`src/app/onboarding/client.tsx`** : passent le `bikeTypes` du template à `getCatalogForTemplate`.
+
+### À noter
+- Les vélos déjà créés gardent en base le nom « Plaquettes disque Shimano M06 » (donnée historique) ; la recommandation de remplacement, elle, propose désormais les bonnes plaquettes route. Renommer la pièce via « Modifier » si besoin d'exactitude.
+
+### Supprimé
+- **`src/app/components/[id]/page.tsx`** : carte « Informations » (Vélo / Catégorie / Installé le / Km vélo à la pose) retirée — redondante avec l'en-tête (vélo, catégorie) et le sous-titre (date d'installation).
+
+## [Non publié] — style : alignement du héros composant (colonne de droite)
+
+### Modifié
+- **`src/app/components/[id]/page.tsx`** : dans le bloc héros de la page composant, la colonne de droite (recommandation + stats) laissait un vide en bas car plus courte que la carte d'usure de gauche. La grille de stats prend désormais `flex: 1` pour combler l'espace et aligner le bas des deux colonnes ; le contenu des cellules est centré verticalement.
+
+## [Non publié] — style : page tuto responsive (mobile)
+
+### Modifié
+- **`src/app/globals.css`** + **`src/app/components/[id]/tuto/page.tsx`** : ajout de règles responsive pour la page tuto (les bouts en styles inline ne réagissaient pas aux media queries). Sous 768 px : le fil d'ariane est masqué (le bouton Retour suffit, évite le débordement avec un nom de pièce long), et le héros est plus compact (padding réduit, titre 22 px). Le reste était déjà responsive : les deux cartes DIY/vélociste passent en 1 colonne via `bi-grid-2`, et le finder (champ, chips, liste scrollable) s'adapte en flex.
+
 ## [Non publié] — style : cartes DIY / vélociste à hauteur égale
 
 ### Modifié

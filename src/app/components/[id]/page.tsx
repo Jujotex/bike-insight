@@ -286,14 +286,14 @@ export default async function ComponentDetailPage({
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
               {[
                 ["Prix achat", comp.purchase_price !== null ? comp.purchase_price + " €" : "-"],
                 ["Km parcourus", ((comp.km_used as number) ?? 0).toLocaleString("fr-FR") + " km"],
                 ["Intensité", intensity],
                 ["Vie restante", daysRemaining],
               ].map(([k, v]) => (
-                <div key={String(k)} style={{ background: "var(--bi-card)", padding: "14px 16px" }}>
+                <div key={String(k)} style={{ background: "var(--bi-card)", padding: "14px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                   <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
                   <Mono style={{ display: "block", fontSize: 16, fontWeight: 500, marginTop: 4 }}>{v as string}</Mono>
                 </div>
@@ -447,24 +447,6 @@ export default async function ComponentDetailPage({
             )}
           </BiCard>
           )}
-
-
-        <BiCard pad={24}>
-          <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>
-          <div className="bi-stats-4" style={{ gap: 20, background: "transparent", borderRadius: 0 }}>
-            {[
-              ["Vélo", bike?.name ?? "-"],
-              ["Categorie", CATEGORY_LABELS[comp.category as string] ?? String(comp.category)],
-              ["Installe le", installedDate],
-              ["Km vélo à la pose", comp.installed_km !== null ? Math.round(comp.installed_km as number).toLocaleString("fr") + " km" : "-"],
-            ].map(([k, v]) => (
-              <div key={String(k)}>
-                <BiLabel style={{ fontSize: 10 }}>{k}</BiLabel>
-                <div style={{ fontSize: 13, fontWeight: 500, marginTop: 6 }}>{v as string}</div>
-              </div>
-            ))}
-          </div>
-        </BiCard>
 
       </div>
     </AppShell>
