@@ -166,6 +166,7 @@ export default async function BikeDetailPage({
               <span className="bi-comp-col-installed" style={{ textAlign: "right" }}>Installé</span>
               <span>Usure</span>
               <span className="bi-comp-col-km" style={{ textAlign: "right" }}>Km</span>
+              <span></span>
             </div>
             {components.length === 0 ? (
               <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--bi-muted)", fontSize: 13 }}>
@@ -200,6 +201,9 @@ export default async function BikeDetailPage({
                     </div>
                     <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
                       <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", color: "var(--bi-muted)" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                     </div>
                   </Link>
                 );

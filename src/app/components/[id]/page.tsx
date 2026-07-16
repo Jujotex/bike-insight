@@ -6,7 +6,7 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { findRepairGuide, DIFFICULTY_LABELS, formatRepairTime } from "@/lib/repair-guides";
+import { findRepairGuide, DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
 import { redirect } from "next/navigation";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -164,6 +164,10 @@ export default async function ComponentDetailPage({
   const maintenanceLogs = logs ?? [];
 
   const repairGuide = findRepairGuide(comp.name as string, comp.category as string);
+  // La carte « Et maintenant ? » crie sa prochaine étape seulement quand
+  // la pièce demande une action (à surveiller / à remplacer). Sur une pièce
+  // en bon état, elle reste discrète pour ne pas polluer.
+  const nextStepUrgent = (comp.status as string) === "bad" || (comp.status as string) === "warn";
 
   const statusBgColor = (comp.status as string) === "bad"
     ? "rgba(200,54,46,0.04)"
@@ -298,6 +302,50 @@ export default async function ComponentDetailPage({
           </div>
         </div>
 
+        {(comp.status as string) !== "archived" && (
+          <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
+            <Link href={"/components/" + id + "/tuto"} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+              {/* En-tête : plein accent + bouton sombre si action requise,
+                  discret (accent doux + lien) si la pièce est en bon état. */}
+              <div style={{ padding: "18px 22px", background: nextStepUrgent ? "var(--bi-accent)" : "var(--bi-accent-soft)", borderBottom: nextStepUrgent ? "none" : "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 999, background: nextStepUrgent ? "var(--bi-ink)" : "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={nextStepUrgent ? "var(--bi-accent)" : "var(--bi-accent-ink)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-accent-ink)" }}>Et maintenant ?</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, marginTop: 3, color: "var(--bi-accent-ink)" }}>{repairGuide.operation}</div>
+                  </div>
+                </div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0, color: nextStepUrgent ? "var(--bi-white)" : "var(--bi-ink)", ...(nextStepUrgent ? { background: "var(--bi-ink)", padding: "10px 16px", borderRadius: 999 } : {}) }}>
+                  Voir le détail
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </div>
+              </div>
+              {/* Arbitrage : temps (soi-même) vs coût (vélociste) */}
+              <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)", borderTop: "1px solid var(--bi-line)" }}>
+                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
+                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{formatRepairTime(repairGuide.timeMin, repairGuide.timeMax)}</Mono>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 3 }}>
+                      {[1, 2, 3].map((n) => (
+                        <div key={n} style={{ width: 16, height: 5, borderRadius: 999, background: n <= DIFFICULTY_LEVEL[repairGuide.difficulty] ? DIFFICULTY_COLOR[repairGuide.difficulty] : "var(--bi-line)" }} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>{DIFFICULTY_LABELS[repairGuide.difficulty]}</span>
+                  </div>
+                </div>
+                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
+                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{repairGuide.laborMin}–{repairGuide.laborMax} €</Mono>
+                  <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Main-d&apos;œuvre indicative, hors pièces</div>
+                </div>
+              </div>
+            </Link>
+          </BiCard>
+        )}
+
         <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
             <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div>
@@ -400,36 +448,6 @@ export default async function ComponentDetailPage({
           </BiCard>
           )}
 
-        {(comp.status as string) !== "archived" && (
-          <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
-            <Link href={"/components/" + id + "/tuto"} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
-              {/* En-tête accentué : action à venir */}
-              <div style={{ padding: "18px 22px", background: "var(--bi-accent-soft)", borderBottom: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <BiLabel style={{ fontSize: 10 }}>Et maintenant ?</BiLabel>
-                  <div style={{ fontSize: 16, fontWeight: 600, marginTop: 4 }}>{repairGuide.operation}</div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
-                  Voir le détail
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-                </div>
-              </div>
-              {/* Arbitrage : temps (soi-même) vs coût (vélociste) */}
-              <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)" }}>
-                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
-                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{formatRepairTime(repairGuide.timeMin, repairGuide.timeMax)}</Mono>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Niveau {DIFFICULTY_LABELS[repairGuide.difficulty].toLowerCase()} · avec tuto</div>
-                </div>
-                <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
-                  <Mono style={{ fontSize: 16, fontWeight: 500 }}>{repairGuide.laborMin}–{repairGuide.laborMax} €</Mono>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Main-d&apos;œuvre indicative, hors pièces</div>
-                </div>
-              </div>
-            </Link>
-          </BiCard>
-        )}
 
         <BiCard pad={24}>
           <BiLabel style={{ marginBottom: 14 }}>Informations</BiLabel>

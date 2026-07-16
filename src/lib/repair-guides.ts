@@ -42,6 +42,19 @@ export const DIFFICULTY_DESC: Record<RepairDifficulty, string> = {
   expert: "Réglages précis — mieux vaut être équipé et expérimenté.",
 };
 
+// Niveau (1–3) pour une jauge visuelle, et couleur de statut associée.
+export const DIFFICULTY_LEVEL: Record<RepairDifficulty, number> = {
+  facile: 1,
+  moyen: 2,
+  expert: 3,
+};
+
+export const DIFFICULTY_COLOR: Record<RepairDifficulty, string> = {
+  facile: "var(--bi-ok)",
+  moyen: "var(--bi-warn)",
+  expert: "var(--bi-bad)",
+};
+
 // Formate une fourchette de temps indicative en texte court.
 export function formatRepairTime(min: number, max: number): string {
   if (max < 60) return `${min}–${max} min`;
