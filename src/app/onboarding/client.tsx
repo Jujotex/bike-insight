@@ -367,7 +367,7 @@ export function OnboardingWizard({
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {components.map((c, idx) => {
                 const catalogEntry: CatalogEntry | null = (selectedTemplate && selectedTemplate.id !== "custom")
-                  ? getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds)
+                  ? getCatalogForTemplate(c.name, c.category, selectedTemplate.brand, selectedTemplate.speeds, selectedTemplate.bikeTypes)
                   : null;
                 const isFirstOptional = !!c.optional && (idx === 0 || !components[idx - 1].optional);
                 return (

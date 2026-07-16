@@ -1,6 +1,15 @@
 # Changelog
 
-## [Non publié] — refactor : suppression de la carte « Informations » (détail composant)
+## [Non publié] — fix : compatibilité plaquettes route vs VTT (M06)
+
+### Corrigé
+- Les groupes route Shimano proposaient des plaquettes **M06**, qui sont des plaquettes **VTT** (étriers Deore 2 pistons) — incompatibles avec un 105 route à disque (étriers flat-mount type L/K).
+- **`src/lib/bike-templates.ts`** : les templates route (105 11v, 105 12v, Ultegra 11v) installent désormais les bonnes plaquettes — `L03A` (type L, 11v) et `K02S` (type K, 12v) — au lieu de M06.
+- **`src/lib/components-catalog.ts`** : ajout de deux entrées catalogue `brake-disc-shimano-road-11v` (type L : L03A/L04C) et `-12v` (type K : K02S). `getCatalogForTemplate` reçoit désormais le type de vélo et route route/gravel Shimano vers les plaquettes flat-mount ; le VTT garde M06. L'entrée VTT est reclassée « Shimano VTT » pour lever l'ambiguïté.
+- **`src/app/components/[id]/compare/page.tsx`**, **`src/components/bi/new-component-form.tsx`**, **`src/app/onboarding/client.tsx`** : passent le `bikeTypes` du template à `getCatalogForTemplate`.
+
+### À noter
+- Les vélos déjà créés gardent en base le nom « Plaquettes disque Shimano M06 » (donnée historique) ; la recommandation de remplacement, elle, propose désormais les bonnes plaquettes route. Renommer la pièce via « Modifier » si besoin d'exactitude.
 
 ### Supprimé
 - **`src/app/components/[id]/page.tsx`** : carte « Informations » (Vélo / Catégorie / Installé le / Km vélo à la pose) retirée — redondante avec l'en-tête (vélo, catégorie) et le sous-titre (date d'installation).

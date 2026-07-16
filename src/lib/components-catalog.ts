@@ -174,13 +174,38 @@ export const CATALOG: CatalogEntry[] = [
   // ── PLAQUETTES DE FREIN ────────────────────────────────────
 
   {
+    // VTT uniquement : étriers Deore/SLX/XT 2 pistons (M06 = plaquette VTT).
     id: "brake-disc-shimano",
-    compatNote: "Plaquettes disque Shimano (M03 / M04 / M06 / M07)",
+    compatNote: "Plaquettes disque Shimano VTT (M03 / M04 / M06 / M07)",
     keywords: [["shimano", "shimano"], ["plaquette", "frein", "brake", "disc", "disque", "m03", "m04", "m06", "m07"]],
     products: [
-      { name: "Comprex compatible Shimano", brand: "Comprex", price: 8, lifeKm: 2000, tier: "budget", note: "Compatible Shimano, organique — vérifier le modèle (M03/M04/M06)" },
-      { name: "Shimano M06 Organique", brand: "Shimano", reference: "M06", price: 18, lifeKm: 3000, tier: "original", note: "Plaquettes d'origine organique, bon mordant, silencieuses" },
+      { name: "Comprex compatible Shimano", brand: "Comprex", price: 8, lifeKm: 2000, tier: "budget", note: "Compatible Shimano VTT, organique — vérifier le modèle (M03/M04/M06)" },
+      { name: "Shimano M06 Organique", brand: "Shimano", reference: "M06", price: 18, lifeKm: 3000, tier: "original", note: "Plaquettes VTT d'origine organique, bon mordant, silencieuses" },
       { name: "Shimano M07 Métal", brand: "Shimano", reference: "M07", price: 24, lifeKm: 5000, tier: "premium", note: "Métal fritté, longévité x2, idéal descente et pluie" },
+    ],
+  },
+
+  {
+    // Route/gravel 11v et moins : étriers flat-mount type L (R7070/R8070/RS405).
+    id: "brake-disc-shimano-road-11v",
+    compatNote: "Plaquettes disque Shimano route type L (105/Ultegra/Tiagra — étriers R7070/R8070)",
+    keywords: [["shimano"], ["plaquette", "frein", "brake", "disc", "disque", "l02a", "l03a", "l04c"]],
+    products: [
+      { name: "Comprex compatible Shimano L", brand: "Comprex", price: 10, lifeKm: 2000, tier: "budget", note: "Résine compatible étriers route flat-mount — vérifier L02A/L03A" },
+      { name: "Shimano L03A résine", brand: "Shimano", reference: "L03A", price: 20, lifeKm: 2500, tier: "original", note: "Plaquettes route d'origine (résine), silencieuses" },
+      { name: "Shimano L04C métal", brand: "Shimano", reference: "L04C", price: 30, lifeKm: 4000, tier: "premium", note: "Métal fritté, longévité accrue, meilleur par temps humide" },
+    ],
+  },
+
+  {
+    // Route/gravel 12v : étriers flat-mount type K (R7170/R8170/R9270).
+    id: "brake-disc-shimano-road-12v",
+    compatNote: "Plaquettes disque Shimano route type K (105/Ultegra/Dura-Ace 12v — étriers R7170/R8170)",
+    keywords: [["shimano"], ["plaquette", "frein", "brake", "disc", "disque", "k02s", "k03s", "k04s"]],
+    products: [
+      { name: "Comprex compatible Shimano K", brand: "Comprex", price: 12, lifeKm: 2000, tier: "budget", note: "Résine compatible étriers route 12v — vérifier K02S/K03S" },
+      { name: "Shimano K02S résine", brand: "Shimano", reference: "K02S", price: 22, lifeKm: 2500, tier: "original", note: "Plaquettes route 12v d'origine (résine)" },
+      { name: "Shimano K-type métal", brand: "Shimano", price: 32, lifeKm: 4000, tier: "premium", note: "Métal fritté, longévité accrue — vérifie la réf. (K03S/K04S selon ton étrier)" },
     ],
   },
 
@@ -519,12 +544,16 @@ export function getCatalogForTemplate(
   componentName: string,
   componentCategory: string,
   templateBrand: string,
-  templateSpeeds: number
+  templateSpeeds: number,
+  templateBikeTypes: string[] = []
 ): CatalogEntry | null {
   const brand = templateBrand.toLowerCase();
   const name = componentName.toLowerCase();
   const cat = componentCategory.toLowerCase();
   const sv = `${templateSpeeds}v`;
+  // Route et gravel Shimano utilisent des plaquettes flat-mount (type L/K),
+  // pas les plaquettes VTT (M06). Le VTT garde M06.
+  const isRoadish = templateBikeTypes.some((t) => t === "route" || t === "gravel");
 
   const isChain = name.includes("cha") || (cat === "transmission" && (name.includes("chain") || name.includes("kmc") || name.includes("hg")));
   const isCassette = name.includes("cassette") || name.includes("cs-");
@@ -547,6 +576,12 @@ export function getCatalogForTemplate(
       ?? null;
   }
   if (isDiscBrake) {
+    if (brand === "shimano" && isRoadish) {
+      return CATALOG.find(e => e.id === `brake-disc-shimano-road-${sv}`)
+        ?? CATALOG.find(e => e.id === "brake-disc-shimano-road-11v")
+        ?? CATALOG.find(e => e.id === "brake-disc-shimano")
+        ?? null;
+    }
     return CATALOG.find(e => e.id === `brake-disc-${brand}`)
       ?? CATALOG.find(e => e.id === "brake-disc-shimano")
       ?? null;
