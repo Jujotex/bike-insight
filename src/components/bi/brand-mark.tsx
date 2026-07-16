@@ -15,7 +15,7 @@ export function BrandMark({ large = false, href = "/" }: BrandMarkProps) {
         style={{
           width: s,
           height: s,
-          borderRadius: large ? 12 : 8,
+          borderRadius: large ? 14 : 8,
           background: "var(--bi-accent)",
           display: "flex",
           alignItems: "center",

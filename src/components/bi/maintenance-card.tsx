@@ -158,12 +158,12 @@ export function MaintenanceCard({
 
               {/* Dernier (date) */}
               <div className="bi-maint-col-last" style={{ textAlign: "right" }}>
-                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastDate}</Mono>
+                <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{lastDate}</Mono>
               </div>
 
               {/* Échéance : progression + % (détail au survol) */}
               {status.state === "never" ? (
-                <div style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>Jamais enregistré</div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Jamais enregistré</div>
               ) : (
                 <div title={echeanceDetail} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "default" }}>
                   <div style={{ flex: 1 }}>
@@ -177,7 +177,7 @@ export function MaintenanceCard({
 
               {/* Depuis */}
               <div className="bi-maint-col-last" style={{ textAlign: "right" }}>
-                <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{lastSince}</Mono>
+                <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{lastSince}</Mono>
               </div>
 
               {/* Action — petit bouton icône (survol = intitulé) */}
@@ -207,7 +207,7 @@ export function MaintenanceCard({
             {isOpen && (
               <div style={{ padding: "0 22px 16px", display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: 5 }}>Date</div>
+                  <div style={{ fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: 5 }}>Date</div>
                   <input
                     type="date"
                     value={date}
@@ -216,7 +216,7 @@ export function MaintenanceCard({
                   />
                 </div>
                 <div>
-                  <div style={{ fontSize: 10.5, color: "var(--bi-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: 5 }}>Coût (€) — optionnel</div>
+                  <div style={{ fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: 5 }}>Coût (€) — optionnel</div>
                   <input
                     type="number"
                     value={cost}
@@ -228,7 +228,7 @@ export function MaintenanceCard({
                 <button
                   onClick={() => save(t)}
                   disabled={saving || !date}
-                  style={{ padding: "9px 18px", borderRadius: 10, background: "var(--bi-ok)", color: "#fff", border: "none", fontSize: 12.5, fontWeight: 700, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: saving || !date ? 0.6 : 1 }}
+                  style={{ padding: "10px 16px", borderRadius: 10, background: "var(--bi-ok)", color: "var(--bi-white)", border: "none", fontSize: 13, fontWeight: 700, fontFamily: "inherit", cursor: saving ? "not-allowed" : "pointer", opacity: saving || !date ? 0.6 : 1 }}
                 >
                   {saving ? "Enregistrement…" : "Enregistrer"}
                 </button>

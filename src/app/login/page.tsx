@@ -9,7 +9,7 @@ import { AuthShell } from "@/components/bi/auth-shell";
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "14px 16px",
-  borderRadius: 12,
+  borderRadius: 14,
   border: "1px solid var(--bi-line)",
   background: "var(--bi-card)",
   fontSize: 14,
@@ -87,7 +87,7 @@ function LoginForm() {
       <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 6 }}>
         Connecte-toi
       </div>
-      <div style={{ fontSize: 13.5, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
+      <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 8, lineHeight: 1.55 }}>
         Reprends là où tu t&apos;étais arrêté.
       </div>
 
@@ -109,12 +109,12 @@ function LoginForm() {
       </div>
 
       {error && (
-        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>
+        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
           {error}
         </div>
       )}
 
-      <button onClick={handleLogin} disabled={loading} style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
+      <button onClick={handleLogin} disabled={loading} style={{ marginTop: 18, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
         {loading ? "Connexion…" : "Se connecter"}
       </button>
 
@@ -125,15 +125,15 @@ function LoginForm() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 12, padding: "12px 0", fontSize: 13.5, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
+        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 14, padding: "12px 0", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
           <GoogleIcon /> Google
         </button>
-        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 12, padding: "12px 0", fontSize: 13.5, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
+        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 14, padding: "12px 0", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
           <AppleIcon /> Apple
         </button>
       </div>
 
-      <div style={{ marginTop: 32, fontSize: 12.5, color: "var(--bi-muted)", textAlign: "center" }}>
+      <div style={{ marginTop: 32, fontSize: 13, color: "var(--bi-muted)", textAlign: "center" }}>
         Pas encore inscrit ?{" "}
         <Link href="/signup" style={{ color: "var(--bi-ink)", fontWeight: 600, borderBottom: "1px solid var(--bi-ink)", textDecoration: "none" }}>
           Créer un compte

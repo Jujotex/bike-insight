@@ -46,7 +46,7 @@ export default async function ComparePage({
     .eq("user_id", user.id)
     .single();
 
-  if (!comp) redirect("/components");
+  if (!comp) redirect("/bikes");
 
   const { data: bike } = await supabase
     .from("bikes")
@@ -111,7 +111,7 @@ export default async function ComparePage({
           sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}
           actions={
             <Link href={"/components/" + id}>
-              <button style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>
+              <button style={{ padding: "10px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>
                 ← Retour
               </button>
             </Link>
@@ -120,29 +120,29 @@ export default async function ComparePage({
 
         {/* Banner compatibilité détectée ou avertissement */}
         {catalogEntry ? (
-          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(199,255,63,0.08)", border: "1px solid rgba(199,255,63,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 14, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>
             <div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ink)" }}>
                 {bikeTemplate ? `Basé sur ton groupe ${bikeTemplate.label} — ` : "Compatibilité détectée — "}
               </span>
-              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>{catalogEntry.compatNote}</span>
+              <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>{catalogEntry.compatNote}</span>
             </div>
           </div>
         ) : (
-          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 12, background: "rgba(208,132,21,0.06)", border: "1px solid rgba(208,132,21,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ marginBottom: 18, padding: "12px 16px", borderRadius: 14, background: "var(--bi-warn-soft)", border: "1px solid rgba(208,132,21,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-warn)" strokeWidth="2" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             <div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--bi-ink)" }}>Estimations génériques — </span>
-              <span style={{ fontSize: 12.5, color: "var(--bi-muted)" }}>Cette pièce n&apos;est pas dans le catalogue. Les prix et durées sont des estimations — consulte ton vélociste.</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ink)" }}>Estimations génériques — </span>
+              <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Cette pièce n&apos;est pas dans le catalogue. Les prix et durées sont des estimations — consulte ton vélociste.</span>
             </div>
           </div>
         )}
 
         {/* Context card */}
-        <div style={{ background: "var(--bi-card)", borderRadius: 16, border: "1px solid var(--bi-line)", overflow: "hidden", marginBottom: 22 }}>
+        <div style={{ background: "var(--bi-card)", borderRadius: 18, border: "1px solid var(--bi-line)", overflow: "hidden", marginBottom: 22 }}>
           <div className="bi-compare-context">
-            <div style={{ padding: "18px 22px" }}>
+            <div style={{ padding: "20px 22px" }}>
               <BiLabel>Pièce actuelle</BiLabel>
               <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 4, height: 32, background: statusColor, borderRadius: 2 }} />
@@ -155,7 +155,7 @@ export default async function ComparePage({
               </div>
             </div>
             <div className="bi-compare-context-divider" style={{ height: 56, background: "var(--bi-line)" }} />
-            <div style={{ padding: "18px 22px" }}>
+            <div style={{ padding: "20px 22px" }}>
               <BiLabel>Usure</BiLabel>
               <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 4 }}>
                 <Mono style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.6 }}>{kmUsed.toLocaleString("fr")}</Mono>
@@ -163,11 +163,11 @@ export default async function ComparePage({
               </div>
               <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
                 <Dot color={statusColor} size={5} />
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: statusColor, letterSpacing: 0.6 }}>{urgencyLabel} · {wearPct}%</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, letterSpacing: 0.6 }}>{urgencyLabel} · {wearPct}%</span>
               </div>
             </div>
             <div className="bi-compare-context-divider" style={{ height: 56, background: "var(--bi-line)" }} />
-            <div style={{ padding: "18px 22px" }}>
+            <div style={{ padding: "20px 22px" }}>
               <BiLabel>Vie restante</BiLabel>
               <div style={{ marginTop: 8 }}>
                 <Mono style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.6, color: statusColor }}>{daysLabel}</Mono>
@@ -190,20 +190,20 @@ export default async function ComparePage({
               <div key={o.tier} style={{
                 position: "relative",
                 background: isReco ? "var(--bi-ink)" : "var(--bi-card)",
-                color: isReco ? "#fff" : "var(--bi-ink)",
+                color: isReco ? "var(--bi-white)" : "var(--bi-ink)",
                 borderRadius: 18,
                 border: isReco ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
                 padding: 24,
                 display: "flex", flexDirection: "column",
               }}>
                 {isReco && (
-                  <div style={{ position: "absolute", top: -10, left: 24, padding: "4px 10px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
+                  <div style={{ position: "absolute", top: -10, left: 24, padding: "3px 8px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
                     RECOMMANDÉ
                   </div>
                 )}
 
                 {/* Tier label */}
-                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" as const, color: isReco ? "var(--bi-accent)" : "var(--bi-muted)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" as const, color: isReco ? "var(--bi-accent)" : "var(--bi-muted)" }}>
                   {TIER_LABELS[o.tier]}
                 </div>
 
@@ -212,7 +212,7 @@ export default async function ComparePage({
 
                 {/* Marque + référence */}
                 {(o.brand || o.reference) && (
-                  <div style={{ fontSize: 11.5, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", marginTop: 4 }}>
                     {o.brand}{o.reference ? ` · ${o.reference}` : ""}
                   </div>
                 )}
@@ -233,7 +233,7 @@ export default async function ComparePage({
                     ["Coût annuel (" + kmPerYear.toLocaleString("fr") + " km)", annual + " €"],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 11.5, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)" }}>{k}</span>
+                      <span style={{ fontSize: 12, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)" }}>{k}</span>
                       <Mono style={{ fontSize: 13, fontWeight: 500 }}>{v}</Mono>
                     </div>
                   ))}
@@ -273,7 +273,7 @@ export default async function ComparePage({
         <div className="bi-grid-split">
           <BiCard pad={22} style={{ borderLeft: "3px solid var(--bi-accent)" }}>
             <BiLabel style={{ marginBottom: 10 }}>Pourquoi cette recommandation</BiLabel>
-            <div style={{ fontSize: 13.5, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, lineHeight: 1.6 }}>
               {catalogEntry
                 ? (<><strong>{recommended.name}</strong> est la référence directe compatible avec ton groupe. C'est le meilleur rapport durée de vie / prix pour ton usage de {kmPerYear.toLocaleString("fr")} km/an.</>)
                 : (<><strong>L'option équivalente</strong> est la plus équilibrée. Elle correspond au niveau de ton composant actuel et son cycle d'usure est maîtrisé.</>)

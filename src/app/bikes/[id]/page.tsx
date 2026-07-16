@@ -99,7 +99,7 @@ export default async function BikeDetailPage({
       <div className="bi-page">
 
         {/* Breadcrumb */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "var(--bi-muted)", marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)", marginBottom: 10 }}>
           <Link href="/bikes" style={{ textDecoration: "none", color: "var(--bi-muted)" }}>Mes vélos</Link>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
           <span style={{ color: "var(--bi-ink)" }}>{bike.name}</span>
@@ -111,7 +111,7 @@ export default async function BikeDetailPage({
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span className="bi-bike-title" style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1 }}>{bike.name}</span>
               {bike.is_active && (
-                <span style={{ fontSize: 10, padding: "4px 9px", background: "var(--bi-accent)", color: "#0E0E10", borderRadius: 999, fontWeight: 700, letterSpacing: 0.5 }}>ACTIF</span>
+                <span style={{ fontSize: 10, padding: "3px 8px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontWeight: 700, letterSpacing: 0.5 }}>ACTIF</span>
               )}
             </div>
             {(bike.brand || bike.model) && (
@@ -123,7 +123,7 @@ export default async function BikeDetailPage({
           <div className="bi-bike-header-actions">
             <ManualRideButton bikes={[{ id: bike.id as string, name: bike.name as string }]} defaultBikeId={bike.id as string} />
             <Link href={components.length === 0 ? `/onboarding?bike_id=${bike.id}` : `/components/new?bike_id=${bike.id}`}>
-              <button style={{ padding: "9px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              <button style={{ padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
                 Ajouter une pièce
               </button>
@@ -188,7 +188,7 @@ export default async function BikeDetailPage({
                       </div>
                     </div>
                     <div className="bi-comp-col-installed" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{installedDate}</Mono>
+                      <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{installedDate}</Mono>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ flex: 1 }}>
@@ -199,7 +199,7 @@ export default async function BikeDetailPage({
                       </Mono>
                     </div>
                     <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 11.5, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
+                      <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
                     </div>
                   </Link>
                 );

@@ -32,8 +32,8 @@ export function AuthShell({ step, total, eyebrow, headline, sub, children }: Aut
         style={{
           width: 600,
           flexShrink: 0,
-          background: "#0E0E10",
-          color: "#fff",
+          background: "var(--bi-ink)",
+          color: "var(--bi-white)",
           padding: "40px 56px",
           flexDirection: "column",
         }}
@@ -56,7 +56,7 @@ export function AuthShell({ step, total, eyebrow, headline, sub, children }: Aut
               height="15"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#0E0E10"
+              stroke="var(--bi-ink)"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"

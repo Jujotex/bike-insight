@@ -44,12 +44,12 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
       <button
         onClick={() => setStep("confirm")}
         style={{
-          padding: "9px 18px",
+          padding: "10px 16px",
           borderRadius: 10,
           border: "1px solid var(--bi-bad)",
           background: "transparent",
           color: "var(--bi-bad)",
-          fontSize: 13.5,
+          fontSize: 13,
           fontWeight: 600,
           cursor: "pointer",
           whiteSpace: "nowrap",
@@ -63,7 +63,7 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
   if (step === "confirm") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-        <div style={{ fontSize: 12.5, color: "var(--bi-bad)", fontWeight: 500, textAlign: "right", maxWidth: 220 }}>
+        <div style={{ fontSize: 13, color: "var(--bi-bad)", fontWeight: 500, textAlign: "right", maxWidth: 220 }}>
           Supprimer définitivement <strong>{componentName}</strong> ?<br />
           <span style={{ color: "var(--bi-muted)", fontWeight: 400 }}>Cette action est irréversible.</span>
         </div>
@@ -73,7 +73,7 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
             onClick={() => setStep("idle")}
             style={{
               padding: "8px 14px",
-              borderRadius: 9,
+              borderRadius: 8,
               border: "1px solid var(--bi-line)",
               background: "transparent",
               fontSize: 13,
@@ -86,10 +86,10 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
             onClick={handleDelete}
             style={{
               padding: "8px 16px",
-              borderRadius: 9,
+              borderRadius: 8,
               border: "none",
               background: "var(--bi-bad)",
-              color: "#fff",
+              color: "var(--bi-white)",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
@@ -103,7 +103,7 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
   }
 
   return (
-    <button disabled style={{ padding: "9px 18px", borderRadius: 10, border: "1px solid var(--bi-line)", background: "transparent", color: "var(--bi-muted)", fontSize: 13.5 }}>
+    <button disabled style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid var(--bi-line)", background: "transparent", color: "var(--bi-muted)", fontSize: 13 }}>
       Suppression…
     </button>
   );

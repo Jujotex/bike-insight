@@ -606,6 +606,11 @@ export async function getCostData() {
   const spendTotal = replacementTotal + servicingTotal
   const spend12m = replacement12m + servicing12m
 
+  // ── Repères « où tu te situes » ───────────────────────────────
+  // km sur 12 mois (= km/an) et coût d'entretien par km sur la même fenêtre.
+  const km12mTotal = acts.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
+  const costPerKm = km12mTotal > 0 ? spend12m / km12mTotal : null
+
   const byBike = bikeList
     .map(b => {
       const bid = b.id as string
@@ -696,6 +701,8 @@ export async function getCostData() {
     kpis: {
       spendTotal: Math.round(spendTotal),
       spend12m: Math.round(spend12m),
+      costPerKm, // €/km sur 12 mois, non arrondi (null si pas de km)
+      km12m: Math.round(km12mTotal),
     },
     byBike,
     breakdown,

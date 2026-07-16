@@ -133,6 +133,13 @@ const STATUS_COLORS: Record<StatusKind, string> = {
   bad: "var(--bi-bad)",
 };
 
+// Fonds doux : tokens du design system (~0.08) plutot qu'un color-mix inline.
+const STATUS_SOFT: Record<StatusKind, string> = {
+  ok: "var(--bi-ok-soft)",
+  warn: "var(--bi-warn-soft)",
+  bad: "var(--bi-bad-soft)",
+};
+
 export function StatusPill({
   kind,
   label,
@@ -147,9 +154,9 @@ export function StatusPill({
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        padding: "4px 9px",
+        padding: "3px 8px",
         borderRadius: 999,
-        background: `color-mix(in srgb, ${color} 12%, transparent)`,
+        background: STATUS_SOFT[kind],
         color,
         fontSize: 11,
         fontWeight: 600,
@@ -184,7 +191,7 @@ export function PrimaryBtn({
         border: "none",
         borderRadius: 14,
         padding: "16px 0",
-        fontSize: 14.5,
+        fontSize: 14,
         fontWeight: 600,
         fontFamily: "inherit",
         cursor: "pointer",
@@ -221,7 +228,7 @@ export function PageHead({
             display: "flex",
             alignItems: "center",
             gap: 8,
-            fontSize: 11.5,
+            fontSize: 12,
             color: "var(--bi-muted)",
             marginBottom: 10,
           }}

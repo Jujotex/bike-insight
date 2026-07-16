@@ -19,6 +19,12 @@ const NAV_ITEMS = [
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
   },
   {
+    id: "cout",
+    label: "Coût",
+    href: "/cout",
+    icon: "M3 3v18h18M7 15l4-4 3 3 5-6",
+  },
+  {
     id: "account",
     label: "Compte",
     href: "/account",
@@ -74,7 +80,7 @@ export function BottomNav() {
               alignItems: "center",
               gap: 4,
               padding: "6px 20px",
-              borderRadius: 12,
+              borderRadius: 14,
               textDecoration: "none",
               color: active ? "var(--bi-ink)" : "var(--bi-muted)",
               position: "relative",
@@ -101,7 +107,7 @@ export function BottomNav() {
                   padding: "1px 5px",
                   borderRadius: 999,
                   background: "var(--bi-bad)",
-                  color: "#fff",
+                  color: "var(--bi-white)",
                   lineHeight: 1.4,
                   fontFamily: "var(--bi-font-mono)",
                 }}>
@@ -109,7 +115,7 @@ export function BottomNav() {
                 </span>
               )}
             </div>
-            <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, letterSpacing: 0.2 }}>
+            <span style={{ fontSize: 11, fontWeight: active ? 600 : 500, letterSpacing: 0.2 }}>
               {item.label}
             </span>
           </Link>

@@ -150,12 +150,12 @@ export function AccountClient({
         </div>
 
         {saveSuccess && (
-          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(14,143,90,0.08)", color: "var(--bi-ok)", fontSize: 12.5, fontWeight: 500 }}>
+          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "var(--bi-ok-soft)", color: "var(--bi-ok)", fontSize: 13, fontWeight: 500 }}>
             ✓ Profil mis à jour
           </div>
         )}
         {saveError && (
-          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 12.5 }}>
+          <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
             {saveError}
           </div>
         )}
@@ -169,11 +169,11 @@ export function AccountClient({
               onChange={e => setFirstName(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
               placeholder="Prénom"
-              style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1.5px solid var(--bi-ink)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
+              style={{ fontSize: 13, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1.5px solid var(--bi-ink)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
               autoFocus
             />
           ) : (
-            <span style={{ fontSize: 13.5, fontWeight: 500 }}>{firstName || "—"}</span>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>{firstName || "—"}</span>
           )}
         </div>
 
@@ -186,17 +186,17 @@ export function AccountClient({
               onChange={e => setLastName(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
               placeholder="Nom"
-              style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1px solid var(--bi-line)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
+              style={{ fontSize: 13, fontWeight: 500, color: "var(--bi-ink)", background: "var(--bi-bg)", border: "1px solid var(--bi-line)", borderRadius: 8, padding: "6px 10px", fontFamily: "inherit", outline: "none", textAlign: "right", width: 200 }}
             />
           ) : (
-            <span style={{ fontSize: 13.5, fontWeight: 500 }}>{lastName || "—"}</span>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>{lastName || "—"}</span>
           )}
         </div>
 
         {/* Email — toujours lecture seule */}
         <div style={{ ...row, borderBottom: "none" }}>
           <span style={{ fontSize: 13, color: "var(--bi-muted)" }}>Email</span>
-          <Mono style={{ fontSize: 12.5 }}>{email}</Mono>
+          <Mono style={{ fontSize: 13 }}>{email}</Mono>
         </div>
       </div>
 
@@ -207,20 +207,20 @@ export function AccountClient({
         {/* Strava */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#FC4C02", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--bi-strava)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3"/>
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: 13.5, fontWeight: 600 }}>Strava</div>
-              <div style={{ fontSize: 11.5, color: stravaConnected ? "var(--bi-ok)" : "var(--bi-muted)", marginTop: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Strava</div>
+              <div style={{ fontSize: 12, color: stravaConnected ? "var(--bi-ok)" : "var(--bi-muted)", marginTop: 1 }}>
                 {stravaConnected ? "● Connecté" : "Non connecté"}
               </div>
             </div>
           </div>
           {stravaConnected ? null : (
-            <a href="/api/strava/auth" style={{ fontSize: 12, color: "#fff", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "#FC4C02", border: "none", borderRadius: 8 }}>
+            <a href="/api/strava/auth" style={{ fontSize: 12, color: "var(--bi-white)", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "var(--bi-strava)", border: "none", borderRadius: 8 }}>
               Connecter
             </a>
           )}
@@ -229,8 +229,8 @@ export function AccountClient({
         {/* Sorties */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid var(--bi-line)" }}>
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Sorties</div>
-            <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 1 }}>Ajouter ou synchroniser des activités</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Sorties</div>
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Ajouter ou synchroniser des activités</div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {stravaConnected && <SyncButton stravaConnected={stravaConnected} />}
@@ -249,7 +249,7 @@ export function AccountClient({
         <button
           onClick={handleSignOut}
           disabled={signingOut}
-          style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 0", background: "transparent", border: "none", borderBottom: "1px solid var(--bi-line)", cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, color: "var(--bi-ink)", textAlign: "left" }}
+          style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 0", background: "transparent", border: "none", borderBottom: "1px solid var(--bi-line)", cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: "var(--bi-ink)", textAlign: "left" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
@@ -268,12 +268,12 @@ export function AccountClient({
         </button>
 
         {confirmDelete && (
-          <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 10, background: "rgba(200,54,46,0.06)", border: "1px solid rgba(200,54,46,0.2)" }}>
+          <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 10, background: "var(--bi-bad-soft)", border: "1px solid rgba(200,54,46,0.2)" }}>
             <div style={{ fontSize: 13, color: "var(--bi-bad)", fontWeight: 600, marginBottom: 6 }}>Cette action est irréversible.</div>
             <div style={{ fontSize: 12, color: "var(--bi-muted)", marginBottom: 12 }}>Toutes tes données (vélos, pièces, historique) seront supprimées définitivement.</div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "8px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>Annuler</button>
-              <a href="mailto:support@bikeinsight.app?subject=Suppression de compte" style={{ flex: 2, padding: "8px 0", background: "var(--bi-bad)", color: "#fff", border: "none", borderRadius: 8, fontSize: 12.5, fontFamily: "inherit", cursor: "pointer", fontWeight: 600, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "8px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>Annuler</button>
+              <a href="mailto:support@bikeinsight.app?subject=Suppression de compte" style={{ flex: 2, padding: "8px 0", background: "var(--bi-bad)", color: "var(--bi-white)", border: "none", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer", fontWeight: 600, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 Contacter le support
               </a>
             </div>

@@ -106,8 +106,8 @@ export function AddBikeButton() {
         <div style={{ width: 44, height: 44, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </div>
-        <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)" }}>Ajouter un vélo manuel</div>
-        <div style={{ fontSize: 11.5, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45, textAlign: "center" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--bi-ink)" }}>Ajouter un vélo manuel</div>
+        <div style={{ fontSize: 12, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45, textAlign: "center" }}>
           Pour suivre un vélo qui n&apos;apparaît pas dans ton Strava.
         </div>
       </button>
@@ -129,21 +129,21 @@ export function AddBikeButton() {
         <div style={{ width: 44, height: 44, borderRadius: 999, background: "var(--bi-card)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </div>
-        <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--bi-ink)" }}>Ajouter un vélo manuel</div>
-        <div style={{ fontSize: 11.5, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45, textAlign: "center" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--bi-ink)" }}>Ajouter un vélo manuel</div>
+        <div style={{ fontSize: 12, color: "var(--bi-muted)", maxWidth: 200, lineHeight: 1.45, textAlign: "center" }}>
           Pour suivre un vélo qui n&apos;apparaît pas dans ton Strava.
         </div>
       </button>
 
       {/* Modal */}
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-        <div style={{ background: "var(--bi-card)", borderRadius: 20, padding: 28, width: "100%", maxWidth: 440, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "90dvh", overflowY: "auto" }}>
+        <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: 28, width: "100%", maxWidth: 440, boxShadow: "0 8px 40px rgba(0,0,0,0.2)", maxHeight: "90dvh", overflowY: "auto" }}>
 
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700 }}>Ajouter un vélo</div>
-              <div style={{ fontSize: 12.5, color: "var(--bi-muted)", marginTop: 2 }}>Sans Strava, suivi manuel</div>
+              <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 2 }}>Sans Strava, suivi manuel</div>
             </div>
             <button onClick={close} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", padding: 4 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -213,7 +213,7 @@ export function AddBikeButton() {
                   min="0"
                   style={inputStyle}
                 />
-                <div style={{ fontSize: 10.5, color: "var(--bi-muted)", marginTop: 5 }}>km au compteur</div>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 5 }}>km au compteur</div>
               </div>
               <div>
                 <label style={labelStyle}>Année</label>
@@ -231,7 +231,7 @@ export function AddBikeButton() {
           </div>
 
           {error && (
-            <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "rgba(200,54,46,0.08)", color: "var(--bi-bad)", fontSize: 13 }}>
+            <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 10, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 13 }}>
               {error}
             </div>
           )}
@@ -239,14 +239,14 @@ export function AddBikeButton() {
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
             <button
               onClick={close}
-              style={{ flex: 1, padding: "12px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 12, fontSize: 13.5, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}
+              style={{ flex: 1, padding: "12px 0", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 14, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}
             >
               Annuler
             </button>
             <button
               onClick={handleSubmit}
               disabled={loading || !name.trim()}
-              style={{ flex: 2, padding: "12px 0", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 12, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit", cursor: loading || !name.trim() ? "not-allowed" : "pointer", opacity: !name.trim() ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              style={{ flex: 2, padding: "12px 0", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 14, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading || !name.trim() ? "not-allowed" : "pointer", opacity: !name.trim() ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
               {loading ? "Ajout…" : "Ajouter le vélo"}
               {!loading && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>}
