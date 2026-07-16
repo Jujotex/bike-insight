@@ -289,15 +289,23 @@ export default async function ComparePage({
           <BiCard pad={22}>
             <BiLabel style={{ marginBottom: 14 }}>Prochaines étapes</BiLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                ["1", "Commande la pièce (chez ton vélociste ou en ligne)"],
-                ["2", "Fais-la poser ou installe-la toi-même"],
-                ["3", "Marque-la comme installée dans Bike Insight"],
-                ["4", "Le suivi d'usure reprend automatiquement"],
-              ].map(([n, label]) => (
+              {([
+                { n: "1", label: "Commande la pièce (chez ton vélociste ou en ligne)" },
+                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "Voir le tuto et les options" },
+                { n: "3", label: "Marque-la comme installée dans Bike Insight" },
+                { n: "4", label: "Le suivi d'usure reprend automatiquement" },
+              ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => (
                 <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{n}</div>
-                  <span style={{ fontSize: 13, lineHeight: 1.45 }}>{label}</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <span style={{ fontSize: 13, lineHeight: 1.45 }}>{label}</span>
+                    {href && (
+                      <Link href={href} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none" }}>
+                        {linkLabel}
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

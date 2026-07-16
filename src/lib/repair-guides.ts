@@ -5,8 +5,11 @@
 // Le temps (timeMin/timeMax, minutes) et les outils (tools) sont des ordres de
 // grandeur pour aider à l'arbitrage DIY vs vélociste — pas un pas-à-pas maison.
 //
-// Sources (validées juillet 2026) :
+// Sources (URLs vérifiées juillet 2026, toutes issues du hub d'entretien
+// maintenu par Alltricks — https://www.alltricks.fr/surl/entretienreparation) :
 // - Tutos publics réputés fr : Alltricks (pages « surl » maintenues) et Probikeshop.
+// - `generic: true` = pas de tuto dédié pour cette pièce → on renvoie honnêtement
+//   vers le hub d'entretien plutôt que de prétendre pointer un tuto précis.
 // - Fourchettes main-d'œuvre : ordres de grandeur ateliers fr (hors pièces),
 //   ex. grille Autour du Cycle 2025 (chaîne 10€, cassette 12€, plateaux 22€,
 //   plaquettes 12€/étrier, pneu/chambre 15€…), élargis pour tenir compte
@@ -26,6 +29,7 @@ export type RepairGuide = {
   timeMin: number;          // temps DIY indicatif (minutes)
   timeMax: number;
   tools: string[];          // outils indicatifs pour le faire soi-même
+  generic?: boolean;        // true = pas de tuto dédié, on pointe le hub d'entretien
 };
 
 // Libellés et descriptions courtes des niveaux de difficulté (réutilisés
@@ -75,6 +79,8 @@ const HUB_URL = "https://www.alltricks.fr/surl/entretienreparation";
 
 // Ordre = priorité : d'abord les pièces précises (match sur le nom),
 // puis les replis par catégorie, puis un repli générique en dernier.
+// ⚠️ L'ordre compte : « boîtier » est placé AVANT « plateaux » pour que
+// « Boîtier de pédalier » ne soit pas capté par le mot-clé « pédalier ».
 const GUIDE_ENTRIES: GuideEntry[] = [
   {
     names: ["chaine", "chaîne"],
@@ -82,7 +88,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       id: "chaine",
       operation: "Remplacer la chaîne",
       difficulty: "facile",
-      tutorialUrl: "https://www.alltricks.fr/surl/chaine_v2",
+      tutorialUrl: "https://www.alltricks.fr/surl/remplacer-sa-chaine",
       tutorialSource: "Alltricks",
       laborMin: 10,
       laborMax: 20,
@@ -107,6 +113,22 @@ const GUIDE_ENTRIES: GuideEntry[] = [
     },
   },
   {
+    // ⚠️ Avant « plateaux » : « Boîtier de pédalier » ne doit pas matcher « pédalier ».
+    names: ["boitier", "boîtier"],
+    guide: {
+      id: "boitier",
+      operation: "Remplacer le boîtier de pédalier",
+      difficulty: "expert",
+      tutorialUrl: "https://www.alltricks.fr/surl/changersesroulementsdepedaliersexternes_v2",
+      tutorialSource: "Alltricks",
+      laborMin: 20,
+      laborMax: 40,
+      timeMin: 30,
+      timeMax: 60,
+      tools: ["Clé démonte-boîtier", "Jeu de clés Allen"],
+    },
+  },
+  {
     names: ["plateau", "pedalier", "pédalier"],
     guide: {
       id: "plateaux",
@@ -119,6 +141,22 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       timeMin: 30,
       timeMax: 60,
       tools: ["Jeu de clés Allen", "Clé démonte-manivelle"],
+      generic: true,
+    },
+  },
+  {
+    names: ["galet", "derailleur", "dérailleur"],
+    guide: {
+      id: "derailleur",
+      operation: "Intervenir sur le dérailleur",
+      difficulty: "moyen",
+      tutorialUrl: "https://www.alltricks.fr/surl/changerderailleurar_v2",
+      tutorialSource: "Alltricks",
+      laborMin: 15,
+      laborMax: 35,
+      timeMin: 20,
+      timeMax: 40,
+      tools: ["Dérive-chaîne", "Jeu de clés Allen"],
     },
   },
   {
@@ -131,6 +169,21 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       tutorialSource: "Probikeshop",
       laborMin: 12,
       laborMax: 25,
+      timeMin: 10,
+      timeMax: 20,
+      tools: ["Démonte-pneus", "Pompe"],
+    },
+  },
+  {
+    names: ["chambre"],
+    guide: {
+      id: "chambre",
+      operation: "Changer la chambre à air",
+      difficulty: "facile",
+      tutorialUrl: "https://www.alltricks.fr/surl/changerchambreaair",
+      tutorialSource: "Alltricks",
+      laborMin: 8,
+      laborMax: 15,
       timeMin: 10,
       timeMax: 20,
       tools: ["Démonte-pneus", "Pompe"],
@@ -164,6 +217,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       timeMin: 15,
       timeMax: 25,
       tools: ["Clé Torx ou Allen", "Clé pour écrou Center-Lock"],
+      generic: true,
     },
   },
   {
@@ -172,13 +226,28 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       id: "cable",
       operation: "Changer le câble et la gaine",
       difficulty: "moyen",
-      tutorialUrl: HUB_URL,
+      tutorialUrl: "https://www.alltricks.fr/surl/remplacementdescables_v2",
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 25,
       timeMin: 20,
       timeMax: 40,
       tools: ["Pince coupe-câble", "Jeu de clés Allen"],
+    },
+  },
+  {
+    names: ["roulement"],
+    guide: {
+      id: "roulements",
+      operation: "Changer les roulements de roue",
+      difficulty: "moyen",
+      tutorialUrl: "https://www.alltricks.fr/surl/changersesroulementsderoues_v2",
+      tutorialSource: "Alltricks",
+      laborMin: 15,
+      laborMax: 30,
+      timeMin: 20,
+      timeMax: 40,
+      tools: ["Jeu de clés Allen", "Chasse-roulements"],
     },
   },
 
@@ -190,7 +259,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       id: "cat-transmission",
       operation: "Intervenir sur la transmission",
       difficulty: "moyen",
-      tutorialUrl: HUB_URL,
+      tutorialUrl: "https://www.alltricks.fr/surl/entretien-transmission-velo",
       tutorialSource: "Alltricks",
       laborMin: 12,
       laborMax: 35,
@@ -213,6 +282,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       timeMin: 20,
       timeMax: 40,
       tools: ["Jeu de clés Allen", "Clé Torx"],
+      generic: true,
     },
   },
   {
@@ -229,6 +299,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       timeMin: 10,
       timeMax: 25,
       tools: ["Démonte-pneus", "Pompe"],
+      generic: true,
     },
   },
   {
@@ -245,6 +316,7 @@ const GUIDE_ENTRIES: GuideEntry[] = [
       timeMin: 15,
       timeMax: 30,
       tools: ["Jeu de clés Allen", "Clé dynamométrique"],
+      generic: true,
     },
   },
 ];
@@ -261,6 +333,7 @@ const GENERIC_GUIDE: RepairGuide = {
   timeMin: 20,
   timeMax: 45,
   tools: ["Outils de base"],
+  generic: true,
 };
 
 // Renvoie le guide le plus pertinent pour une pièce. Ne renvoie jamais null :

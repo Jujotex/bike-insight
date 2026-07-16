@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
 import { Mono } from "@/components/bi/ui";
+import { VelocisteFinder } from "@/components/bi/velociste-finder";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import {
@@ -100,7 +101,7 @@ export default async function TutoPage({
         </div>
 
         {/* ── Deux options ────────────────────────────────────────── */}
-        <div className="bi-grid-2" style={{ marginBottom: 22 }}>
+        <div className="bi-grid-2" style={{ marginBottom: 22, alignItems: "start" }}>
           {/* DIY — mise en avant accent */}
           <div style={{ background: "var(--bi-card)", borderRadius: 18, border: "1px solid var(--bi-line)", padding: "22px", display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -134,15 +135,22 @@ export default async function TutoPage({
               </div>
             </div>
 
-            <a
-              href={guide.tutorialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ marginTop: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
-            >
-              Voir le tuto sur {guide.tutorialSource}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
-            </a>
+            <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+              <a
+                href={guide.tutorialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+              >
+                {guide.generic ? "Voir les tutos d'entretien" : "Voir le tuto"} sur {guide.tutorialSource}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+              </a>
+              {guide.generic && (
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", lineHeight: 1.4 }}>
+                  Pas de tuto dédié pour cette pièce — page d&apos;entretien générale.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Vélociste — neutre */}
@@ -169,8 +177,12 @@ export default async function TutoPage({
               <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>Indicatif, hors pièces</div>
             </div>
 
-            <div style={{ marginTop: "auto", fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5, padding: "12px 14px", background: "var(--bi-bg)", borderRadius: 14 }}>
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5, padding: "12px 14px", background: "var(--bi-bg)", borderRadius: 14 }}>
               À privilégier si tu n&apos;as pas l&apos;outillage, en cas de doute sur le réglage, ou pour les pièces qui demandent des outils spécifiques.
+            </div>
+
+            <div style={{ borderTop: "1px solid var(--bi-line)", paddingTop: 18 }}>
+              <VelocisteFinder />
             </div>
           </div>
         </div>
