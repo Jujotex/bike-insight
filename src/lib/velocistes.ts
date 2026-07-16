@@ -1,6 +1,6 @@
 // Recherche de vélocistes proches à partir d'une adresse — 100 % OpenStreetMap,
-// sans clé API ni dépendance : géocodage via Nominatim, recherche des magasins
-// vélo via Overpass. Renvoie une liste (pas de carte) triée par distance.
+// sans clé API ni dépendance : géocodage via Nominatim, autocomplétion via Photon,
+// recherche des magasins vélo via Overpass. Renvoie une liste (pas de carte).
 //
 // ⚠️ Données communautaires OSM : couverture correcte mais parfois incomplète.
 // Usage respectueux des serveurs publics (User-Agent identifiant, faible volume).
