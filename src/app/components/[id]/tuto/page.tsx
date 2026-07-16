@@ -101,7 +101,7 @@ export default async function TutoPage({
         </div>
 
         {/* ── Deux options ────────────────────────────────────────── */}
-        <div className="bi-grid-2" style={{ marginBottom: 22, alignItems: "start" }}>
+        <div className="bi-grid-2" style={{ marginBottom: 22 }}>
           {/* DIY — mise en avant accent */}
           <div style={{ background: "var(--bi-card)", borderRadius: 18, border: "1px solid var(--bi-line)", padding: "22px", display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

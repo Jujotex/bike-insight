@@ -1,5 +1,10 @@
 # Changelog
 
+## [Non publié] — style : cartes DIY / vélociste à hauteur égale
+
+### Modifié
+- **`src/app/components/[id]/tuto/page.tsx`** : retour à `align-items: stretch` (par défaut) sur la grille des deux options — les cartes « Je le fais moi-même » et « Je passe chez le vélociste » ont à nouveau la même hauteur (bouton DIY calé en bas). C'est possible sans risque puisque la liste des vélocistes scrolle désormais à hauteur fixe et ne fait plus grandir la carte.
+
 ## [Non publié] — fix : plus d'infos vélocistes via clés OSM alternatives
 
 ### Modifié
