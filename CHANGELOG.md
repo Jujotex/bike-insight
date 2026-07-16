@@ -1,5 +1,10 @@
 # Changelog
 
+## [Non publié] — fix : plus d'infos vélocistes via clés OSM alternatives
+
+### Modifié
+- **`src/lib/velocistes.ts`** : les infos affichées (téléphone, site) proviennent d'OpenStreetMap, où les contributeurs utilisent des clés variées. On tente désormais plusieurs variantes — téléphone (`phone`, `contact:phone`, `contact:mobile`, `phone:mobile`), site (`website`, `contact:website`, `url`, `contact:url`) — pour surfacer l'info quand elle existe sous une autre clé. Les champs restent affichés seulement s'ils existent (données OSM par nature inégales).
+
 ## [Non publié] — style : liste des vélocistes retravaillée (pastilles + scroll)
 
 ### Modifié

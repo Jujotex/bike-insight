@@ -160,8 +160,19 @@ export async function findVelocistes(
       address: formatAddress(tags),
       lat: eLat,
       lon: eLon,
-      phone: tags.phone ?? tags["contact:phone"] ?? null,
-      website: tags.website ?? tags["contact:website"] ?? null,
+      // On tente plusieurs clés OSM : les contributeurs utilisent des variantes.
+      phone:
+        tags.phone ??
+        tags["contact:phone"] ??
+        tags["contact:mobile"] ??
+        tags["phone:mobile"] ??
+        null,
+      website:
+        tags.website ??
+        tags["contact:website"] ??
+        tags.url ??
+        tags["contact:url"] ??
+        null,
       openingHours: tags.opening_hours ?? null,
       mapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${eLat},${eLon}`,
     });
