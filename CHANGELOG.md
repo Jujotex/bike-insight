@@ -1,5 +1,28 @@
 # Changelog
 
+## [Non publié] — fix : alignement des tableaux Pièces et Entretien (détail vélo)
+
+### Modifié
+- **`src/app/globals.css`** : les tableaux « Pièces » (`.bi-comp-table-*`) et « Entretien » (`.bi-maint-*`) utilisaient des grilles différentes (`1.5fr 1fr 1.4fr 0.6fr` vs `1.6fr 0.9fr 1.1fr 0.9fr 52px`), d'où des barres d'usure, pourcentages et colonnes km/date jamais alignés d'un tableau à l'autre. Les deux partagent désormais **la même géométrie** — desktop `1.6fr 0.9fr 1.3fr 0.9fr 52px`, mobile `1.7fr 1.3fr 44px`.
+- **`src/app/bikes/[id]/page.tsx`** : le tableau Pièces gagne une 5e colonne (span d'en-tête vide + chevron `›` discret par ligne) pour matcher la colonne d'action de l'Entretien et signaler que la ligne est cliquable. Colonnes désormais parfaitement alignées entre les deux tableaux.
+
+## [Non publié] — style : carte « Et maintenant ? » proportionnelle à l'urgence
+
+### Modifié
+- **`src/app/components/[id]/page.tsx`** : ajout de `nextStepUrgent` (`status` = `bad`/`warn`). L'en-tête de la carte « Et maintenant ? » n'affiche le traitement fort (accent lime plein + pastille sombre + bouton d'action sombre) que lorsqu'une action est requise ; sur une pièce en bon état il repasse en version discrète (accent doux + lien texte). Évite de « crier » la prochaine étape sur une pièce neuve.
+
+## [Non publié] — style : carte « Et maintenant ? » remontée et mise en évidence
+
+### Modifié
+- **`src/app/components/[id]/page.tsx`** : la carte « Et maintenant ? » était placée en avant-dernier (après le graphe d'usure et l'historique) — trop bas, facile à manquer. Elle est **remontée juste sous le bloc Recommandation du statut**, pour enchaîner directement « à remplacer » → « voici comment ». En-tête passé en **accent lime plein** (`--bi-accent`) avec pastille outil sombre et un vrai bouton d'action sombre « Voir le détail » (au lieu du simple lien texte sur fond lime doux), pour un contraste fort avec le bloc de recommandation coloré au-dessus (rouge/ambre = problème, lime = action).
+
+## [Non publié] — style : relief visuel de la page tuto + carte « Et maintenant ? »
+
+### Modifié
+- **`src/lib/repair-guides.ts`** : ajout de `DIFFICULTY_LEVEL` (1–3, pour jauge) et `DIFFICULTY_COLOR` (tokens `--bi-ok`/`--bi-warn`/`--bi-bad`) pour coder visuellement la difficulté.
+- **`src/app/components/[id]/tuto/page.tsx`** : refonte visuelle. Héros contrasté `--bi-ink` avec eyebrow et pastille outil en accent lime (`--bi-accent`), titre d'opération en display 28px, et jauge de difficulté (3 segments colorés). Les deux options deviennent deux cartes distinctes avec icônes en pastille (clé pour DIY, devanture pour vélociste), chiffres clés en display 28px (temps / main-d'œuvre), et CTA lime signature vers le tuto externe côté DIY. Couleurs 100 % via tokens (opacité pour le texte sur fond sombre, pas de nouvelle couleur), tailles d'affichage documentées, radius autorisés.
+- **`src/app/components/[id]/page.tsx`** : la carte « Et maintenant ? » reçoit une pastille outil accent dans l'en-tête et une jauge de difficulté colorée côté DIY, pour aligner le langage visuel avec la page tuto.
+
 ## [Non publié] — feat : page tuto dédiée + carte « Et maintenant ? » renforcée
 
 ### Ajouté
