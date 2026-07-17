@@ -477,10 +477,11 @@ export async function getCostData() {
     { data: activities },
     { data: maintLogs },
     { data: replacements },
+    { data: bikeMaintLogs },
   ] = await Promise.all([
     supabase
       .from('component_stats')
-      .select('name, category, bike_id, purchase_price, km_remaining')
+      .select('id, name, category, bike_id, purchase_price, km_remaining')
       .eq('user_id', user.id)
       .eq('is_active', true),
     supabase
@@ -505,6 +506,13 @@ export async function getCostData() {
       .select('cost, performed_at, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
       .eq('user_id', user.id)
       .eq('action', 'Remplacement'),
+    // Historique d'entretien (tous types, pour projeter les entretiens à venir)
+    supabase
+      .from('maintenance_logs')
+      .select('bike_id, maintenance_type, performed_at, km_at_action')
+      .eq('user_id', user.id)
+      .not('maintenance_type', 'is', null)
+      .order('performed_at', { ascending: false }),
   ])
 
   const comps = components ?? []
@@ -663,8 +671,11 @@ export async function getCostData() {
     kmPerWeek[bid] = (km90[bid] ?? 0) > 0 ? km90[bid] / 13 : (km12[bid] ?? 0) / 52
   }
 
-  // Pièces actives approchant leur fin de vie, avec un prix estimé de remplacement
-  const upcomingAll = comps
+  // Élément de projection unifié : pièce à remplacer OU entretien à venir, avec lien.
+  type UpcomingItem = { key: string; name: string; cost: number; weeksUntil: number; href: string }
+
+  // Pièces actives approchant leur fin de vie, avec un prix estimé de remplacement.
+  const componentUpcoming: UpcomingItem[] = comps
     .filter(c => (c.km_remaining as number | null) !== null && (c.purchase_price as number | null) !== null)
     .map(c => {
       const weekly = kmPerWeek[c.bike_id as string] ?? 0
@@ -675,9 +686,50 @@ export async function getCostData() {
         name: c.name as string,
         cost: Math.round((c.purchase_price as number) ?? 0),
         weeksUntil,
+        href: `/components/${c.id as string}`,
       }
     })
-    .filter((u): u is { key: string; name: string; cost: number; weeksUntil: number } => u.weeksUntil !== null)
+    .filter((u): u is UpcomingItem => u.weeksUntil !== null)
+
+  // Entretiens à venir qui ont un coût atelier indicatif (purge, révision, suspension…) :
+  // ils font partie du budget à prévoir, on les intègre à la projection.
+  const defsByBikeCost = await fetchUserMaintenanceDefsByBike(supabase, user.id)
+  const lastMaintCost: Record<string, MaintenanceLast> = {}
+  for (const l of bikeMaintLogs ?? []) {
+    const k = `${l.bike_id}:${l.maintenance_type}`
+    if (!(k in lastMaintCost)) {
+      lastMaintCost[k] = {
+        performed_at: l.performed_at as string,
+        km_at_action: (l.km_at_action as number | null) ?? null,
+      }
+    }
+  }
+  const maintenanceUpcoming: UpcomingItem[] = []
+  for (const b of bikeList) {
+    const bid = b.id as string
+    const bikeKm = (b.total_km as number) ?? 0
+    const weekly = kmPerWeek[bid] ?? 0
+    for (const def of (defsByBikeCost[bid] ?? [])) {
+      const cost = def.defaultCost
+      if (!cost) continue // seulement les entretiens qui coûtent (atelier)
+      const last = lastMaintCost[`${bid}:${def.id}`] ?? null
+      const st = computeMaintenanceStatus(def, last, bikeKm)
+      if (st.state === 'never') continue
+      // Semaines avant échéance : par le temps, ou converties depuis les km restants.
+      const wByKm = st.dueInKm !== null && weekly > 0 ? Math.round(st.dueInKm / weekly) : null
+      const candidates = [st.dueInWeeks, wByKm].filter((x): x is number => x !== null)
+      if (candidates.length === 0) continue
+      maintenanceUpcoming.push({
+        key: 'entretien',
+        name: def.label,
+        cost,
+        weeksUntil: Math.min(...candidates),
+        href: `/bikes/${bid}`,
+      })
+    }
+  }
+
+  const upcomingAll: UpcomingItem[] = [...componentUpcoming, ...maintenanceUpcoming]
     .sort((a, b) => a.weeksUntil - b.weeksUntil)
 
   const projected12m = upcomingAll
@@ -712,7 +764,7 @@ export async function getCostData() {
     },
     projection: {
       total12m: Math.round(projected12m),
-      upcoming: upcomingAll.slice(0, 4),
+      upcoming: upcomingAll.slice(0, 6),
     },
     insights: {
       transmissionSavings: Math.round(transmissionSavings),
