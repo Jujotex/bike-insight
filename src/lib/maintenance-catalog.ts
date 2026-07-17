@@ -81,6 +81,7 @@ export type MaintenanceStatus =
       weeksSince: number;
       dueInKm: number | null;     // km restants avant échéance (si intervalKm)
       dueInWeeks: number | null;  // semaines restantes (si intervalMonths)
+      dueKind: "km" | "time" | null; // échéance qui tombera EN PREMIER (la contraignante)
     };
 
 const AVG_DAYS_PER_MONTH = 30.44;
@@ -109,5 +110,29 @@ export function computeMaintenanceStatus(
 
   const state = ratio >= 1 ? "due" : ratio >= 0.75 ? "soon" : "ok";
   const pct = Math.min(100, Math.max(0, Math.round(ratio * 100)));
-  return { state, pct, kmSince, weeksSince, dueInKm, dueInWeeks };
+
+  // Quelle échéance tombera en premier ? Celle dont le ratio d'usure est le plus
+  // avancé. Si une seule dimension est définie, c'est elle.
+  const hasKm = def.intervalKm != null && kmSince !== null;
+  const hasTime = def.intervalMonths != null;
+  const dueKind: "km" | "time" | null =
+    hasKm && hasTime ? (ratioKm >= ratioTime ? "km" : "time")
+    : hasKm ? "km"
+    : hasTime ? "time"
+    : null;
+
+  return { state, pct, kmSince, weeksSince, dueInKm, dueInWeeks, dueKind };
+}
+
+// Libellé COURT de la prochaine échéance : uniquement la dimension contraignante
+// (km OU temps), jamais les deux. Ex. « ~158 km » ou « 3 sem. » / « 3 mois ».
+export function formatNextDue(status: MaintenanceStatus): string {
+  if (status.state === "never") return "";
+  if (status.dueKind === "km" && status.dueInKm !== null) {
+    return `~${status.dueInKm.toLocaleString("fr")} km`;
+  }
+  if (status.dueKind === "time" && status.dueInWeeks !== null) {
+    return status.dueInWeeks >= 5 ? `${Math.round(status.dueInWeeks / 4)} mois` : `${status.dueInWeeks} sem.`;
+  }
+  return "";
 }

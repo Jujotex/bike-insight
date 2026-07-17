@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from './supabase-server'
-import { computeMaintenanceStatus, type MaintenanceLast } from './maintenance-catalog'
+import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 
 // ── Dashboard data ─────────────────────────────────────────────
@@ -326,12 +326,10 @@ export async function getDashboardData() {
       const st = computeMaintenanceStatus(def, last, bikeKm)
       if (st.state === 'never') continue
       counts[st.state]++
-      const dueParts: string[] = []
-      if (st.dueInKm !== null) dueParts.push(`~${st.dueInKm.toLocaleString('fr')} km`)
-      if (st.dueInWeeks !== null) dueParts.push(st.dueInWeeks >= 5 ? `${Math.round(st.dueInWeeks / 4)} mois` : `${st.dueInWeeks} sem.`)
+      const nextDue = formatNextDue(st)
       const statusLabel = st.state === 'due' ? 'À faire'
         : st.state === 'soon' ? 'Bientôt'
-        : dueParts.length > 0 ? `Dans ${dueParts.join(' ou ')}` : 'OK'
+        : nextDue ? `Dans ${nextDue}` : 'OK'
       const detail = st.kmSince !== null && def.intervalKm
         ? `fait il y a ${Math.round(st.kmSince).toLocaleString('fr')} km`
         : `fait il y a ${st.weeksSince} sem.`

@@ -1,5 +1,12 @@
 # Changelog
 
+## [Non publié] — style : échéance d'entretien = une seule dimension (km OU temps)
+
+### Modifié
+- Les échéances d'entretien affichaient « Dans ~158 km **ou** 3 sem. » — les deux, ce qui alourdissait sans aider (seule la première atteinte déclenche).
+- **`src/lib/maintenance-catalog.ts`** : `computeMaintenanceStatus` expose `dueKind` (`km`/`time`) = l'échéance **la plus proche** (ratio d'usure le plus avancé). Nouveau helper `formatNextDue(status)` qui ne renvoie que cette dimension.
+- **`src/components/bi/maintenance-card.tsx`** et **`src/lib/data.ts`** (dashboard) : n'affichent plus qu'une seule échéance via `formatNextDue`.
+
 ## [Non publié] — feat : « Ce qui t'attend » cliquable + entretiens à venir
 
 ### Modifié
