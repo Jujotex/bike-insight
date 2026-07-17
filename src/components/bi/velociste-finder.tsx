@@ -117,6 +117,16 @@ export function VelocisteFinder() {
     textDecoration: "none",
   };
 
+  // Boutons-icônes à emplacement fixe (site / téléphone) : présents sur chaque
+  // ligne, atténués quand l'info OSM manque → rangées visuellement identiques.
+  const iconBtn: CSSProperties = {
+    width: 26, height: 26, flexShrink: 0,
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    borderRadius: 8, border: "1px solid var(--bi-line)",
+    color: "var(--bi-ink)", textDecoration: "none",
+  };
+  const iconBtnOff: CSSProperties = { ...iconBtn, color: "var(--bi-muted)", opacity: 0.3, cursor: "default" };
+
   return (
     <div>
       <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Trouver un vélociste près de toi</div>
@@ -216,20 +226,31 @@ export function VelocisteFinder() {
                     </div>
                   )}
 
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                    {/* Itinéraire — toujours dispo, action principale */}
                     <a href={s.mapsUrl} target="_blank" rel="noopener noreferrer" style={chipStyle}>
-                      Itinéraire ↗
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.4-7-11a7 7 0 0 1 14 0c0 4.6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                      Itinéraire
                     </a>
-                    {s.website && (
-                      <a href={s.website} target="_blank" rel="noopener noreferrer" style={chipStyle}>
-                        Site ↗
+                    {/* Site — emplacement fixe, atténué si absent */}
+                    {s.website ? (
+                      <a href={s.website} target="_blank" rel="noopener noreferrer" aria-label="Site web" title="Site web" style={iconBtn}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/></svg>
                       </a>
+                    ) : (
+                      <span aria-hidden="true" title="Site non renseigné" style={iconBtnOff}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/></svg>
+                      </span>
                     )}
-                    {s.phone && (
-                      <a href={`tel:${s.phone}`} style={chipStyle}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        Appeler
+                    {/* Téléphone — emplacement fixe, atténué si absent */}
+                    {s.phone ? (
+                      <a href={`tel:${s.phone}`} aria-label="Appeler" title={s.phone} style={iconBtn}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                       </a>
+                    ) : (
+                      <span aria-hidden="true" title="Téléphone non renseigné" style={iconBtnOff}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      </span>
                     )}
                   </div>
                 </div>
