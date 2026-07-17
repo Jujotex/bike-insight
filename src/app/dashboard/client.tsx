@@ -212,7 +212,7 @@ export function DashboardClient({
                 </div>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Score de forme</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Santé du vélo</div>
                 <div style={{ fontSize: 26, fontWeight: 700, color: formeBand.color, marginTop: 5, letterSpacing: -0.4 }}>{formeBand.label}</div>
                 <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 5, lineHeight: 1.5 }}>{formeReason}</div>
               </div>
