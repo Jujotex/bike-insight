@@ -1,5 +1,13 @@
 # Changelog
 
+## [Non publié] — style : largeurs de page uniformisées (2 largeurs standard)
+
+### Modifié
+- Les pages posaient chacune leur `maxWidth` en inline (6 valeurs différentes : 700, 820, 900, 1100, 1200, et le détail vélo en pleine largeur) → incohérence visuelle.
+- **`src/app/globals.css`** : `.bi-page` définit désormais une largeur **large standard (1120px, centrée)** ; nouvelle classe `.bi-page-narrow` pour la largeur **étroite (820px)**. Une seule source, fini les nombres au hasard.
+- Pages **larges** (données) : dashboard, vélos, détail vélo, composant, comparer — `maxWidth` inline retiré (le détail vélo n'est plus en pleine largeur).
+- Pages **étroites** (formulaires / lecture) : coûts, entretiens, tuto, ajout, édition, compte — classe `bi-page-narrow`.
+
 ## [Non publié] — style : échéance d'entretien = une seule dimension (km OU temps)
 
 ### Modifié

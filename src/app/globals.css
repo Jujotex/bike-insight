@@ -84,8 +84,11 @@ body {
 
 /* ── Responsive layout helpers ─────────────────────────────── */
 
-/* Page padding */
-.bi-page { padding: 24px 36px 40px; }
+/* Largeur de contenu — 2 largeurs standard, centrées (fini les maxWidth inline au hasard).
+   .bi-page        → large (1120px) : pages de données (dashboard, vélos, composants…)
+   .bi-page-narrow → étroite (820px) : formulaires / lecture (coûts, entretiens, tuto…) */
+.bi-page { padding: 24px 36px 40px; max-width: 1120px; margin: 0 auto; }
+.bi-page-narrow { max-width: 820px; }
 
 /* Grilles */
 .bi-grid-4   { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }

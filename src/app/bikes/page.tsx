@@ -92,7 +92,7 @@ export default async function BikesPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 1100 }}>
+      <div className="bi-page">
         <PageHead
           title="Mes vélos"
           sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} · ${totalKm.toLocaleString("fr-FR")} km cumulés`}

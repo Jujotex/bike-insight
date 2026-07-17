@@ -130,7 +130,7 @@ export default async function ComparePage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 1100 }}>
+      <div className="bi-page">
         <PageHead
           title={"Remplacer : " + (comp.name as string)}
           sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}

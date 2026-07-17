@@ -55,7 +55,7 @@ export default async function CostPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 820 }}>
+      <div className="bi-page bi-page-narrow">
         <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
         {!hasData ? (

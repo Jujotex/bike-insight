@@ -20,7 +20,7 @@ export default async function NewComponentPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 900 }}>
+      <div className="bi-page bi-page-narrow">
         <PageHead
           title="Ajouter une pièce"
           breadcrumb={["Pièces", "Nouvelle"]}

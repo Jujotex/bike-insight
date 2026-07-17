@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 1200 }}>
+      <div className="bi-page">
         <DashboardClient
           userName={userName}
           todayCap={todayCap}
