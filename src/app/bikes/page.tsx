@@ -15,7 +15,7 @@ export default async function BikesPage() {
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-  const [{ data: bikes }, { data: yearActivities }, { data: profile }, { data: configuredBikes }, { data: maintLogs }] = await Promise.all([
+  const [{ data: bikes }, { data: allActivities }, { data: profile }, { data: configuredBikes }, { data: maintLogs }] = await Promise.all([
     supabase
       .from("bike_stats")
       .select("*")
@@ -24,9 +24,8 @@ export default async function BikesPage() {
       .order("total_km", { ascending: false }),
     supabase
       .from("activities")
-      .select("bike_id, distance_km, started_at")
-      .eq("user_id", user.id)
-      .gte("started_at", twelveMonthsAgo.toISOString()),
+      .select("bike_id, started_at")
+      .eq("user_id", user.id),
     supabase
       .from("profiles")
       .select("strava_athlete_id")
@@ -50,21 +49,24 @@ export default async function BikesPage() {
   const stravaConnected = !!profile?.strava_athlete_id;
   const bikeList = bikes ?? [];
 
-  // km, rides, last ride per bike (12m)
-  const bikeStats12m = new Map<string, { km: number; rides: number; lastDate: string | null }>();
-  for (const a of yearActivities ?? []) {
+  // Sorties à vie + dernière sortie par vélo (cohérent avec les km à vie).
+  // Le KPI « 12 m » du bandeau est calculé à part, sur la même passe.
+  const twelveMonthsIso = twelveMonthsAgo.toISOString();
+  const bikeStats = new Map<string, { rides: number; lastDate: string | null }>();
+  let rides12m = 0;
+  for (const a of allActivities ?? []) {
+    if (a.started_at >= twelveMonthsIso) rides12m += 1;
     if (!a.bike_id) continue;
-    const cur = bikeStats12m.get(a.bike_id) ?? { km: 0, rides: 0, lastDate: null };
-    cur.km += a.distance_km ?? 0;
+    const cur = bikeStats.get(a.bike_id) ?? { rides: 0, lastDate: null };
     cur.rides += 1;
     if (!cur.lastDate || a.started_at > cur.lastDate) cur.lastDate = a.started_at;
-    bikeStats12m.set(a.bike_id, cur);
+    bikeStats.set(a.bike_id, cur);
   }
 
-  // Most recently ridden bike = "active"
+  // Vélo le plus récemment utilisé = "actif"
   let activeBikeId: string | null = null;
   let latestDate: string | null = null;
-  for (const [bid, s] of bikeStats12m.entries()) {
+  for (const [bid, s] of bikeStats.entries()) {
     if (s.lastDate && (!latestDate || s.lastDate > latestDate)) {
       latestDate = s.lastDate;
       activeBikeId = bid;
@@ -72,7 +74,7 @@ export default async function BikesPage() {
   }
 
   const totalKm = bikeList.reduce((s, b) => s + (b.total_km ?? 0), 0);
-  const totalRides = Array.from(bikeStats12m.values()).reduce((s, v) => s + v.rides, 0);
+  const totalRides = rides12m;
   const totalCost = Math.round((maintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0));
 
   function formatLastRide(iso: string | null): string {
@@ -126,7 +128,7 @@ export default async function BikesPage() {
         ) : (
           <div className="bi-grid-bikes">
             {bikeList.map((b, bikeIdx) => {
-              const stats = bikeStats12m.get(b.id) ?? { km: 0, rides: 0, lastDate: null };
+              const stats = bikeStats.get(b.id) ?? { rides: 0, lastDate: null };
               const isActive = b.id === activeBikeId;
               const badCount = (b.bad_count as number) ?? 0;
               const warnCount = (b.warn_count as number) ?? 0;

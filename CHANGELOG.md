@@ -1,5 +1,18 @@
 # Changelog
 
+## [Non publié] — fix : compteur de sorties à vie (cohérent avec les km)
+
+### Corrigé
+- Le nombre de « sorties » sur les cartes vélo était compté sur ~90 j (fenêtre du premier import Strava) alors que les km affichés sont ceux de l'odomètre Strava (à vie) — d'où des incohérences (ex. 268 km mais 0 sortie).
+
+### Modifié
+- **`src/app/api/strava/import/route.ts`** : le **premier import récupère désormais tout l'historique** Strava (`after=0`) au lieu des 90 derniers jours. Nouveau flag `?full=1` pour **réimporter tout l'historique** d'un compte déjà synchronisé (backfill). `PAGE_SIZE` porté à 200 (max Strava) pour limiter les pages. L'annotation Strava reste désactivée sur les imports complets.
+- **`src/app/bikes/page.tsx`** : les cartes comptent les sorties **à vie** (et la dernière sortie sur tout l'historique), cohérent avec les km à vie. Le KPI « Sorties · 12 m » du bandeau reste calculé sur 12 mois (sur la même passe).
+- **`src/components/bi/sync-button.tsx`** : bouton secondaire « Tout réimporter » (déclenche `?full=1`).
+
+### À noter
+- Les vélos déjà importés doivent cliquer **« Tout réimporter »** une fois pour récupérer l'historique complet. Les nouveaux comptes l'ont d'office.
+
 ## [Non publié] — feat : identification modèle précise + confiance (Phases 2 & 3)
 
 ### Ajouté
