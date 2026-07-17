@@ -97,11 +97,36 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km par an estimé à partir de l'usage réel
+  // Km/an RÉEL : distance parcourue par ce vélo, annualisée sur la période
+  // réellement couverte par les sorties Strava (juste même si l'historique
+  // n'est que partiel). Source la plus fiable.
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentActs } = await supabase
+    .from("activities")
+    .select("distance_km, started_at")
+    .eq("user_id", user.id)
+    .eq("bike_id", comp.bike_id)
+    .gte("started_at", twelveMonthsAgo);
+  const acts = recentActs ?? [];
+
+  // Repli si trop peu d'activités : estimation via l'usage réel de la pièce,
+  // sinon défaut prudent. (Plus de « suppose 1 an » qui gonflait le km/an.)
   const ageDaysReal = comp.installed_at
     ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
-    : 365;
-  const kmPerYear = ageDaysReal > 30 ? Math.round((kmUsed / ageDaysReal) * 365) : 3000;
+    : 0;
+
+  let kmPerYear: number;
+  if (acts.length >= 5) {
+    const kmSum = acts.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+    const times = acts.map((a) => new Date(a.started_at as string).getTime());
+    const spanDays = (Math.max(...times) - Math.min(...times)) / (1000 * 60 * 60 * 24);
+    const effDays = Math.max(spanDays, 30); // évite la sur-annualisation sur une période trop courte
+    kmPerYear = Math.min(Math.round((kmSum / effDays) * 365), 30000);
+  } else if (ageDaysReal > 60 && kmUsed > 0) {
+    kmPerYear = Math.round((kmUsed / ageDaysReal) * 365);
+  } else {
+    kmPerYear = 3000;
+  }
 
   return (
     <AppShell nav={<SideNavLoader />}>

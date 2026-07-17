@@ -1,5 +1,11 @@
 # Changelog
 
+## [Non publié] — fix : km/an réel sur la page « Remplacer »
+
+### Corrigé
+- Le « km/an » (et le « coût annuel » qui en découle) affichait le kilométrage **total** (ex. 5 839 km/an) : quand la date d'installation était inconnue, le code supposait « 1 an » d'âge → km/an = km cumulés.
+- **`src/app/components/[id]/compare/page.tsx`** : le km/an est désormais calculé à partir des **sorties Strava réelles** du vélo, annualisées sur la période effectivement couverte (juste même si l'historique est partiel). Replis : estimation via l'usage réel de la pièce, sinon défaut prudent (3 000 km/an). Plafonné à 30 000 km/an. Se fiabilise encore après « Tout réimporter ».
+
 ## [Non publié] — fix : compteur de sorties à vie (cohérent avec les km)
 
 ### Corrigé
