@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — feat : sélecteur de vélo sur la page Coût
+
+### Ajouté
+- **`src/components/bi/cost-bike-picker.tsx`** : sélecteur d'onglets « Tous les vélos » + un onglet par vélo (même style que le dashboard). Filtrage côté serveur via `?bike=<id>`.
+
+### Modifié
+- **`src/lib/data.ts`** : `getCostData(bikeId?)` filtre désormais toutes ses requêtes (composants, activités, entretiens, remplacements) par vélo quand un id est fourni ; renvoie `allBikes` (liste complète pour le sélecteur) et `selectedBikeId`. Sans id → agrégat de tous les vélos (comportement actuel).
+- **`src/app/cout/page.tsx`** : lit `?bike=`, passe l'id à `getCostData`, et affiche le sélecteur en haut (si plus d'un vélo). Toute la page (chiffres, répartition, projection) reflète le vélo choisi.
+
 ## [Non publié] — style : largeurs de page uniformisées (2 largeurs standard)
 
 ### Modifié
