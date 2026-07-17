@@ -8,6 +8,7 @@ import { BiCard, Mono, ProgressBar } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 import {
   computeMaintenanceStatus,
+  formatNextDue,
   type MaintenanceDef,
   type MaintenanceLast,
 } from "@/lib/maintenance-catalog";
@@ -25,12 +26,6 @@ const STATE_UI: Record<string, { label: string; color: string }> = {
 
 const STATE_ORDER: Record<string, number> = { due: 0, soon: 1, ok: 2, never: 3 };
 
-function nextDueLabel(dueInKm: number | null, dueInWeeks: number | null): string {
-  const parts: string[] = [];
-  if (dueInKm !== null) parts.push(`~${dueInKm.toLocaleString("fr")} km`);
-  if (dueInWeeks !== null) parts.push(dueInWeeks >= 5 ? `${Math.round(dueInWeeks / 4)} mois` : `${dueInWeeks} sem.`);
-  return parts.length > 0 ? `dans ${parts.join(" ou ")}` : "";
-}
 
 export function MaintenanceCard({
   bikeId,
@@ -136,8 +131,9 @@ export function MaintenanceCard({
           : status.kmSince !== null
             ? `${status.kmSince.toLocaleString("fr")} km`
             : `${status.weeksSince} sem.`;
+        const nextDue = formatNextDue(status);
         const echeanceDetail = status.state === "ok"
-          ? nextDueLabel(status.dueInKm, status.dueInWeeks)
+          ? (nextDue ? `dans ${nextDue}` : ui.label)
           : ui.label;
 
         return (

@@ -97,15 +97,40 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km par an estimé à partir de l'usage réel
+  // Km/an RÉEL : distance parcourue par ce vélo, annualisée sur la période
+  // réellement couverte par les sorties Strava (juste même si l'historique
+  // n'est que partiel). Source la plus fiable.
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentActs } = await supabase
+    .from("activities")
+    .select("distance_km, started_at")
+    .eq("user_id", user.id)
+    .eq("bike_id", comp.bike_id)
+    .gte("started_at", twelveMonthsAgo);
+  const acts = recentActs ?? [];
+
+  // Repli si trop peu d'activités : estimation via l'usage réel de la pièce,
+  // sinon défaut prudent. (Plus de « suppose 1 an » qui gonflait le km/an.)
   const ageDaysReal = comp.installed_at
     ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
-    : 365;
-  const kmPerYear = ageDaysReal > 30 ? Math.round((kmUsed / ageDaysReal) * 365) : 3000;
+    : 0;
+
+  let kmPerYear: number;
+  if (acts.length >= 5) {
+    const kmSum = acts.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
+    const times = acts.map((a) => new Date(a.started_at as string).getTime());
+    const spanDays = (Math.max(...times) - Math.min(...times)) / (1000 * 60 * 60 * 24);
+    const effDays = Math.max(spanDays, 30); // évite la sur-annualisation sur une période trop courte
+    kmPerYear = Math.min(Math.round((kmSum / effDays) * 365), 30000);
+  } else if (ageDaysReal > 60 && kmUsed > 0) {
+    kmPerYear = Math.round((kmUsed / ageDaysReal) * 365);
+  } else {
+    kmPerYear = 3000;
+  }
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 1100 }}>
+      <div className="bi-page">
         <PageHead
           title={"Remplacer : " + (comp.name as string)}
           sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}
@@ -310,7 +335,8 @@ export default async function ComparePage({
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <span style={{ fontSize: 13, lineHeight: 1.45 }}>{label}</span>
                     {href && (
-                      <Link href={href} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none" }}>
+                      <Link href={href} style={{ marginTop: 6, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "var(--bi-accent)", color: "var(--bi-accent-ink)", padding: "8px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                         {linkLabel}
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                       </Link>

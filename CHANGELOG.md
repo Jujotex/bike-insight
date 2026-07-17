@@ -1,5 +1,45 @@
 # Changelog
 
+## [Non publié] — style : largeurs de page uniformisées (2 largeurs standard)
+
+### Modifié
+- Les pages posaient chacune leur `maxWidth` en inline (6 valeurs différentes : 700, 820, 900, 1100, 1200, et le détail vélo en pleine largeur) → incohérence visuelle.
+- **`src/app/globals.css`** : `.bi-page` définit désormais une largeur **large standard (1120px, centrée)** ; nouvelle classe `.bi-page-narrow` pour la largeur **étroite (820px)**. Une seule source, fini les nombres au hasard.
+- Pages **larges** (données) : dashboard, vélos, détail vélo, composant, comparer — `maxWidth` inline retiré (le détail vélo n'est plus en pleine largeur).
+- Pages **étroites** (formulaires / lecture) : coûts, entretiens, tuto, ajout, édition, compte — classe `bi-page-narrow`.
+
+## [Non publié] — style : échéance d'entretien = une seule dimension (km OU temps)
+
+### Modifié
+- Les échéances d'entretien affichaient « Dans ~158 km **ou** 3 sem. » — les deux, ce qui alourdissait sans aider (seule la première atteinte déclenche).
+- **`src/lib/maintenance-catalog.ts`** : `computeMaintenanceStatus` expose `dueKind` (`km`/`time`) = l'échéance **la plus proche** (ratio d'usure le plus avancé). Nouveau helper `formatNextDue(status)` qui ne renvoie que cette dimension.
+- **`src/components/bi/maintenance-card.tsx`** et **`src/lib/data.ts`** (dashboard) : n'affichent plus qu'une seule échéance via `formatNextDue`.
+
+## [Non publié] — feat : « Ce qui t'attend » cliquable + entretiens à venir
+
+### Modifié
+- **`src/lib/data.ts`** : la projection `getCostData` inclut désormais les **entretiens à venir** qui ont un coût atelier (purge, révision, suspension…) en plus des pièces à remplacer, via `computeMaintenanceStatus` — donc le total « à prévoir · 12 mois » reflète aussi les entretiens. Chaque élément porte un `href` (pièce → `/components/[id]`, entretien → `/bikes/[id]`). Liste passée à 6 éléments.
+- **`src/app/cout/page.tsx`** : les lignes de « Ce qui t'attend » sont **cliquables** (survol + chevron) et renvoient vers la pièce ou le vélo concerné. Badge « Entretien » sur les lignes d'entretien, libellé « à faire » adapté.
+
+## [Non publié] — fix : km/an réel sur la page « Remplacer »
+
+### Corrigé
+- Le « km/an » (et le « coût annuel » qui en découle) affichait le kilométrage **total** (ex. 5 839 km/an) : quand la date d'installation était inconnue, le code supposait « 1 an » d'âge → km/an = km cumulés.
+- **`src/app/components/[id]/compare/page.tsx`** : le km/an est désormais calculé à partir des **sorties Strava réelles** du vélo, annualisées sur la période effectivement couverte (juste même si l'historique est partiel). Replis : estimation via l'usage réel de la pièce, sinon défaut prudent (3 000 km/an). Plafonné à 30 000 km/an. Se fiabilise encore après « Tout réimporter ».
+
+## [Non publié] — fix : compteur de sorties à vie (cohérent avec les km)
+
+### Corrigé
+- Le nombre de « sorties » sur les cartes vélo était compté sur ~90 j (fenêtre du premier import Strava) alors que les km affichés sont ceux de l'odomètre Strava (à vie) — d'où des incohérences (ex. 268 km mais 0 sortie).
+
+### Modifié
+- **`src/app/api/strava/import/route.ts`** : le **premier import récupère désormais tout l'historique** Strava (`after=0`) au lieu des 90 derniers jours. Nouveau flag `?full=1` pour **réimporter tout l'historique** d'un compte déjà synchronisé (backfill). `PAGE_SIZE` porté à 200 (max Strava) pour limiter les pages. L'annotation Strava reste désactivée sur les imports complets.
+- **`src/app/bikes/page.tsx`** : les cartes comptent les sorties **à vie** (et la dernière sortie sur tout l'historique), cohérent avec les km à vie. Le KPI « Sorties · 12 m » du bandeau reste calculé sur 12 mois (sur la même passe).
+- **`src/components/bi/sync-button.tsx`** : bouton secondaire « Tout réimporter » (déclenche `?full=1`).
+
+### À noter
+- Les vélos déjà importés doivent cliquer **« Tout réimporter »** une fois pour récupérer l'historique complet. Les nouveaux comptes l'ont d'office.
+
 ## [Non publié] — feat : identification modèle précise + confiance (Phases 2 & 3)
 
 ### Ajouté

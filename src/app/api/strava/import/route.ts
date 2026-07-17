@@ -4,8 +4,7 @@ import { createWearNotifications, createMaintenanceNotifications } from '@/lib/n
 import { getValidStravaToken } from '@/lib/strava'
 import { commentWearOnActivities } from '@/lib/strava-comment'
 
-const FIRST_SYNC_DAYS = 90  // Premier import : 90 derniers jours
-const PAGE_SIZE = 100
+const PAGE_SIZE = 200  // max autorisé par Strava — limite le nombre de pages
 
 // L'app ne suit que le vélo : on ignore course à pied, marche, natation, etc.
 // Strava renvoie le type dans `sport_type` (récent) ou `type` (ancien).
@@ -24,8 +23,10 @@ function isCycling(a: { sport_type?: string; type?: string }): boolean {
   return CYCLING_TYPES.has(a.sport_type ?? a.type ?? '')
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient()
+  // ?full=1 → réimporte TOUT l'historique (backfill), même si déjà synchronisé.
+  const fullReimport = new URL(request.url).searchParams.get('full') === '1'
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -53,12 +54,14 @@ export async function POST() {
 
   const lastSyncAt = profile?.last_sync_at as string | null
   const isFirstSync = !lastSyncAt
+  // Import complet = premier import OU réimport explicite : on récupère tout
+  // l'historique Strava (after=0) pour des compteurs de sorties fiables (à vie).
+  const fetchAll = isFirstSync || fullReimport
 
   let after: number
-  if (isFirstSync) {
-    // Premier import → 90 derniers jours
-    after = Math.floor((Date.now() - FIRST_SYNC_DAYS * 24 * 60 * 60 * 1000) / 1000)
-    console.log(`[sync] Premier import — depuis ${FIRST_SYNC_DAYS} jours`)
+  if (fetchAll) {
+    after = 0
+    console.log(`[sync] Import complet (${fullReimport ? 'réimport' : 'premier import'}) — tout l'historique`)
   } else {
     // Import incrémental → depuis la dernière sync (avec 1h de marge pour éviter les trous)
     const lastSyncMs = new Date(lastSyncAt).getTime() - 60 * 60 * 1000
@@ -197,9 +200,9 @@ export async function POST() {
     await createMaintenanceNotifications(supabase, user.id).catch(e => console.error('[sync] notifications entretien error:', e))
 
     // ── Alerte d'usure critique dans la description Strava (opt-in) ──
-    // Seulement sur les imports incrémentaux : on n'annote pas 90 jours
-    // d'historique au premier import.
-    if (!isFirstSync && allActivities.length > 0) {
+    // Seulement sur les imports incrémentaux : on n'annote jamais tout
+    // l'historique lors d'un import complet (premier ou réimport).
+    if (!fetchAll && allActivities.length > 0) {
       const acts = allActivities.map(a => ({
         strava_id: (a as { strava_id: number }).strava_id,
         bike_id: (a as { bike_id: string | null }).bike_id,
@@ -214,7 +217,8 @@ export async function POST() {
   return NextResponse.json({
     imported: totalImported,
     pages: page - 1,
-    incremental: !isFirstSync,
-    since: new Date(after * 1000).toISOString(),
+    incremental: !fetchAll,
+    full: fetchAll,
+    since: after > 0 ? new Date(after * 1000).toISOString() : null,
   })
 }

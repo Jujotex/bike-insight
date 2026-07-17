@@ -68,7 +68,7 @@ function MiniDashPreview() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Dot color={T.warn} size={6} />
-            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Score de forme</span>
+            <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted }}>Santé du vélo</span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 4 }}>
             <Mono style={{ fontSize: 42, fontWeight: 400, letterSpacing: -1.4, lineHeight: 1, color: T.warn }}>62</Mono>
@@ -362,7 +362,7 @@ function LandingComparison() {
   const rows = [
     ["Sync auto Strava", "check", "partiel", "manuel", "cross"],
     ["Suivi de la dépense d'entretien", "check", "cross", "basique", "manuel"],
-    ["Score de forme du vélo", "check", "cross", "cross", "cross"],
+    ["Santé du vélo", "check", "cross", "cross", "cross"],
     ["Alerte d'usure écrite sur Strava", "check", "cross", "cross", "cross"],
     ["Projection des dépenses à venir", "check", "cross", "cross", "cross"],
     ["Coût évité chiffré", "check", "cross", "cross", "cross"],

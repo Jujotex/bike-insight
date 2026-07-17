@@ -177,7 +177,7 @@ export default async function ComponentDetailPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 1100 }}>
+      <div className="bi-page">
         <PageHead
           title={comp.name as string}
           breadcrumb={["Composants", comp.name as string]}

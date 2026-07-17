@@ -36,7 +36,7 @@ export default async function MaintenanceSettingsPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 820 }}>
+      <div className="bi-page bi-page-narrow">
         <PageHead
           title="Entretiens"
           sub="Personnalise les types d'entretien et leurs échéances, vélo par vélo"

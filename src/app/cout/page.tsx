@@ -55,7 +55,7 @@ export default async function CostPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 820 }}>
+      <div className="bi-page bi-page-narrow">
         <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
         {!hasData ? (
@@ -150,7 +150,7 @@ export default async function CostPage() {
                 <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 600 }}>Ce qui t&apos;attend</div>
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Estimé d&apos;après ton rythme et l&apos;usure de tes pièces</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Pièces à remplacer et entretiens à venir, d&apos;après ton rythme</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
@@ -161,17 +161,25 @@ export default async function CostPage() {
                   </div>
                 </div>
                 {projection.upcoming.map((u, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
+                  <Link key={i} href={u.href} className="bi-component-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)", textDecoration: "none", color: "inherit" }}>
                     <div style={{ width: 4, height: 26, background: COLORS[u.key] ?? "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{delay(u.weeksUntil)}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}>
+                        {u.name}
+                        {u.key === "entretien" && (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", flexShrink: 0 }}>Entretien</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>
+                        {u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : delay(u.weeksUntil)}
+                      </div>
                     </div>
                     <Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>~{fmt(u.cost)} €</Mono>
-                  </div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6"/></svg>
+                  </Link>
                 ))}
                 <div style={{ padding: "10px 22px 14px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
-                  Estimation basée sur ton rythme récent et le prix de tes pièces.
+                  Estimation basée sur ton rythme récent, le prix de tes pièces et le coût atelier des entretiens.
                 </div>
               </BiCard>
             )}
@@ -236,23 +244,17 @@ export default async function CostPage() {
                     ))}
                   </div>
                   {/* Légende détaillée : catégorie + détail par opération */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    {breakdown.map(({ key, total, pct, items }) => (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    {breakdown.map(({ key, pct, items }) => (
                       <div key={key}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
                           <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
-                          <Mono style={{ fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{fmt(total)} €</Mono>
-                          <Mono style={{ fontSize: 12, color: "var(--bi-muted)", width: 40, textAlign: "right", flexShrink: 0 }}>{pct}%</Mono>
+                          <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
                         </div>
                         {items.length > 0 && (
-                          <div style={{ marginLeft: 18, marginTop: 7, display: "flex", flexDirection: "column", gap: 5 }}>
-                            {items.map((it, i) => (
-                              <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                                <span style={{ fontSize: 12, color: "var(--bi-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{it.label}</span>
-                                <Mono style={{ fontSize: 12, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(it.total)} €</Mono>
-                              </div>
-                            ))}
+                          <div style={{ marginLeft: 18, marginTop: 4, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+                            {items.map((it) => it.label).join(" · ")}
                           </div>
                         )}
                       </div>

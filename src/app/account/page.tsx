@@ -50,7 +50,7 @@ export default async function AccountPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page" style={{ maxWidth: 700 }}>
+      <div className="bi-page bi-page-narrow">
         <PageHead title="Mon compte" sub={`Membre depuis ${memberSince}`} />
 
         <AccountClient

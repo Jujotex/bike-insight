@@ -11,12 +11,12 @@ export function SyncButton({ stravaConnected }: Props) {
   const [result, setResult] = useState<{ imported: number } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  async function handleSync() {
+  async function handleSync(full = false) {
     setStatus("loading");
     setResult(null);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/strava/import", { method: "POST" });
+      const res = await fetch("/api/strava/import" + (full ? "?full=1" : ""), { method: "POST" });
       let body: { imported?: number; error?: string } = {};
       try { body = await res.json() } catch { /* empty body */ }
 
@@ -67,7 +67,19 @@ export function SyncButton({ stravaConnected }: Props) {
         </span>
       )}
       <button
-        onClick={handleSync}
+        onClick={() => handleSync(true)}
+        disabled={status === "loading"}
+        title="Réimporter tout l'historique Strava (sorties à vie)"
+        style={{
+          padding: "10px 14px", background: "transparent", color: "var(--bi-muted)",
+          border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600,
+          fontFamily: "inherit", cursor: status === "loading" ? "not-allowed" : "pointer",
+        }}
+      >
+        Tout réimporter
+      </button>
+      <button
+        onClick={() => handleSync(false)}
         disabled={status === "loading"}
         style={{
           padding: "10px 16px",
