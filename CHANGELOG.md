@@ -1,5 +1,11 @@
 # Changelog
 
+## [Non publié] — feat : « Ce qui t'attend » cliquable + entretiens à venir
+
+### Modifié
+- **`src/lib/data.ts`** : la projection `getCostData` inclut désormais les **entretiens à venir** qui ont un coût atelier (purge, révision, suspension…) en plus des pièces à remplacer, via `computeMaintenanceStatus` — donc le total « à prévoir · 12 mois » reflète aussi les entretiens. Chaque élément porte un `href` (pièce → `/components/[id]`, entretien → `/bikes/[id]`). Liste passée à 6 éléments.
+- **`src/app/cout/page.tsx`** : les lignes de « Ce qui t'attend » sont **cliquables** (survol + chevron) et renvoient vers la pièce ou le vélo concerné. Badge « Entretien » sur les lignes d'entretien, libellé « à faire » adapté.
+
 ## [Non publié] — fix : km/an réel sur la page « Remplacer »
 
 ### Corrigé
