@@ -36,7 +36,7 @@ export default async function MaintenanceSettingsPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page bi-page-narrow">
+      <div className="bi-page">
         <PageHead
           title="Entretiens"
           sub="Personnalise les types d'entretien et leurs échéances, vélo par vélo"
