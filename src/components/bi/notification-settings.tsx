@@ -195,7 +195,10 @@ export function NotificationSettings() {
               <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-strava)", flexShrink: 0, marginTop: 4 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>Alerte dans la description Strava</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--bi-strava)" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                    Alerte dans la description Strava
+                  </span>
                   <Toggle
                     enabled={settings.strava_wear_comment}
                     onChange={() => save({ ...settings, strava_wear_comment: !settings.strava_wear_comment })}

@@ -39,8 +39,8 @@ function fmtPerKm(n: number) {
 
 function delay(w: number): string {
   if (w <= 0) return "à remplacer";
-  if (w < 5) return `dans ~${w} sem.`;
-  return `dans ~${Math.round(w / 4)} mois`;
+  if (w < 5) return `dans ${w} sem.`;
+  return `dans ${Math.round(w / 4)} mois`;
 }
 
 export default async function CostPage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
@@ -180,7 +180,7 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                         {u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : delay(u.weeksUntil)}
                       </div>
                     </div>
-                    <Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>~{fmt(u.cost)} €</Mono>
+                    <Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(u.cost)} €</Mono>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6"/></svg>
                   </Link>
                 ))}

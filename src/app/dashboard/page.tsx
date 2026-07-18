@@ -13,6 +13,7 @@ export default async function DashboardPage() {
     readinessByBike, attentionItems,
     predictions, budgetByBike, wearByCategoryByBike,
     maintenanceAlerts, maintenanceSummaryByBike,
+    km12mByBike, rides12mByBike,
   } = data;
 
   const userName = (user.user_metadata?.full_name as string)?.split(" ")[0] ?? "toi";
@@ -34,6 +35,8 @@ export default async function DashboardPage() {
           maintenanceSummaryByBike={maintenanceSummaryByBike}
           budgetByBike={budgetByBike}
           wearByCategoryByBike={wearByCategoryByBike}
+          km12mByBike={km12mByBike}
+          rides12mByBike={rides12mByBike}
         />
       </div>
     </AppShell>

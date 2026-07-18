@@ -342,15 +342,16 @@ export default async function ComparePage({
                 { n: "3", label: "Marque-la comme installée dans Bike Insight" },
                 { n: "4", label: "Le suivi d'usure reprend automatiquement" },
               ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => {
+                // L'étape avec tuto ressort : puce de numéro en lime (bien contrastée).
                 const num = (
-                  <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)", marginTop: 1 }}>{n}</div>
+                  <div style={{ width: 22, height: 22, borderRadius: 999, background: href ? "var(--bi-accent)" : "var(--bi-bg)", border: href ? "none" : "1px solid var(--bi-line)", color: href ? "var(--bi-accent-ink)" : "inherit", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 700, fontFamily: "var(--bi-font-mono)", marginTop: 1 }}>{n}</div>
                 );
                 // L'étape avec tuto est cliquable en entier — pas de bouton flottant.
                 return href ? (
                   <Link key={n} href={href} style={{ display: "flex", alignItems: "flex-start", gap: 12, textDecoration: "none", color: "inherit" }}>
                     {num}
                     <span style={{ fontSize: 13, lineHeight: 1.45 }}>
-                      {label} <span style={{ color: "var(--bi-ok)", fontWeight: 600, whiteSpace: "nowrap" }}>· {linkLabel} ›</span>
+                      {label} <span style={{ color: "var(--bi-ok)", fontWeight: 700, whiteSpace: "nowrap" }}>· {linkLabel} ›</span>
                     </span>
                   </Link>
                 ) : (
