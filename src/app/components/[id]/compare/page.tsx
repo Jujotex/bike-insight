@@ -323,24 +323,28 @@ export default async function ComparePage({
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {([
                 { n: "1", label: "Commande la pièce (chez ton vélociste ou en ligne)" },
-                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "Voir le tuto et les options" },
+                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "voir le tuto" },
                 { n: "3", label: "Marque-la comme installée dans Bike Insight" },
                 { n: "4", label: "Le suivi d'usure reprend automatiquement" },
-              ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => (
-                <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{n}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => {
+                const num = (
+                  <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)", marginTop: 1 }}>{n}</div>
+                );
+                // L'étape avec tuto est cliquable en entier — pas de bouton flottant.
+                return href ? (
+                  <Link key={n} href={href} style={{ display: "flex", alignItems: "flex-start", gap: 12, textDecoration: "none", color: "inherit" }}>
+                    {num}
+                    <span style={{ fontSize: 13, lineHeight: 1.45 }}>
+                      {label} <span style={{ color: "var(--bi-ok)", fontWeight: 600, whiteSpace: "nowrap" }}>· {linkLabel} ›</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    {num}
                     <span style={{ fontSize: 13, lineHeight: 1.45 }}>{label}</span>
-                    {href && (
-                      <Link href={href} style={{ marginTop: 6, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "var(--bi-accent)", color: "var(--bi-accent-ink)", padding: "8px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                        {linkLabel}
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-                      </Link>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ marginTop: 18 }}>
               <ReplaceButton
