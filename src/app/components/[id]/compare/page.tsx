@@ -97,30 +97,45 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km/an FIABLE : on part de l'ODOMÈTRE du vélo (total_km), la seule donnée
-  // autoritative — elle compte TOUTES les sorties du vélo, y compris celles mal
-  // taguées sur Strava que la somme des activités raterait. On le rapporte à
-  // l'âge du vélo (sa première sortie connue). Âge planché à 1 an → le km/an ne
-  // dépasse jamais le total du vélo. Stable, cohérent, plus d'à-coups.
+  // Objectif : la distance RÉELLE parcourue sur les 12 derniers mois (pour le
+  // coût annuel). Elle nécessite un historique Strava complet (« Tout réimporter »).
+  // Garde-fou anti-données-incomplètes : si cette distance paraît sous-comptée
+  // (bien en dessous de ce que l'odomètre implique), on bascule sur total ÷ âge.
   const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
-  const { data: firstActs } = await supabase
-    .from("activities")
-    .select("started_at")
-    .eq("user_id", user.id)
-    .eq("bike_id", comp.bike_id)
-    .order("started_at", { ascending: true })
-    .limit(1);
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  const [{ data: recentActs }, { data: firstActs }] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("distance_km")
+      .eq("user_id", user.id)
+      .eq("bike_id", comp.bike_id)
+      .gte("started_at", twelveMonthsAgo),
+    supabase
+      .from("activities")
+      .select("started_at")
+      .eq("user_id", user.id)
+      .eq("bike_id", comp.bike_id)
+      .order("started_at", { ascending: true })
+      .limit(1),
+  ]);
+  const km365 = Math.round((recentActs ?? []).reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0));
   const firstRide = firstActs?.[0]?.started_at as string | undefined;
 
+  // Moyenne impliquée par l'odomètre : total ÷ âge du vélo (âge planché à 1 an
+  // → ne dépasse jamais le total). Sert de repli quand la distance 12 mois est
+  // manifestement incomplète.
+  const ageYears = firstRide
+    ? Math.max(1, (Date.now() - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000))
+    : null;
+  const odoAvg = bikeTotalKm > 0 && ageYears ? Math.round(bikeTotalKm / ageYears) : null;
+
   let kmPerYear: number;
-  if (bikeTotalKm > 0 && firstRide) {
-    const ageYears = Math.max(
-      1,
-      (Date.now() - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000)
-    );
-    kmPerYear = Math.round(bikeTotalKm / ageYears);
-  } else if (bikeTotalKm > 0) {
-    kmPerYear = bikeTotalKm; // pas d'historique → ~1 an de l'odomètre
+  if (km365 >= 500 && (odoAvg === null || km365 >= 0.6 * odoAvg)) {
+    kmPerYear = km365;        // vraie distance 12 mois (données complètes)
+  } else if (odoAvg !== null) {
+    kmPerYear = odoAvg;       // 12 mois incomplet → moyenne odomètre (total ÷ âge)
+  } else if (km365 > 0) {
+    kmPerYear = km365;
   } else {
     kmPerYear = 3000;
   }
