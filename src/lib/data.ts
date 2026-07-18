@@ -49,6 +49,18 @@ export async function getDashboardData() {
   const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
   const totalRides12m = yearActivities?.length ?? 0
 
+  // Distance + sorties 12 mois PAR VÉLO (pour aligner le dashboard sur le vélo
+  // sélectionné, comme la page compare — sinon le chiffre global prête à confusion).
+  const km12mByBike: Record<string, number> = {}
+  const rides12mByBike: Record<string, number> = {}
+  for (const a of yearActivitiesByBike ?? []) {
+    const bid = a.bike_id as string | null
+    if (!bid) continue
+    km12mByBike[bid] = (km12mByBike[bid] ?? 0) + (a.distance_km ?? 0)
+    rides12mByBike[bid] = (rides12mByBike[bid] ?? 0) + 1
+  }
+  for (const k of Object.keys(km12mByBike)) km12mByBike[k] = Math.round(km12mByBike[k])
+
   const activityChart = Array.from({ length: 30 }, (_, i) => {
     const day = new Date(thirtyDaysAgo)
     day.setDate(day.getDate() + i)
@@ -353,6 +365,8 @@ export async function getDashboardData() {
       criticalCount,
       avgWear,
     },
+    km12mByBike,
+    rides12mByBike,
     costByCategory,
     mostCritical,
     recentActivities: recentActivities ?? [],

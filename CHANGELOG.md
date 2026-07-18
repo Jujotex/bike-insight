@@ -1,5 +1,12 @@
 # Changelog
 
+## [Non publié] — fix : dashboard « 12 mois » par vélo (cohérent avec compare)
+
+### Corrigé
+- Le dashboard affichait la distance/sorties « 12 mois » **tous vélos confondus** (`kpis.totalKm12m` global), non filtré par le sélecteur de vélo → incohérent avec la page compare qui est par vélo (ex. dashboard 4689 km tous vélos vs 3363 km pour le seul Scott).
+- **`src/lib/data.ts`** : `getDashboardData` calcule et expose `km12mByBike` / `rides12mByBike` (12 mois par vélo).
+- **`src/app/dashboard/page.tsx`** + **`client.tsx`** : la carte « 12 mois » (km + sorties) reflète désormais le **vélo sélectionné**, comme le reste du dashboard. Elle correspond au chiffre de la page compare.
+
 ## [Non publié] — fix : km/an = vraie distance 12 mois + repli odomètre
 
 ### Corrigé

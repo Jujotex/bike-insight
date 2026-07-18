@@ -91,11 +91,14 @@ export interface DashboardClientProps {
   maintenanceSummaryByBike: Record<string, MaintenanceSummary>;
   budgetByBike: Record<string, Record<string, number>>;
   wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
+  km12mByBike: Record<string, number>;
+  rides12mByBike: Record<string, number>;
 }
 
 export function DashboardClient({
   userName, todayCap, bikes, kpis,
   attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike, readinessByBike,
+  km12mByBike, rides12mByBike,
 }: DashboardClientProps) {
   const router = useRouter();
   const primaryBikeId = (bikes[0]?.id as string) ?? "";
@@ -141,7 +144,10 @@ export function DashboardClient({
     }).catch(() => {});
   }, []);
 
-  const kmFormatted = kpis.totalKm12m.toLocaleString("fr-FR");
+  // 12 mois PAR vélo sélectionné (cohérent avec la page compare), repli global.
+  const km12mSelected = km12mByBike[selectedBikeId] ?? kpis.totalKm12m;
+  const rides12mSelected = rides12mByBike[selectedBikeId] ?? kpis.totalRides12m;
+  const kmFormatted = km12mSelected.toLocaleString("fr-FR");
 
   return (
     <>
@@ -232,7 +238,7 @@ export function DashboardClient({
           <div style={{ background: "var(--bi-card)", padding: "22px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 8 }}>
-              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{kpis.totalRides12m}</span>
+              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{rides12mSelected}</span>
               <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>sorties</span>
             </div>
           </div>
