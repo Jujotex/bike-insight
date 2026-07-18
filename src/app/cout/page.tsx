@@ -4,6 +4,7 @@ import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCostData } from "@/lib/data";
+import { CostBikePicker } from "@/components/bi/cost-bike-picker";
 import { MAINTENANCE_COST_PER_KM, KM_PER_YEAR, benchmarkVerdict } from "@/lib/benchmarks";
 
 const LABELS: Record<string, string> = {
@@ -42,11 +43,12 @@ function delay(w: number): string {
   return `dans ~${Math.round(w / 4)} mois`;
 }
 
-export default async function CostPage() {
-  const data = await getCostData();
+export default async function CostPage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
+  const { bike } = await searchParams;
+  const data = await getCostData(bike || null);
   if (!data) redirect("/login");
 
-  const { kpis, byBike, breakdown, activity, projection, insights, hasData } = data;
+  const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
   const maxActivity = Math.max(...activity.chart, 1);
 
   const costVerdict = kpis.costPerKm !== null ? benchmarkVerdict(kpis.costPerKm, MAINTENANCE_COST_PER_KM) : null;
@@ -55,8 +57,12 @@ export default async function CostPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page bi-page-narrow">
+      <div className="bi-page">
         <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+
+        {allBikes.length > 1 && (
+          <CostBikePicker bikes={allBikes} selected={selectedBikeId} />
+        )}
 
         {!hasData ? (
           <BiCard pad={40} style={{ textAlign: "center" }}>

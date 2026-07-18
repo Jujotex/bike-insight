@@ -20,7 +20,7 @@ export default async function NewComponentPage() {
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page bi-page-narrow">
+      <div className="bi-page">
         <PageHead
           title="Ajouter une pièce"
           breadcrumb={["Pièces", "Nouvelle"]}

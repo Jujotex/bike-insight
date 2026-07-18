@@ -1,12 +1,20 @@
 # Changelog
 
-## [Non publié] — style : largeurs de page uniformisées (2 largeurs standard)
+## [Non publié] — feat : sélecteur de vélo sur la page Coût
+
+### Ajouté
+- **`src/components/bi/cost-bike-picker.tsx`** : sélecteur d'onglets « Tous les vélos » + un onglet par vélo (même style que le dashboard). Filtrage côté serveur via `?bike=<id>`.
+
+### Modifié
+- **`src/lib/data.ts`** : `getCostData(bikeId?)` filtre désormais toutes ses requêtes (composants, activités, entretiens, remplacements) par vélo quand un id est fourni ; renvoie `allBikes` (liste complète pour le sélecteur) et `selectedBikeId`. Sans id → agrégat de tous les vélos (comportement actuel).
+- **`src/app/cout/page.tsx`** : lit `?bike=`, passe l'id à `getCostData`, et affiche le sélecteur en haut (si plus d'un vélo). Toute la page (chiffres, répartition, projection) reflète le vélo choisi.
+
+## [Non publié] — style : largeur de page unique sur toute l'app
 
 ### Modifié
 - Les pages posaient chacune leur `maxWidth` en inline (6 valeurs différentes : 700, 820, 900, 1100, 1200, et le détail vélo en pleine largeur) → incohérence visuelle.
-- **`src/app/globals.css`** : `.bi-page` définit désormais une largeur **large standard (1120px, centrée)** ; nouvelle classe `.bi-page-narrow` pour la largeur **étroite (820px)**. Une seule source, fini les nombres au hasard.
-- Pages **larges** (données) : dashboard, vélos, détail vélo, composant, comparer — `maxWidth` inline retiré (le détail vélo n'est plus en pleine largeur).
-- Pages **étroites** (formulaires / lecture) : coûts, entretiens, tuto, ajout, édition, compte — classe `bi-page-narrow`.
+- **`src/app/globals.css`** : `.bi-page` définit désormais **une largeur unique (1120px, centrée)** appliquée à **toutes** les pages de l'app. Une seule source, fini les nombres au hasard.
+- `maxWidth` inline retiré partout (dashboard, vélos, détail vélo, composant, comparer, coûts, entretiens, tuto, ajout, édition, compte).
 
 ## [Non publié] — style : échéance d'entretien = une seule dimension (km OU temps)
 

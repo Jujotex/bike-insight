@@ -32,7 +32,7 @@ export default async function EditComponentPage({
 
   return (
     <AppShell nav={<SideNavLoader />}>
-      <div className="bi-page bi-page-narrow">
+      <div className="bi-page">
         <PageHead
           title="Modifier le composant"
           breadcrumb={["Composants", comp.name as string, "Modifier"]}

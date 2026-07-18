@@ -461,13 +461,41 @@ export async function getComponentsData() {
 // Les prix catalogue des pièces d'origine ne sont pas comptés comme dépense
 // (le prix cassette sert juste de référence à l'économie transmission).
 
-export async function getCostData() {
+export async function getCostData(bikeId?: string | null) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10)
+
+  // Requêtes filtrables par vélo (sélecteur en haut de page). bikeId vide/null = tous.
+  const compQ = supabase
+    .from('component_stats')
+    .select('id, name, category, bike_id, purchase_price, km_remaining')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+  const bikeQ = supabase
+    .from('bike_stats')
+    .select('id, name, total_km')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+  const actQ = supabase
+    .from('activities')
+    .select('bike_id, distance_km, started_at')
+    .eq('user_id', user.id)
+    .gte('started_at', twelveMonthsAgo)
+  const maintQ = supabase
+    .from('maintenance_logs')
+    .select('cost, performed_at, maintenance_type, bike_id, action')
+    .eq('user_id', user.id)
+    .not('cost', 'is', null)
+  const bikeMaintQ = supabase
+    .from('maintenance_logs')
+    .select('bike_id, maintenance_type, performed_at, km_at_action')
+    .eq('user_id', user.id)
+    .not('maintenance_type', 'is', null)
+    .order('performed_at', { ascending: false })
 
   const [
     { data: components },
@@ -476,47 +504,32 @@ export async function getCostData() {
     { data: maintLogs },
     { data: replacements },
     { data: bikeMaintLogs },
+    { data: allBikesRaw },
   ] = await Promise.all([
-    supabase
-      .from('component_stats')
-      .select('id, name, category, bike_id, purchase_price, km_remaining')
-      .eq('user_id', user.id)
-      .eq('is_active', true),
-    supabase
-      .from('bike_stats')
-      .select('id, name, total_km')
-      .eq('user_id', user.id)
-      .eq('is_active', true),
-    // Activités 12 mois (rythme km/semaine) pour la projection
-    supabase
-      .from('activities')
-      .select('bike_id, distance_km, started_at')
-      .eq('user_id', user.id)
-      .gte('started_at', twelveMonthsAgo),
-    supabase
-      .from('maintenance_logs')
-      .select('cost, performed_at, maintenance_type, bike_id, action')
-      .eq('user_id', user.id)
-      .not('cost', 'is', null),
-    // Remplacements de pièces (tout l'historique) — dépense réelle + longévité + éco transmission
+    bikeId ? compQ.eq('bike_id', bikeId) : compQ,
+    bikeId ? bikeQ.eq('id', bikeId) : bikeQ,
+    bikeId ? actQ.eq('bike_id', bikeId) : actQ,
+    bikeId ? maintQ.eq('bike_id', bikeId) : maintQ,
+    // Remplacements de pièces (join components) — filtrés par vélo côté JS plus bas
     supabase
       .from('maintenance_logs')
       .select('cost, performed_at, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
       .eq('user_id', user.id)
       .eq('action', 'Remplacement'),
-    // Historique d'entretien (tous types, pour projeter les entretiens à venir)
-    supabase
-      .from('maintenance_logs')
-      .select('bike_id, maintenance_type, performed_at, km_at_action')
-      .eq('user_id', user.id)
-      .not('maintenance_type', 'is', null)
-      .order('performed_at', { ascending: false }),
+    bikeId ? bikeMaintQ.eq('bike_id', bikeId) : bikeMaintQ,
+    // Liste de TOUS les vélos actifs (pour le sélecteur, jamais filtrée)
+    supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
   ])
 
   const comps = components ?? []
   const bikeList = bikes ?? []
   const logs = maintLogs ?? []
-  const repl = replacements ?? []
+  // Remplacements filtrés par vélo (le bike_id est sur le composant joint).
+  const repl = (replacements ?? []).filter(r => {
+    if (!bikeId) return true
+    const c = Array.isArray(r.components) ? r.components[0] : r.components
+    return (c as { bike_id?: string | null } | null)?.bike_id === bikeId
+  })
   const acts = activities ?? []
 
   // ── Entretien courant (maintenance_type non nul) ──────────────
@@ -764,6 +777,8 @@ export async function getCostData() {
       total12m: Math.round(projected12m),
       upcoming: upcomingAll.slice(0, 6),
     },
+    allBikes: (allBikesRaw ?? []).map(b => ({ id: b.id as string, name: b.name as string })),
+    selectedBikeId: bikeId ?? null,
     insights: {
       transmissionSavings: Math.round(transmissionSavings),
       onTimeChains,

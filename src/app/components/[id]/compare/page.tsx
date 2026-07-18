@@ -97,31 +97,28 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km/an RÉEL : distance parcourue par ce vélo, annualisée sur la période
-  // réellement couverte par les sorties Strava (juste même si l'historique
-  // n'est que partiel). Source la plus fiable.
+  // Km/an = distance RÉELLE parcourue par ce vélo sur les 365 derniers jours.
+  // Somme brute, sans extrapolation (l'ancienne annualisation d'une période
+  // partielle gonflait le chiffre — ex. 90 j ramenés à l'année → surestimé).
+  // → Exact une fois l'historique Strava complet importé (« Tout réimporter »).
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentActs } = await supabase
     .from("activities")
-    .select("distance_km, started_at")
+    .select("distance_km")
     .eq("user_id", user.id)
     .eq("bike_id", comp.bike_id)
     .gte("started_at", twelveMonthsAgo);
-  const acts = recentActs ?? [];
+  const km365 = Math.round((recentActs ?? []).reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0));
 
-  // Repli si trop peu d'activités : estimation via l'usage réel de la pièce,
-  // sinon défaut prudent. (Plus de « suppose 1 an » qui gonflait le km/an.)
+  // Repli si (quasi) pas de sorties sur 12 mois : estimation via l'usage réel
+  // de la pièce, sinon défaut prudent.
   const ageDaysReal = comp.installed_at
     ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
     : 0;
 
   let kmPerYear: number;
-  if (acts.length >= 5) {
-    const kmSum = acts.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0);
-    const times = acts.map((a) => new Date(a.started_at as string).getTime());
-    const spanDays = (Math.max(...times) - Math.min(...times)) / (1000 * 60 * 60 * 24);
-    const effDays = Math.max(spanDays, 30); // évite la sur-annualisation sur une période trop courte
-    kmPerYear = Math.min(Math.round((kmSum / effDays) * 365), 30000);
+  if (km365 >= 300) {
+    kmPerYear = km365;
   } else if (ageDaysReal > 60 && kmUsed > 0) {
     kmPerYear = Math.round((kmUsed / ageDaysReal) * 365);
   } else {
