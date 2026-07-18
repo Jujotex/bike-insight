@@ -33,7 +33,7 @@ export default async function BikesPage() {
       .single(),
     supabase
       .from("components")
-      .select("bike_id")
+      .select("bike_id, status")
       .eq("user_id", user.id)
       .eq("is_active", true),
     // Dépense d'entretien réelle (remplacements + entretiens) — tous vélos
@@ -45,6 +45,17 @@ export default async function BikesPage() {
   ]);
 
   const configuredBikeIds = new Set((configuredBikes ?? []).map(c => c.bike_id as string));
+
+  // Compteurs bad/warn par vélo, calculés depuis les composants actifs.
+  // (bike_stats n'expose pas ces colonnes — ne jamais lire b.bad_count.)
+  const statusCounts = new Map<string, { bad: number; warn: number }>();
+  for (const c of configuredBikes ?? []) {
+    const bid = c.bike_id as string;
+    const cur = statusCounts.get(bid) ?? { bad: 0, warn: 0 };
+    if (c.status === "bad") cur.bad += 1;
+    else if (c.status === "warn") cur.warn += 1;
+    statusCounts.set(bid, cur);
+  }
 
   const stravaConnected = !!profile?.strava_athlete_id;
   const bikeList = bikes ?? [];
@@ -130,8 +141,8 @@ export default async function BikesPage() {
             {bikeList.map((b, bikeIdx) => {
               const stats = bikeStats.get(b.id) ?? { rides: 0, lastDate: null };
               const isActive = b.id === activeBikeId;
-              const badCount = (b.bad_count as number) ?? 0;
-              const warnCount = (b.warn_count as number) ?? 0;
+              const badCount = statusCounts.get(b.id as string)?.bad ?? 0;
+              const warnCount = statusCounts.get(b.id as string)?.warn ?? 0;
               const isStrava = !!(b.strava_gear_id as string | null);
               const isConfigured = configuredBikeIds.has(b.id as string);
 
