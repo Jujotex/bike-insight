@@ -129,7 +129,7 @@ export function computeMaintenanceStatus(
 export function formatNextDue(status: MaintenanceStatus): string {
   if (status.state === "never") return "";
   if (status.dueKind === "km" && status.dueInKm !== null) {
-    return `~${status.dueInKm.toLocaleString("fr")} km`;
+    return `${status.dueInKm.toLocaleString("fr")} km`;
   }
   if (status.dueKind === "time" && status.dueInWeeks !== null) {
     return status.dueInWeeks >= 5 ? `${Math.round(status.dueInWeeks / 4)} mois` : `${status.dueInWeeks} sem.`;

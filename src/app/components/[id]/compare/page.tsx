@@ -97,30 +97,45 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km/an = distance RÉELLE parcourue par ce vélo sur les 365 derniers jours.
-  // Somme brute, sans extrapolation (l'ancienne annualisation d'une période
-  // partielle gonflait le chiffre — ex. 90 j ramenés à l'année → surestimé).
-  // → Exact une fois l'historique Strava complet importé (« Tout réimporter »).
+  // Objectif : la distance RÉELLE parcourue sur les 12 derniers mois (pour le
+  // coût annuel). Elle nécessite un historique Strava complet (« Tout réimporter »).
+  // Garde-fou anti-données-incomplètes : si cette distance paraît sous-comptée
+  // (bien en dessous de ce que l'odomètre implique), on bascule sur total ÷ âge.
+  const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentActs } = await supabase
-    .from("activities")
-    .select("distance_km")
-    .eq("user_id", user.id)
-    .eq("bike_id", comp.bike_id)
-    .gte("started_at", twelveMonthsAgo);
+  const [{ data: recentActs }, { data: firstActs }] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("distance_km")
+      .eq("user_id", user.id)
+      .eq("bike_id", comp.bike_id)
+      .gte("started_at", twelveMonthsAgo),
+    supabase
+      .from("activities")
+      .select("started_at")
+      .eq("user_id", user.id)
+      .eq("bike_id", comp.bike_id)
+      .order("started_at", { ascending: true })
+      .limit(1),
+  ]);
   const km365 = Math.round((recentActs ?? []).reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0));
+  const firstRide = firstActs?.[0]?.started_at as string | undefined;
 
-  // Repli si (quasi) pas de sorties sur 12 mois : estimation via l'usage réel
-  // de la pièce, sinon défaut prudent.
-  const ageDaysReal = comp.installed_at
-    ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
+  // Moyenne impliquée par l'odomètre : total ÷ âge du vélo (âge planché à 1 an
+  // → ne dépasse jamais le total). Sert de repli quand la distance 12 mois est
+  // manifestement incomplète.
+  const ageYears = firstRide
+    ? Math.max(1, (Date.now() - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000))
+    : null;
+  const odoAvg = bikeTotalKm > 0 && ageYears ? Math.round(bikeTotalKm / ageYears) : null;
 
   let kmPerYear: number;
-  if (km365 >= 300) {
+  if (km365 >= 500 && (odoAvg === null || km365 >= 0.6 * odoAvg)) {
+    kmPerYear = km365;        // vraie distance 12 mois (données complètes)
+  } else if (odoAvg !== null) {
+    kmPerYear = odoAvg;       // 12 mois incomplet → moyenne odomètre (total ÷ âge)
+  } else if (km365 > 0) {
     kmPerYear = km365;
-  } else if (ageDaysReal > 60 && kmUsed > 0) {
-    kmPerYear = Math.round((kmUsed / ageDaysReal) * 365);
   } else {
     kmPerYear = 3000;
   }
@@ -323,24 +338,28 @@ export default async function ComparePage({
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {([
                 { n: "1", label: "Commande la pièce (chez ton vélociste ou en ligne)" },
-                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "Voir le tuto et les options" },
+                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "voir le tuto" },
                 { n: "3", label: "Marque-la comme installée dans Bike Insight" },
                 { n: "4", label: "Le suivi d'usure reprend automatiquement" },
-              ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => (
-                <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)" }}>{n}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => {
+                const num = (
+                  <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 600, fontFamily: "var(--bi-font-mono)", marginTop: 1 }}>{n}</div>
+                );
+                // L'étape avec tuto est cliquable en entier — pas de bouton flottant.
+                return href ? (
+                  <Link key={n} href={href} style={{ display: "flex", alignItems: "flex-start", gap: 12, textDecoration: "none", color: "inherit" }}>
+                    {num}
+                    <span style={{ fontSize: 13, lineHeight: 1.45 }}>
+                      {label} <span style={{ color: "var(--bi-ok)", fontWeight: 600, whiteSpace: "nowrap" }}>· {linkLabel} ›</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    {num}
                     <span style={{ fontSize: 13, lineHeight: 1.45 }}>{label}</span>
-                    {href && (
-                      <Link href={href} style={{ marginTop: 6, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "var(--bi-accent)", color: "var(--bi-accent-ink)", padding: "8px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                        {linkLabel}
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-                      </Link>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ marginTop: 18 }}>
               <ReplaceButton

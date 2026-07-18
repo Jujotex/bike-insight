@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — fix : km/an = vraie distance 12 mois + repli odomètre
+
+### Corrigé
+- Le « km/an » de la page « Remplacer » affichait un chiffre faux/instable (5839 → 7048 → 1895) car il sommait les activités Strava, souvent **incomplètes** (historique partiel, sorties non taguées à ce vélo).
+- **`src/app/components/[id]/compare/page.tsx`** : le km/an vise la **vraie distance des 12 derniers mois** (ce que l'utilisateur attend pour le coût annuel). Garde-fou : si cette distance est manifestement sous-comptée (bien en dessous de ce que l'odomètre implique), bascule sur **total ÷ âge du vélo** (âge planché à 1 an → jamais > total). Ex. Scott Addict 5839 km / 1,5 an → ~3893 km/an au lieu de 1895.
+
+### ⚠️ Prérequis
+- Nécessite l'historique Strava complet : cliquer **« Tout réimporter »** (page Vélos) pour que la distance 12 mois et l'âge du vélo soient exacts.
+
 ## [Non publié] — feat : sélecteur de vélo sur la page Coût
 
 ### Ajouté
