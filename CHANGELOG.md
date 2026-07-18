@@ -1,5 +1,16 @@
 # Changelog
 
+## [Non publié] — fix : audit de fiabilité des chiffres (un vélo ≠ tous les vélos)
+
+### Corrigé
+- **`src/app/bikes/page.tsx`** : les cartes vélo lisaient `bad_count`/`warn_count`, colonnes **inexistantes** dans la vue `bike_stats` → toutes les cartes affichaient « Tout OK » même avec des pièces à remplacer. Les compteurs sont désormais calculés depuis les composants actifs.
+- **`src/lib/data.ts` (`getBikeData`)** : les stats « Sorties · 12 m » et « Moy. par sortie » de la page vélo étaient calculées sur les **90 dernières activités** (`limit(90)`) → sorties plafonnées à 90 et km sous-comptés. La requête couvre maintenant les 12 derniers mois sans limite.
+- **`src/app/dashboard/client.tsx`** : un vélo sans sortie sur 12 mois affichait le total **tous vélos** en repli (`?? kpis.totalKm12m`). Repli sur 0 : un chiffre affiché sous le nom d'un vélo appartient toujours à ce vélo.
+
+### Supprimé (chiffres jamais affichés ou trompeurs)
+- **`getDashboardData`** allégé : suppression de `budget12m`/`budget12mTotal` (rien de « 12 mois » — c'était la somme des prix des pièces actives), `costByCategory` et `kpis` mixtes (vélo principal et global mélangés), `bikeStatus`, `readinessScore` global, `activityChart` 30 j — aucun n'était affiché. 3 requêtes Supabase en moins ; ne restent que des chiffres rattachés à un vélo précis.
+- **`getComponentsData`** + **`src/app/components/client.tsx`** : code mort (la page `/components` redirige vers `/bikes`) dont le KPI « Coût composants » additionnait valeur des pièces actives et dépenses 12 mois — deux notions incomparables.
+
 ## [Non publié] — fix : dashboard « 12 mois » par vélo (cohérent avec compare)
 
 ### Corrigé
