@@ -76,27 +76,17 @@ export interface DashboardClientProps {
   userName: string;
   todayCap: string;
   bikes: Array<Record<string, unknown>>;
-  kpis: {
-    totalKm12m: number;
-    totalRides12m: number;
-    totalComponentCost: number;
-    criticalCount: number;
-    avgWear: number | null;
-    costPerKm: number | null;
-  };
   readinessByBike: Record<string, { value: number; components: number }>;
   attentionItems: AttentionItem[];
   predictions: Prediction[];
   maintenanceAlerts: MaintenanceAlert[];
   maintenanceSummaryByBike: Record<string, MaintenanceSummary>;
-  budgetByBike: Record<string, Record<string, number>>;
-  wearByCategoryByBike: Record<string, Record<string, { avgWear: number; count: number; worstStatus: string }>>;
   km12mByBike: Record<string, number>;
   rides12mByBike: Record<string, number>;
 }
 
 export function DashboardClient({
-  userName, todayCap, bikes, kpis,
+  userName, todayCap, bikes,
   attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike, readinessByBike,
   km12mByBike, rides12mByBike,
 }: DashboardClientProps) {
@@ -144,9 +134,10 @@ export function DashboardClient({
     }).catch(() => {});
   }, []);
 
-  // 12 mois PAR vélo sélectionné (cohérent avec la page compare), repli global.
-  const km12mSelected = km12mByBike[selectedBikeId] ?? kpis.totalKm12m;
-  const rides12mSelected = rides12mByBike[selectedBikeId] ?? kpis.totalRides12m;
+  // 12 mois du vélo sélectionné UNIQUEMENT. Pas de repli sur le total tous
+  // vélos : un vélo sans sortie affiche 0, jamais le chiffre d'un autre vélo.
+  const km12mSelected = km12mByBike[selectedBikeId] ?? 0;
+  const rides12mSelected = rides12mByBike[selectedBikeId] ?? 0;
   const kmFormatted = km12mSelected.toLocaleString("fr-FR");
 
   return (

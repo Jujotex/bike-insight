@@ -10,7 +10,6 @@ export async function getDashboardData() {
   if (!user) return null
 
   const now = new Date()
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
   const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
 
@@ -21,23 +20,15 @@ export async function getDashboardData() {
     .eq('is_active', true)
     .order('total_km', { ascending: false })
 
-  const primaryBike = bikes?.[0] ?? null
-
   const [
-    { data: components },
-    { data: recentActivities },
-    { data: yearActivities },
     { data: allComponents },
     { data: ninetyDaysActivities },
     { data: yearActivitiesByBike },
     { data: bikeMaintLogs },
   ] = await Promise.all([
-    primaryBike
-      ? supabase.from('component_stats').select('*').eq('bike_id', primaryBike.id).eq('is_active', true).order('wear_pct', { ascending: false })
-      : Promise.resolve({ data: [] }),
-    supabase.from('activities').select('started_at, distance_km').eq('user_id', user.id).gte('started_at', thirtyDaysAgo.toISOString()).order('started_at', { ascending: true }),
-    supabase.from('activities').select('started_at, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()).order('started_at', { ascending: true }),
-    // Tous les composants actifs de tous les vélos pour les prédictions
+    // Composants actifs SUIVIS (km_max renseigné → km_remaining non nul) de tous
+    // les vélos. Les pièces sans suivi km n'ont ni usure ni statut : les inclure
+    // fausserait les moyennes.
     supabase.from('component_stats').select('*').eq('user_id', user.id).eq('is_active', true).not('km_remaining', 'is', null),
     // Activités 90j + 12m par vélo pour calculer le rythme km/semaine (avec fallback)
     supabase.from('activities').select('bike_id, distance_km, started_at').eq('user_id', user.id).gte('started_at', ninetyDaysAgo.toISOString()),
@@ -46,11 +37,8 @@ export async function getDashboardData() {
     supabase.from('maintenance_logs').select('bike_id, maintenance_type, performed_at, km_at_action').eq('user_id', user.id).not('maintenance_type', 'is', null).order('performed_at', { ascending: false }),
   ])
 
-  const totalKm12m = yearActivities?.reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
-  const totalRides12m = yearActivities?.length ?? 0
-
-  // Distance + sorties 12 mois PAR VÉLO (pour aligner le dashboard sur le vélo
-  // sélectionné, comme la page compare — sinon le chiffre global prête à confusion).
+  // Distance + sorties 12 mois PAR VÉLO — tous les chiffres du dashboard sont
+  // rattachés au vélo sélectionné, jamais mélangés avec le global tous vélos.
   const km12mByBike: Record<string, number> = {}
   const rides12mByBike: Record<string, number> = {}
   for (const a of yearActivitiesByBike ?? []) {
@@ -60,31 +48,6 @@ export async function getDashboardData() {
     rides12mByBike[bid] = (rides12mByBike[bid] ?? 0) + 1
   }
   for (const k of Object.keys(km12mByBike)) km12mByBike[k] = Math.round(km12mByBike[k])
-
-  const activityChart = Array.from({ length: 30 }, (_, i) => {
-    const day = new Date(thirtyDaysAgo)
-    day.setDate(day.getDate() + i)
-    const dayStr = day.toISOString().slice(0, 10)
-    const dayKm = recentActivities
-      ?.filter(a => a.started_at.slice(0, 10) === dayStr)
-      .reduce((s, a) => s + (a.distance_km ?? 0), 0) ?? 0
-    return Math.round(dayKm)
-  })
-
-  const totalComponentCost = components?.reduce((s, c) => s + (c.purchase_price ?? 0), 0) ?? 0
-  const costPerKm = primaryBike?.cost_per_km ?? null
-  const criticalCount = components?.filter(c => c.status === 'bad').length ?? 0
-  const avgWear = components?.length
-    ? Math.round(components.reduce((s, c) => s + (c.wear_pct ?? 0), 0) / components.length)
-    : null
-
-  const costByCategory = components?.reduce((acc, c) => {
-    const cat = c.category ?? 'autre'
-    acc[cat] = (acc[cat] ?? 0) + (c.purchase_price ?? 0)
-    return acc
-  }, {} as Record<string, number>) ?? {}
-
-  const mostCritical = components?.find(c => c.status === 'bad') ?? components?.[0] ?? null
 
   // ── Prédictions de remplacement ──────────────────────────────
   // Rythme km/semaine par vélo sur les 90 derniers jours
@@ -152,22 +115,7 @@ export async function getDashboardData() {
       return order[a.urgency] - order[b.urgency]
     })
 
-  // ── Readiness score — basé sur le vélo actif (primaryBike) uniquement ──
   const allActive = allComponents ?? []
-  // Pour le score : uniquement les composants du vélo actif
-  const primaryComponents = primaryBike
-    ? allActive.filter(c => c.bike_id === primaryBike.id)
-    : allActive
-  const hasBad = primaryComponents.some(c => c.status === 'bad')
-  const hasWarn = primaryComponents.some(c => c.status === 'warn')
-  const globalAvgWear = primaryComponents.length > 0
-    ? primaryComponents.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / primaryComponents.length : 0
-  const componentsScore = hasBad
-    ? Math.max(30, Math.round(100 - globalAvgWear * 1.3))
-    : hasWarn
-      ? Math.max(60, Math.round(100 - globalAvgWear * 0.9))
-      : Math.max(75, Math.round(100 - globalAvgWear * 0.5))
-  const readinessScore = { value: componentsScore, components: componentsScore }
 
   // ── Readiness par vélo ────────────────────────────────────────
   type ReadinessScore = { value: number; components: number }
@@ -213,74 +161,6 @@ export async function getDashboardData() {
       return b.wearPct - a.wearPct
     })
     
-
-  // ── Statut par vélo ───────────────────────────────────────────
-  const lastRideByBike = new Map<string, string>()
-  for (const a of (ninetyDaysActivities ?? [])) {
-    if (!a.bike_id) continue
-    const cur = lastRideByBike.get(a.bike_id as string)
-    if (!cur || (a.started_at as string) > cur) lastRideByBike.set(a.bike_id as string, a.started_at as string)
-  }
-
-  const bikeStatus = (bikes ?? []).map((b, i) => {
-    const bikeComps = allActive.filter(c => c.bike_id === b.id)
-    const badCount = bikeComps.filter(c => c.status === 'bad').length
-    const warnCount = bikeComps.filter(c => c.status === 'warn').length
-    const okCount = bikeComps.length - badCount - warnCount
-    const status = badCount > 0 ? 'bad' : warnCount > 0 ? 'warn' : 'ok'
-    return {
-      id: b.id as string,
-      name: b.name as string,
-      totalKm: (b.total_km as number) ?? 0,
-      lastRideAt: lastRideByBike.get(b.id as string) ?? null,
-      status,
-      badCount,
-      warnCount,
-      okCount,
-      isActive: i === 0,
-    }
-  })
-
-  // ── Budget par catégorie, par vélo ───────────────────────────
-  const budgetByBike: Record<string, Record<string, number>> = {}
-  for (const bike of (bikes ?? [])) {
-    const bid = bike.id as string
-    const bikeComps = allActive.filter(c => c.bike_id === bid)
-    budgetByBike[bid] = bikeComps.reduce((acc, c) => {
-      const cat = (c.category as string) ?? 'autre'
-      const price = (c.purchase_price as number) ?? 0
-      acc[cat] = (acc[cat] ?? 0) + price
-      return acc
-    }, {} as Record<string, number>)
-  }
-  // Garder budget12m global pour compatibilité (budget12mTotal affiché dans l'en-tête)
-  const budget12m = allActive.reduce((acc, c) => {
-    const cat = (c.category as string) ?? 'autre'
-    const price = (c.purchase_price as number) ?? 0
-    acc[cat] = (acc[cat] ?? 0) + price
-    return acc
-  }, {} as Record<string, number>)
-  const budget12mTotal = (Object.values(budget12m) as number[]).reduce((s, v) => s + v, 0)
-
-  // ── Usure par catégorie, par vélo ────────────────────────────
-  type CatWear = { avgWear: number; count: number; worstStatus: string }
-  const wearByCategoryByBike: Record<string, Record<string, CatWear>> = {}
-  for (const bike of (bikes ?? [])) {
-    const bid = bike.id as string
-    const bikeComps = allActive.filter(c => c.bike_id === bid)
-    const byCat: Record<string, CatWear> = {}
-    for (const c of bikeComps) {
-      const cat = (c.category as string) ?? 'autre'
-      const w = (c.wear_pct as number) ?? 0
-      const st = (c.status as string) ?? 'ok'
-      if (!byCat[cat]) byCat[cat] = { avgWear: 0, count: 0, worstStatus: 'ok' }
-      byCat[cat].avgWear = (byCat[cat].avgWear * byCat[cat].count + w) / (byCat[cat].count + 1)
-      byCat[cat].count += 1
-      const rank = (s: string) => s === 'bad' ? 2 : s === 'warn' ? 1 : 0
-      if (rank(st) > rank(byCat[cat].worstStatus)) byCat[cat].worstStatus = st
-    }
-    wearByCategoryByBike[bid] = byCat
-  }
 
   // ── Alertes entretien (niveau vélo) ──────────────────────────
   // On n'alerte que sur les entretiens déjà enregistrés au moins une fois :
@@ -351,121 +231,18 @@ export async function getDashboardData() {
     maintenanceSummaryByBike[b.id as string] = { counts, items }
   }
 
+  // Seuls les chiffres réellement affichés sont retournés — chacun est
+  // rattaché à un vélo précis (jamais d'agrégat tous-vélos ambigu).
   return {
     user,
-    primaryBike,
     bikes: bikes ?? [],
-    components: components ?? [],
-    activityChart,
-    kpis: {
-      totalComponentCost: Math.round(totalComponentCost),
-      costPerKm,
-      totalKm12m: Math.round(totalKm12m),
-      totalRides12m,
-      criticalCount,
-      avgWear,
-    },
     km12mByBike,
     rides12mByBike,
-    costByCategory,
-    mostCritical,
-    recentActivities: recentActivities ?? [],
-    yearActivities: (yearActivities ?? []).map(a => ({ started_at: a.started_at as string, distance_km: a.distance_km ?? 0 })),
     predictions,
-    readinessScore,
     attentionItems,
-    bikeStatus,
-    budget12m,
-    budget12mTotal: Math.round(budget12mTotal),
     readinessByBike,
-    budgetByBike,
-    wearByCategoryByBike,
     maintenanceAlerts,
     maintenanceSummaryByBike,
-  }
-}
-
-// ── All components (toutes les bikes) ─────────────────────────
-
-export async function getComponentsData() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-    .toISOString().slice(0, 10)
-
-  const [
-    { data: components },
-    { data: bikes },
-    { data: logs },
-  ] = await Promise.all([
-    supabase
-      .from('component_stats')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('wear_pct', { ascending: false }),
-    supabase
-      .from('bike_stats')
-      .select('id, name')
-      .eq('user_id', user.id),
-    supabase
-      .from('maintenance_logs')
-      .select('id, performed_at, km_at_action, cost, reason, component_id, components(name, brand, category, km_max, installed_km, bike_id)')
-      .eq('user_id', user.id)
-      .eq('action', 'Remplacement')
-      .gte('performed_at', twelveMonthsAgo)
-      .order('performed_at', { ascending: false }),
-  ])
-
-  const bikeNames = Object.fromEntries(
-    (bikes ?? []).map(b => [b.id as string, b.name as string])
-  )
-
-  const replacementLogs = (logs ?? []).map(r => {
-    const raw = r.components
-    const comp = Array.isArray(raw) ? (raw[0] ?? null) : (raw ?? null)
-    const lifeKm = (r.km_at_action != null && comp?.installed_km != null)
-      ? Math.max(0, Math.round((r.km_at_action as number) - (comp.installed_km as number)))
-      : null
-    const kmMax = comp ? ((comp.km_max as number) ?? null) : null
-    const beat = lifeKm !== null && kmMax ? lifeKm - kmMax : null
-    const bikeId = (comp?.bike_id as string) ?? null
-    return {
-      id: r.id as string,
-      performedAt: r.performed_at as string | null,
-      cost: r.cost as number | null,
-      reason: r.reason as string | null,
-      componentId: r.component_id as string | null,
-      componentName: (comp?.name as string) ?? '—',
-      componentBrand: (comp?.brand as string) ?? null,
-      lifeKm,
-      kmMax,
-      beat,
-      bikeId,
-      bikeName: bikeId ? (bikeNames[bikeId] ?? '—') : '—',
-    }
-  })
-
-  const activeCost = (components ?? []).reduce((s, c) => s + ((c.purchase_price as number) ?? 0), 0)
-  const replacedCost = replacementLogs.reduce((s, r) => s + (r.cost ?? 0), 0)
-  const logsWithBeat = replacementLogs.filter(r => r.beat !== null)
-  const avgBeat = logsWithBeat.length > 0
-    ? Math.round(logsWithBeat.reduce((s, r) => s + (r.beat ?? 0), 0) / logsWithBeat.length)
-    : null
-
-  return {
-    components: components ?? [],
-    bikes: (bikes ?? []).map(b => ({ id: b.id as string, name: b.name as string })),
-    bikeNames,
-    replacementLogs,
-    kpis: {
-      activeCount: components?.length ?? 0,
-      replacedCount: replacementLogs.length,
-      totalCost: Math.round(activeCost + replacedCost),
-      avgBeat,
-    },
   }
 }
 
@@ -840,6 +617,8 @@ export async function getBikeData(bikeId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+
   // Trois requêtes indépendantes → en parallèle
   const [{ data: bike }, { data: components }, { data: activities }] = await Promise.all([
     supabase
@@ -854,12 +633,14 @@ export async function getBikeData(bikeId: string) {
       .eq('bike_id', bikeId)
       .eq('is_active', true)
       .order('wear_pct', { ascending: false }),
+    // Toutes les sorties des 12 derniers mois de CE vélo (pas de limit :
+    // un limit tronquerait les stats « 12 mois » des cyclistes réguliers).
     supabase
       .from('activities')
       .select('started_at, distance_km')
       .eq('bike_id', bikeId)
-      .order('started_at', { ascending: false })
-      .limit(90),
+      .gte('started_at', twelveMonthsAgo)
+      .order('started_at', { ascending: false }),
   ])
 
   if (!bike) return null
