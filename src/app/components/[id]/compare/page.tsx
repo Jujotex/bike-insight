@@ -97,30 +97,30 @@ export default async function ComparePage({
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
 
-  // Km/an = distance RÉELLE parcourue par ce vélo sur les 365 derniers jours.
-  // Somme brute, sans extrapolation (l'ancienne annualisation d'une période
-  // partielle gonflait le chiffre — ex. 90 j ramenés à l'année → surestimé).
-  // → Exact une fois l'historique Strava complet importé (« Tout réimporter »).
-  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentActs } = await supabase
+  // Km/an FIABLE : on part de l'ODOMÈTRE du vélo (total_km), la seule donnée
+  // autoritative — elle compte TOUTES les sorties du vélo, y compris celles mal
+  // taguées sur Strava que la somme des activités raterait. On le rapporte à
+  // l'âge du vélo (sa première sortie connue). Âge planché à 1 an → le km/an ne
+  // dépasse jamais le total du vélo. Stable, cohérent, plus d'à-coups.
+  const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
+  const { data: firstActs } = await supabase
     .from("activities")
-    .select("distance_km")
+    .select("started_at")
     .eq("user_id", user.id)
     .eq("bike_id", comp.bike_id)
-    .gte("started_at", twelveMonthsAgo);
-  const km365 = Math.round((recentActs ?? []).reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0));
-
-  // Repli si (quasi) pas de sorties sur 12 mois : estimation via l'usage réel
-  // de la pièce, sinon défaut prudent.
-  const ageDaysReal = comp.installed_at
-    ? (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
+    .order("started_at", { ascending: true })
+    .limit(1);
+  const firstRide = firstActs?.[0]?.started_at as string | undefined;
 
   let kmPerYear: number;
-  if (km365 >= 300) {
-    kmPerYear = km365;
-  } else if (ageDaysReal > 60 && kmUsed > 0) {
-    kmPerYear = Math.round((kmUsed / ageDaysReal) * 365);
+  if (bikeTotalKm > 0 && firstRide) {
+    const ageYears = Math.max(
+      1,
+      (Date.now() - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000)
+    );
+    kmPerYear = Math.round(bikeTotalKm / ageYears);
+  } else if (bikeTotalKm > 0) {
+    kmPerYear = bikeTotalKm; // pas d'historique → ~1 an de l'odomètre
   } else {
     kmPerYear = 3000;
   }

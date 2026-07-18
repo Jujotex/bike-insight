@@ -1,5 +1,11 @@
 # Changelog
 
+## [Non publié] — fix : km/an basé sur l'odomètre (fiable), pas la somme des activités
+
+### Corrigé
+- Le « km/an » de la page « Remplacer » sommait les activités Strava, incomplètes (sorties non taguées à ce vélo, historique partiel) → chiffre faux et instable (5839 → 7048 → 1895 selon la méthode).
+- **`src/app/components/[id]/compare/page.tsx`** : km/an = **odomètre du vélo (`total_km`, autoritatif — compte toutes les sorties) ÷ âge du vélo** (depuis sa première sortie connue). Âge planché à 1 an, donc le km/an ne dépasse jamais le total. Stable, cohérent, sans à-coups. C'est une **moyenne sur la vie du vélo** (pas le rythme des 12 derniers mois).
+
 ## [Non publié] — feat : sélecteur de vélo sur la page Coût
 
 ### Ajouté
