@@ -57,33 +57,37 @@ function Dot({ status, active }: { status: BikePickerStatus; active: boolean }) 
  * Sélecteur de vélo — source unique pour le dashboard et la page Coût.
  *
  * Deux modes de navigation, même rendu :
- *  - `onSelect` : sélection en mémoire (dashboard, état client).
- *  - `hrefFor`  : navigation par lien (page Coût, filtrage serveur via ?bike=).
+ *  - `onSelect` : sélection en mémoire, depuis un composant client (dashboard).
+ *  - `basePath` : navigation par lien, filtrage serveur via `?bike=` (pages
+ *    Coût et « À prévoir », qui sont des composants serveur).
  *
- * `allLabel` ajoute une pastille « tous les vélos » en tête (page Coût
+ * ⚠️ `basePath` est une CHAÎNE, pas une fonction qui construirait l'URL.
+ * Un composant serveur ne peut passer que des props sérialisables à un
+ * composant client : une prop fonction fait échouer le rendu (erreur 500).
+ * Les URLs sont donc assemblées ici.
+ *
+ * `allLabel` ajoute une pastille « tous les vélos » en tête (pages serveur
  * uniquement — le dashboard a toujours un vélo sélectionné).
  */
 export function BikePicker({
   bikes,
   selected,
   onSelect,
-  hrefFor,
+  basePath,
   allLabel,
-  allHref,
 }: {
   bikes: BikePickerItem[];
   selected: string | null;
   onSelect?: (id: string) => void;
-  hrefFor?: (id: string) => string;
+  basePath?: string;
   allLabel?: string;
-  allHref?: string;
 }) {
   if (bikes.length <= 1) return null;
 
   return (
     <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-      {allLabel && allHref && (
-        <Link href={allHref} style={pillStyle(selected === null)}>
+      {basePath && allLabel && (
+        <Link href={basePath} style={pillStyle(selected === null)}>
           {allLabel}
         </Link>
       )}
@@ -95,8 +99,12 @@ export function BikePicker({
             {b.name}
           </>
         );
-        return hrefFor ? (
-          <Link key={b.id} href={hrefFor(b.id)} style={pillStyle(active)}>
+        return basePath ? (
+          <Link
+            key={b.id}
+            href={`${basePath}?bike=${encodeURIComponent(b.id)}`}
+            style={pillStyle(active)}
+          >
             {content}
           </Link>
         ) : (

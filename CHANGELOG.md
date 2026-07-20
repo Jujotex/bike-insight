@@ -1,5 +1,20 @@
 # Changelog
 
+## [Non publié] — feat : page « À prévoir » (aide à la décision entretien)
+
+### Ajouté
+- **`src/app/a-prevoir/page.tsx`** : nouvelle page listant tout ce qui demande une action — pièces en `warn`/`bad` **et** entretiens périodiques dus — tous vélos, filtrable via le `<BikePicker>` partagé (`?bike=`).
+  - Chaque pièce affiche de quoi arbitrer **« je le fais » vs « vélociste »** : difficulté (jauge 1–3), temps en autonomie, fourchette main-d'œuvre atelier, et un lien vers la marche à suivre (`/components/[id]/tuto`).
+  - **Aucune requête supplémentaire** : `getDashboardData` remontait déjà `attentionItems` et `maintenanceAlerts`. L'enrichissement par `findRepairGuide` est une fonction pure sur données statiques.
+  - Cas vide explicite quand rien n'est à prévoir, plutôt qu'une page blanche.
+- **`side-nav.tsx` + `bottom-nav.tsx`** : entrée « À prévoir » entre « Mes vélos » et « Coût », icône clé plate — la même que la carte « Et maintenant ? » de la page pièce.
+
+### Corrigé
+- **`bottom-nav.tsx`** : la barre mobile passe à 5 entrées. Padding resserré (`6px 20px` → `6px 10px`), `flex: 1` et libellés `nowrap` pour éviter le débordement sous 360 px.
+
+### Choix de conception
+- Écarté : une page « Tutos » centralisant les guides de remplacement. Le contenu de `repair-guides.ts` est constitué de **liens sortants** (Alltricks, Probikeshop) — 10 URLs réelles, le reste pointant vers un hub générique. Un index en navigation principale aurait promu du contenu tiers au rang de fonctionnalité, et surtout perdu le contexte (« ta chaîne est à 94 % ») qui fait la valeur de la donnée. La page part donc des pièces réelles de l'utilisateur.
+
 ## [Non publié] — suppression : carte « Où tu te situes » (page Coût)
 
 ### Supprimé
@@ -31,6 +46,7 @@
 
 ### Modifié
 - **Nouveau `src/components/bi/bike-picker.tsx`** : composant `<BikePicker>` unique, utilisé par le dashboard **et** la page Coût. Deux modes de navigation (`onSelect` pour l'état client du dashboard, `hrefFor` pour le filtrage serveur `?bike=` de la page Coût), un seul rendu. Les deux ne peuvent plus diverger.
+- **`bike-picker.tsx` — prop `hrefFor` (fonction) remplacée par `basePath` (chaîne).** La première version prenait une fonction de construction d'URL ; passée depuis un composant serveur (`/cout`, `/a-prevoir`) vers ce composant client, elle n'est pas sérialisable et faisait **planter la page en 500**. Les URLs sont maintenant assemblées dans le composant. L'ancien `CostBikePicker` n'avait pas ce défaut car il construisait ses liens en interne — régression introduite par l'unification, corrigée.
 - **`src/lib/data.ts` (`getCostData`)** : `allBikes` renvoie désormais un `status` par vélo (pire état de ses pièces actives — même règle que le dashboard), calculé sur **tous** les vélos et non sur la sélection courante, pour que les pastilles restent justes quand la page est filtrée.
 - **`src/app/dashboard/client.tsx`** + **`src/app/cout/page.tsx`** : consomment le composant partagé. Le garde `bikes.length > 1` vit maintenant dans `<BikePicker>`.
 

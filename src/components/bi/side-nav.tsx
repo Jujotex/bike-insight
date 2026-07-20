@@ -23,6 +23,14 @@ const NAV_ITEMS = [
     icon: "M5 18a4 4 0 100-8 4 4 0 000 8zM19 18a4 4 0 100-8 4 4 0 000 8zM12 7l-3 7h6l-3-7zM12 7V4h3",
   },
   {
+    id: "a-prevoir",
+    label: "À prévoir",
+    // Même clé que la carte « Et maintenant ? » de la page pièce : le vocabulaire
+    // visuel de l'intervention reste le même d'un écran à l'autre.
+    href: "/a-prevoir",
+    icon: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
+  },
+  {
     id: "cout",
     label: "Coût",
     href: "/cout",
