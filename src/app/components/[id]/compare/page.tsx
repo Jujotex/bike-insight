@@ -210,7 +210,7 @@ export default async function ComparePage({
                 <Mono style={{ fontSize: 22, fontWeight: 500, letterSpacing: -0.6, color: statusColor }}>{daysLabel}</Mono>
               </div>
               <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
-                {kmRemaining > 0 ? "~" + kmRemaining.toLocaleString("fr") + " km restants" : "Dépassé"}
+                {kmRemaining > 0 ? kmRemaining.toLocaleString("fr") + " km restants" : "Dépassé"}
               </div>
             </div>
           </div>

@@ -233,19 +233,22 @@ export default async function BikesPage() {
 
                       {/* Status strip */}
                       <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", gap: 8 }}>
+                        {/* Un compteur nu (« 2 ») se lisait moins bien que « Tout OK » :
+                            l'état qui demande une action était le moins lisible des deux.
+                            Chaque état est donc un badge nommé, sur fond teinté. */}
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                           {badCount > 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-bad)" }}>
-                              <Dot color="var(--bi-bad)" size={6} />{badCount}
+                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-bad-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-bad)" }}>
+                              <Dot color="var(--bi-bad)" size={6} />{badCount} à remplacer
                             </span>
                           )}
                           {warnCount > 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-warn)" }}>
-                              <Dot color="var(--bi-warn)" size={6} />{warnCount}
+                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-warn-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-warn)" }}>
+                              <Dot color="var(--bi-warn)" size={6} />{warnCount} à surveiller
                             </span>
                           )}
                           {badCount === 0 && warnCount === 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--bi-ok)" }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-ok-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-ok)" }}>
                               <Dot color="var(--bi-ok)" size={6} />Tout OK
                             </span>
                           )}

@@ -27,9 +27,12 @@ export async function GET(request: Request) {
   } else if (q && q.length >= 2) {
     try {
       origin = await geocodeAddress(q);
-    } catch {
+    } catch (err) {
+      // Sans ce log, un échec de géocodage et un échec de recherche de magasins
+      // produisaient le même message opaque, sans trace côté serveur.
+      console.error("[api/velocistes] géocodage échoué pour", q, err);
       return NextResponse.json(
-        { error: "Recherche indisponible pour le moment. Réessaie dans un instant." },
+        { error: "Impossible de localiser cette adresse pour le moment. Réessaie dans un instant." },
         { status: 502 }
       );
     }
@@ -45,9 +48,10 @@ export async function GET(request: Request) {
   try {
     const shops = await findVelocistes(origin.lat, origin.lon, 15000);
     return NextResponse.json({ origin, shops });
-  } catch {
+  } catch (err) {
+    console.error("[api/velocistes] recherche magasins échouée", origin, err);
     return NextResponse.json(
-      { error: "Recherche indisponible pour le moment. Réessaie dans un instant." },
+      { error: "L'annuaire des magasins ne répond pas. Réessaie dans un instant." },
       { status: 502 }
     );
   }
