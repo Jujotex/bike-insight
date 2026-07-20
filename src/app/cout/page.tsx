@@ -51,12 +51,7 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
       <div className="bi-page">
         <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
-        <BikePicker
-          bikes={allBikes}
-          selected={selectedBikeId}
-          basePath="/cout"
-          allLabel="Tous les vélos"
-        />
+        <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />
 
         {!hasData ? (
           <BiCard pad={40} style={{ textAlign: "center" }}>
