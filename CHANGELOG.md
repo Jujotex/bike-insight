@@ -1,19 +1,23 @@
 # Changelog
 
-## [Non publié] — feat : page « À prévoir » (aide à la décision entretien)
+## [Non publié] — feat : arbitrage « je le fais » vs « vélociste » sur le dashboard
 
 ### Ajouté
-- **`src/app/a-prevoir/page.tsx`** : nouvelle page listant tout ce qui demande une action — pièces en `warn`/`bad` **et** entretiens périodiques dus — tous vélos, filtrable via le `<BikePicker>` partagé (`?bike=`).
-  - Chaque pièce affiche de quoi arbitrer **« je le fais » vs « vélociste »** : difficulté (jauge 1–3), temps en autonomie, fourchette main-d'œuvre atelier, et un lien vers la marche à suivre (`/components/[id]/tuto`).
-  - **Aucune requête supplémentaire** : `getDashboardData` remontait déjà `attentionItems` et `maintenanceAlerts`. L'enrichissement par `findRepairGuide` est une fonction pure sur données statiques.
-  - Cas vide explicite quand rien n'est à prévoir, plutôt qu'une page blanche.
-- **`side-nav.tsx` + `bottom-nav.tsx`** : entrée « À prévoir » entre « Mes vélos » et « Coût », icône clé plate — la même que la carte « Et maintenant ? » de la page pièce.
-
-### Corrigé
-- **`bottom-nav.tsx`** : la barre mobile passe à 5 entrées. Padding resserré (`6px 20px` → `6px 10px`), `flex: 1` et libellés `nowrap` pour éviter le débordement sous 360 px.
+- **`src/app/dashboard/client.tsx`** : les lignes de la carte **« À traiter »** affichent désormais, sous l'urgence, de quoi trancher entre le faire soi-même et passer à l'atelier — jauge de difficulté (1–3), temps indicatif en autonomie, fourchette de main-d'œuvre. Données issues de `findRepairGuide` (statiques, fonction pure) : **aucune requête ajoutée**.
+- L'intérêt est d'avoir cet arbitrage **en liste** et non sur une page isolée : on compare les pièces entre elles et on groupe une session d'entretien (« les plaquettes 15 min, les pneus 10 min, je fais les deux samedi »).
 
 ### Choix de conception
-- Écarté : une page « Tutos » centralisant les guides de remplacement. Le contenu de `repair-guides.ts` est constitué de **liens sortants** (Alltricks, Probikeshop) — 10 URLs réelles, le reste pointant vers un hub générique. Un index en navigation principale aurait promu du contenu tiers au rang de fonctionnalité, et surtout perdu le contexte (« ta chaîne est à 94 % ») qui fait la valeur de la donnée. La page part donc des pièces réelles de l'utilisateur.
+- **Écarté : une page « Tutos »** centralisant les guides de remplacement. Le contenu de `repair-guides.ts` est fait de **liens sortants** (Alltricks, Probikeshop) — 10 URLs réelles, le reste pointant vers un hub générique. Un index en navigation principale aurait promu du contenu tiers au rang de fonctionnalité, et perdu le contexte (« ta chaîne est à 94 % ») qui fait la valeur de la donnée.
+- **Écarté aussi : une page « À prévoir »** dédiée (construite puis retirée avant publication). Elle faisait doublon avec la carte « À traiter » du dashboard — mêmes `attentionItems`, même filtrage par vélo — et avec la liste « Pièces » de `/bikes/[id]`. Trois écrans listant des pièces. Seule la ligne d'arbitrage apportait quelque chose de neuf : elle a été déplacée sur le dashboard, la page supprimée.
+
+## [Non publié] — refactor : sélecteur de vélo unifié, trié, sans « tous les vélos »
+
+### Modifié
+- **Ordre** : les pastilles sont classées par **kilométrage sur 12 mois, décroissant** — le vélo le plus roulé en premier — sur le dashboard et la page Coût. Auparavant l'ordre venait de la base (`total_km` cumulé côté dashboard, aucun ordre garanti côté Coût), ce qui plaçait parfois en tête un vélo peu utilisé sur l'année.
+- **Plus d'option « Tous les vélos »** sur la page Coût : un vélo est toujours sélectionné, comme sur le dashboard. Cohérent avec l'audit de fiabilité — un agrégat tous-vélos mêle des chiffres qui ne se comparent pas (usure, coût et échéances dépendent du vélo).
+- **`src/lib/data.ts` (`getCostData`)** : résout elle-même le vélo par défaut (le plus roulé sur 12 mois). Un `?bike=` absent, inconnu ou pointant sur un vélo archivé retombe sur ce défaut au lieu d'afficher une page vide.
+  - ⚠️ **Conséquence** : la fonction fait désormais **deux allers-retours séquentiels** au lieu d'un. Il faut connaître la liste des vélos et leur ordre avant de lancer les requêtes filtrées — trois requêtes « tous vélos » (liste, états, distances 12 mois) puis six requêtes filtrées.
+- Le dashboard réutilise `km12mByBike`, déjà calculé par `getDashboardData` : aucune requête ajoutée de ce côté.
 
 ## [Non publié] — suppression : carte « Où tu te situes » (page Coût)
 

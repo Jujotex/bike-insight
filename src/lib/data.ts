@@ -260,7 +260,56 @@ export async function getCostData(bikeId?: string | null) {
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10)
 
-  // Requêtes filtrables par vélo (sélecteur en haut de page). bikeId vide/null = tous.
+  // ── Étape 1 : la liste des vélos et leur ordre ───────────────
+  // Il n'y a plus d'option « tous les vélos » : un vélo est toujours
+  // sélectionné (comme sur le dashboard). Il faut donc résoudre le vélo par
+  // défaut AVANT de lancer les requêtes filtrées — d'où ce premier aller-retour.
+  const [
+    { data: allBikesRaw },
+    { data: allBikeCompStatus },
+    { data: allBikeActs12m },
+  ] = await Promise.all([
+    supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
+    // État des pièces de TOUS les vélos — pastille de couleur du sélecteur.
+    supabase
+      .from('component_stats')
+      .select('bike_id, status')
+      .eq('user_id', user.id)
+      .eq('is_active', true),
+    // Distance 12 mois de TOUS les vélos — ordre du sélecteur. Non filtrée :
+    // l'ordre des pastilles ne doit pas dépendre du vélo sélectionné, sinon
+    // elles bougeraient sous le clic.
+    supabase
+      .from('activities')
+      .select('bike_id, distance_km')
+      .eq('user_id', user.id)
+      .gte('started_at', twelveMonthsAgo),
+  ])
+
+  const allBikes = (allBikesRaw ?? [])
+    .map(b => {
+      // Le vélo prend le pire état de ses pièces — même règle que le dashboard.
+      const own = (allBikeCompStatus ?? []).filter(c => c.bike_id === b.id)
+      const status = own.some(c => c.status === 'bad')
+        ? 'bad' as const
+        : own.some(c => c.status === 'warn')
+          ? 'warn' as const
+          : 'ok' as const
+      const km12m = (allBikeActs12m ?? [])
+        .filter(a => a.bike_id === b.id)
+        .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
+      return { id: b.id as string, name: b.name as string, status, km12m }
+    })
+    // Le vélo le plus roulé sur 12 mois en premier : c'est celui que
+    // l'utilisateur consulte le plus souvent, donc le défaut le plus utile.
+    .sort((a, b) => b.km12m - a.km12m)
+
+  // Un id inconnu (lien périmé, vélo archivé) retombe sur le défaut plutôt
+  // que d'afficher une page vide sans explication.
+  const effectiveBikeId =
+    (bikeId && allBikes.some(b => b.id === bikeId) ? bikeId : allBikes[0]?.id) ?? null
+
+  // ── Étape 2 : les données du vélo sélectionné ────────────────
   const compQ = supabase
     .from('component_stats')
     .select('id, name, category, bike_id, purchase_price, km_remaining')
@@ -295,29 +344,18 @@ export async function getCostData(bikeId?: string | null) {
     { data: maintLogs },
     { data: replacements },
     { data: bikeMaintLogs },
-    { data: allBikesRaw },
-    { data: allBikeCompStatus },
   ] = await Promise.all([
-    bikeId ? compQ.eq('bike_id', bikeId) : compQ,
-    bikeId ? bikeQ.eq('id', bikeId) : bikeQ,
-    bikeId ? actQ.eq('bike_id', bikeId) : actQ,
-    bikeId ? maintQ.eq('bike_id', bikeId) : maintQ,
+    effectiveBikeId ? compQ.eq('bike_id', effectiveBikeId) : compQ,
+    effectiveBikeId ? bikeQ.eq('id', effectiveBikeId) : bikeQ,
+    effectiveBikeId ? actQ.eq('bike_id', effectiveBikeId) : actQ,
+    effectiveBikeId ? maintQ.eq('bike_id', effectiveBikeId) : maintQ,
     // Remplacements de pièces (join components) — filtrés par vélo côté JS plus bas
     supabase
       .from('maintenance_logs')
       .select('cost, performed_at, km_at_action, component_id, components(name, category, km_max, installed_km, bike_id)')
       .eq('user_id', user.id)
       .eq('action', 'Remplacement'),
-    bikeId ? bikeMaintQ.eq('bike_id', bikeId) : bikeMaintQ,
-    // Liste de TOUS les vélos actifs (pour le sélecteur, jamais filtrée)
-    supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
-    // État des pièces de TOUS les vélos — alimente la pastille de couleur du
-    // sélecteur, qui doit rester lisible même quand la page est filtrée.
-    supabase
-      .from('component_stats')
-      .select('bike_id, status')
-      .eq('user_id', user.id)
-      .eq('is_active', true),
+    effectiveBikeId ? bikeMaintQ.eq('bike_id', effectiveBikeId) : bikeMaintQ,
   ])
 
   const comps = components ?? []
@@ -325,9 +363,9 @@ export async function getCostData(bikeId?: string | null) {
   const logs = maintLogs ?? []
   // Remplacements filtrés par vélo (le bike_id est sur le composant joint).
   const repl = (replacements ?? []).filter(r => {
-    if (!bikeId) return true
+    if (!effectiveBikeId) return true
     const c = Array.isArray(r.components) ? r.components[0] : r.components
-    return (c as { bike_id?: string | null } | null)?.bike_id === bikeId
+    return (c as { bike_id?: string | null } | null)?.bike_id === effectiveBikeId
   })
   const acts = activities ?? []
 
@@ -576,17 +614,10 @@ export async function getCostData(bikeId?: string | null) {
       total12m: Math.round(projected12m),
       upcoming: upcomingAll.slice(0, 6),
     },
-    allBikes: (allBikesRaw ?? []).map(b => {
-      // Le vélo prend le pire état de ses pièces — même règle que le dashboard.
-      const own = (allBikeCompStatus ?? []).filter(c => c.bike_id === b.id)
-      const status = own.some(c => c.status === 'bad')
-        ? 'bad' as const
-        : own.some(c => c.status === 'warn')
-          ? 'warn' as const
-          : 'ok' as const
-      return { id: b.id as string, name: b.name as string, status }
-    }),
-    selectedBikeId: bikeId ?? null,
+    // Déjà construite et triée en amont (nécessaire pour résoudre le vélo
+    // par défaut avant les requêtes filtrées).
+    allBikes,
+    selectedBikeId: effectiveBikeId,
     insights: {
       transmissionSavings: Math.round(transmissionSavings),
       onTimeChains,

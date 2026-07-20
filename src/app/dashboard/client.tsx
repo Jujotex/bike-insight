@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BiCard, Mono } from "@/components/bi/ui";
 import { BikePicker } from "@/components/bi/bike-picker";
+import {
+  findRepairGuide,
+  DIFFICULTY_LABELS,
+  DIFFICULTY_LEVEL,
+  DIFFICULTY_COLOR,
+  formatRepairTime,
+} from "@/lib/repair-guides";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -163,19 +170,24 @@ export function DashboardClient({
 
       {/* Bike selector */}
       <BikePicker
-        bikes={bikes.map(b => {
-          const bid = b.id as string;
-          const items = attentionItems.filter(a => a.bikeId === bid);
-          return {
-            id: bid,
-            name: b.name as string,
-            status: items.some(a => a.status === "bad")
-              ? "bad" as const
-              : items.some(a => a.status === "warn")
-                ? "warn" as const
-                : "ok" as const,
-          };
-        })}
+        bikes={bikes
+          .map(b => {
+            const bid = b.id as string;
+            const items = attentionItems.filter(a => a.bikeId === bid);
+            return {
+              id: bid,
+              name: b.name as string,
+              status: items.some(a => a.status === "bad")
+                ? "bad" as const
+                : items.some(a => a.status === "warn")
+                  ? "warn" as const
+                  : "ok" as const,
+              km12m: km12mByBike[bid] ?? 0,
+            };
+          })
+          // Même ordre que sur la page Coût : le vélo le plus roulé sur
+          // 12 mois en premier.
+          .sort((a, b) => b.km12m - a.km12m)}
         selected={selectedBikeId}
         onSelect={setSelectedBikeId}
       />
@@ -395,6 +407,38 @@ export function DashboardClient({
                       <Mono style={{ fontSize: 11, color }}>{c.wearPct}%</Mono>
                     </div>
                     <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{urgencyLine}</div>
+
+                    {/* Arbitrage « je le fais » vs « vélociste ». En liste, il
+                        permet de comparer les pièces entre elles et de grouper
+                        une session — impossible depuis une page pièce isolée. */}
+                    {(() => {
+                      const g = findRepairGuide(c.name, c.category);
+                      return (
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <span style={{ display: "flex", gap: 2 }}>
+                              {[1, 2, 3].map(n => (
+                                <span key={n} style={{
+                                  width: 12, height: 4, borderRadius: 2,
+                                  background: n <= DIFFICULTY_LEVEL[g.difficulty]
+                                    ? DIFFICULTY_COLOR[g.difficulty]
+                                    : "var(--bi-line)",
+                                }} />
+                              ))}
+                            </span>
+                            <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
+                              {DIFFICULTY_LABELS[g.difficulty]}
+                            </span>
+                          </span>
+                          <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
+                            Soi-même : <Mono>{formatRepairTime(g.timeMin, g.timeMax)}</Mono>
+                          </span>
+                          <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
+                            Atelier : <Mono>{g.laborMin}–{g.laborMax} €</Mono>
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
                     {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>~{c.cost} €</Mono>}
