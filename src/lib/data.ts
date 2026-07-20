@@ -296,6 +296,7 @@ export async function getCostData(bikeId?: string | null) {
     { data: replacements },
     { data: bikeMaintLogs },
     { data: allBikesRaw },
+    { data: allBikeCompStatus },
   ] = await Promise.all([
     bikeId ? compQ.eq('bike_id', bikeId) : compQ,
     bikeId ? bikeQ.eq('id', bikeId) : bikeQ,
@@ -310,6 +311,13 @@ export async function getCostData(bikeId?: string | null) {
     bikeId ? bikeMaintQ.eq('bike_id', bikeId) : bikeMaintQ,
     // Liste de TOUS les vélos actifs (pour le sélecteur, jamais filtrée)
     supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
+    // État des pièces de TOUS les vélos — alimente la pastille de couleur du
+    // sélecteur, qui doit rester lisible même quand la page est filtrée.
+    supabase
+      .from('component_stats')
+      .select('bike_id, status')
+      .eq('user_id', user.id)
+      .eq('is_active', true),
   ])
 
   const comps = components ?? []
@@ -568,7 +576,16 @@ export async function getCostData(bikeId?: string | null) {
       total12m: Math.round(projected12m),
       upcoming: upcomingAll.slice(0, 6),
     },
-    allBikes: (allBikesRaw ?? []).map(b => ({ id: b.id as string, name: b.name as string })),
+    allBikes: (allBikesRaw ?? []).map(b => {
+      // Le vélo prend le pire état de ses pièces — même règle que le dashboard.
+      const own = (allBikeCompStatus ?? []).filter(c => c.bike_id === b.id)
+      const status = own.some(c => c.status === 'bad')
+        ? 'bad' as const
+        : own.some(c => c.status === 'warn')
+          ? 'warn' as const
+          : 'ok' as const
+      return { id: b.id as string, name: b.name as string, status }
+    }),
     selectedBikeId: bikeId ?? null,
     insights: {
       transmissionSavings: Math.round(transmissionSavings),

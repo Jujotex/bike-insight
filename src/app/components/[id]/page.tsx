@@ -82,8 +82,13 @@ export default async function ComponentDetailPage({
     ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : "-";
 
+  // Vie restante : estimation du temps avant la limite d'usure, extrapolée
+  // depuis le rythme moyen (km/jour) constaté depuis l'installation.
+  // Sans date d'installation, aucun rythme n'est calculable → on l'assume.
   let daysRemaining = "-";
-  if (kmMax > 0 && kmRemaining > 0 && kmUsed > 0 && comp.installed_at) {
+  if (kmMax > 0 && kmRemaining === 0) {
+    daysRemaining = "Dépassé";
+  } else if (kmMax > 0 && kmUsed > 0 && comp.installed_at) {
     const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
     if (ageDays > 0) {
       const kmPerDay = kmUsed / ageDays;
@@ -92,18 +97,14 @@ export default async function ComponentDetailPage({
       else if (daysLeft < 60) daysRemaining = "~ " + Math.round(daysLeft / 7) + " sem.";
       else daysRemaining = "~ " + Math.round(daysLeft / 30) + " mois";
     }
-  } else if (kmRemaining === 0 && kmMax > 0) {
-    daysRemaining = "0 j";
   }
 
-  let intensity = "-";
-  if (kmUsed > 0 && comp.installed_at) {
-    const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
-    const kmPerMonth = (kmUsed / ageDays) * 30;
-    if (kmPerMonth > 400) intensity = "Élevée";
-    else if (kmPerMonth > 150) intensity = "Modérée";
-    else intensity = "Faible";
-  }
+  // Coût réel de la pièce ramené à la distance : la seule façon de comparer
+  // une pièce chère qui dure à une pièce bon marché qu'on remplace souvent.
+  const purchasePrice = comp.purchase_price as number | null;
+  const costPer1000km = purchasePrice !== null && kmUsed > 0
+    ? ((purchasePrice / kmUsed) * 1000).toFixed(2).replace(".", ",") + " €"
+    : "-";
 
   const installedMs = comp.installed_at ? new Date(comp.installed_at as string).getTime() : null;
   const chartH = 180;
@@ -238,11 +239,13 @@ export default async function ComponentDetailPage({
               <div style={{ flex: 1 }} />
               {kmMax > 0 && (
                 <div className="bi-wear-side" style={{ textAlign: "right" }}>
+                  {/* L'unité reste collée au ratio qu'elle qualifie : la reporter
+                      sur la ligne du dessous donnait un « km - » orphelin. */}
                   <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>
-                    {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")}
+                    {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")} km
                   </Mono>
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                    km - ~{kmRemaining.toLocaleString("fr")} km restants
+                    {kmRemaining.toLocaleString("fr")} km restants
                   </span>
                 </div>
               )}
@@ -290,7 +293,7 @@ export default async function ComponentDetailPage({
               {[
                 ["Prix achat", comp.purchase_price !== null ? comp.purchase_price + " €" : "-"],
                 ["Km parcourus", ((comp.km_used as number) ?? 0).toLocaleString("fr-FR") + " km"],
-                ["Intensité", intensity],
+                ["Coût / 1000 km", costPer1000km],
                 ["Vie restante", daysRemaining],
               ].map(([k, v]) => (
                 <div key={String(k)} style={{ background: "var(--bi-card)", padding: "14px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BiCard, Mono } from "@/components/bi/ui";
+import { BikePicker } from "@/components/bi/bike-picker";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -161,30 +162,23 @@ export function DashboardClient({
       </div>
 
       {/* Bike selector */}
-      {bikes.length > 1 && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          {bikes.map(b => {
-            const bid = b.id as string;
-            const isSelected = bid === selectedBikeId;
-            const bikeItems = attentionItems.filter(a => a.bikeId === bid);
-            const bikeStatus = bikeItems.some(a => a.status === "bad") ? "bad" : bikeItems.some(a => a.status === "warn") ? "warn" : "ok";
-            const dotColor = bikeStatus === "bad" ? "var(--bi-bad)" : bikeStatus === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
-            return (
-              <button key={bid} onClick={() => setSelectedBikeId(bid)} style={{
-                padding: "7px 16px", borderRadius: 999,
-                border: isSelected ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
-                background: isSelected ? "var(--bi-ink)" : "var(--bi-card)",
-                color: isSelected ? "var(--bi-bg)" : "var(--bi-ink)",
-                fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 7, transition: "all 0.12s",
-              }}>
-                <span style={{ width: 7, height: 7, borderRadius: 999, background: isSelected ? "var(--bi-bg)" : dotColor, flexShrink: 0, display: "inline-block", opacity: 0.85 }} />
-                {b.name as string}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <BikePicker
+        bikes={bikes.map(b => {
+          const bid = b.id as string;
+          const items = attentionItems.filter(a => a.bikeId === bid);
+          return {
+            id: bid,
+            name: b.name as string,
+            status: items.some(a => a.status === "bad")
+              ? "bad" as const
+              : items.some(a => a.status === "warn")
+                ? "warn" as const
+                : "ok" as const,
+          };
+        })}
+        selected={selectedBikeId}
+        onSelect={setSelectedBikeId}
+      />
 
       {/* Score de forme + Chiffres 12 mois (même rangée) */}
       <div className={hasNoComponents ? undefined : "bi-grid-2"} style={{ marginBottom: 14, alignItems: "stretch" }}>

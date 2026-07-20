@@ -6,7 +6,14 @@
 // Usage respectueux des serveurs publics (User-Agent identifiant, faible volume).
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+// Overpass : serveurs publics gratuits, régulièrement saturés (429 / 504) ou
+// en maintenance. On essaie les miroirs dans l'ordre plutôt que d'échouer au
+// premier — c'est la cause n°1 de « Recherche indisponible ».
+const OVERPASS_URLS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+];
 // Photon (Komoot) : moteur de géocodage OSM pensé pour l'autocomplétion
 // type-ahead (Nominatim l'interdit sur son serveur public). Gratuit, sans clé.
 const PHOTON_URL = "https://photon.komoot.io/api/";
@@ -59,19 +66,35 @@ function formatAddress(tags: Record<string, string>): string {
 }
 
 // Géocode une adresse libre → point (lat/lon). null si introuvable.
+//
+// Nominatim d'abord (le plus précis sur les adresses françaises), puis repli
+// sur Photon — déjà utilisé pour l'autocomplétion, donc aucune dépendance en
+// plus. Nominatim bloque volontiers les IP de datacenter (Vercel) : sans ce
+// repli, une adresse parfaitement valide renvoyait « Recherche indisponible ».
 export async function geocodeAddress(query: string): Promise<GeoPoint | null> {
-  const url =
-    `${NOMINATIM_URL}?format=jsonv2&limit=1&addressdetails=0&q=${encodeURIComponent(query)}`;
-  const res = await fetchWithTimeout(
-    url,
-    { headers: { "User-Agent": USER_AGENT, "Accept-Language": "fr" }, cache: "no-store" },
-    10000
-  );
-  if (!res.ok) return null;
-  const data = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>;
-  if (!Array.isArray(data) || data.length === 0) return null;
-  const hit = data[0];
-  return { lat: Number(hit.lat), lon: Number(hit.lon), label: hit.display_name };
+  try {
+    const url =
+      `${NOMINATIM_URL}?format=jsonv2&limit=1&addressdetails=0&q=${encodeURIComponent(query)}`;
+    const res = await fetchWithTimeout(
+      url,
+      { headers: { "User-Agent": USER_AGENT, "Accept-Language": "fr" }, cache: "no-store" },
+      10000
+    );
+    if (res.ok) {
+      const data = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>;
+      if (Array.isArray(data) && data.length > 0) {
+        const hit = data[0];
+        return { lat: Number(hit.lat), lon: Number(hit.lon), label: hit.display_name };
+      }
+    } else {
+      console.warn("[velocistes] Nominatim HTTP " + res.status + " — repli sur Photon");
+    }
+  } catch (err) {
+    console.warn("[velocistes] Nominatim injoignable — repli sur Photon", err);
+  }
+
+  const [first] = await suggestAddresses(query);
+  return first ? { lat: first.lat, lon: first.lon, label: first.label } : null;
 }
 
 // Autocomplétion d'adresse (type-ahead) via Photon. Renvoie quelques
@@ -130,19 +153,35 @@ export async function findVelocistes(
     `(nwr["shop"="bicycle"](around:${radiusM},${lat},${lon}););` +
     `out center tags 60;`;
 
-  const res = await fetchWithTimeout(
-    OVERPASS_URL,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": USER_AGENT },
-      body: "data=" + encodeURIComponent(query),
-      cache: "no-store",
-    },
-    15000
-  );
-  if (!res.ok) throw new Error("overpass " + res.status);
+  // Premier miroir qui répond gagne. On ne remonte l'erreur que si tous échouent.
+  let json: { elements?: OverpassElement[] } | null = null;
+  let lastError = "aucun miroir contacté";
+  for (const endpoint of OVERPASS_URLS) {
+    try {
+      const res = await fetchWithTimeout(
+        endpoint,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": USER_AGENT },
+          body: "data=" + encodeURIComponent(query),
+          cache: "no-store",
+        },
+        15000
+      );
+      if (!res.ok) {
+        lastError = `${endpoint} → HTTP ${res.status}`;
+        console.warn("[velocistes] Overpass " + lastError);
+        continue;
+      }
+      json = (await res.json()) as { elements?: OverpassElement[] };
+      break;
+    } catch (err) {
+      lastError = `${endpoint} → ${err instanceof Error ? err.message : String(err)}`;
+      console.warn("[velocistes] Overpass " + lastError);
+    }
+  }
+  if (!json) throw new Error("overpass: tous les miroirs ont échoué (" + lastError + ")");
 
-  const json = (await res.json()) as { elements?: OverpassElement[] };
   const elements = json.elements ?? [];
 
   const shops: Velociste[] = [];

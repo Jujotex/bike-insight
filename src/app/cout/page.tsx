@@ -4,8 +4,7 @@ import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCostData } from "@/lib/data";
-import { CostBikePicker } from "@/components/bi/cost-bike-picker";
-import { MAINTENANCE_COST_PER_KM, KM_PER_YEAR, benchmarkVerdict } from "@/lib/benchmarks";
+import { BikePicker } from "@/components/bi/bike-picker";
 
 const LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -33,10 +32,6 @@ function fmt(n: number) {
   return n.toLocaleString("fr-FR");
 }
 
-function fmtPerKm(n: number) {
-  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function delay(w: number): string {
   if (w <= 0) return "à remplacer";
   if (w < 5) return `dans ${w} sem.`;
@@ -51,18 +46,18 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
   const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
   const maxActivity = Math.max(...activity.chart, 1);
 
-  const costVerdict = kpis.costPerKm !== null ? benchmarkVerdict(kpis.costPerKm, MAINTENANCE_COST_PER_KM) : null;
-  const costColor = costVerdict === "below" ? "var(--bi-ok)" : costVerdict === "above" ? "var(--bi-warn)" : "var(--bi-muted)";
-  const costWord = costVerdict === "below" ? "économe" : costVerdict === "above" ? "au-dessus" : "dans la moyenne";
-
   return (
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page">
         <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
-        {allBikes.length > 1 && (
-          <CostBikePicker bikes={allBikes} selected={selectedBikeId} />
-        )}
+        <BikePicker
+          bikes={allBikes}
+          selected={selectedBikeId}
+          hrefFor={(id) => `/cout?bike=${id}`}
+          allLabel="Tous les vélos"
+          allHref="/cout"
+        />
 
         {!hasData ? (
           <BiCard pad={40} style={{ textAlign: "center" }}>
@@ -92,47 +87,6 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
               </div>
             </div>
-
-            {/* Où tu te situes — repères indicatifs */}
-            {kpis.km12m > 0 && (
-              <BiCard pad={0} style={{ marginBottom: 14 }}>
-                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>Où tu te situes</div>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Repères indicatifs pour {MAINTENANCE_COST_PER_KM.label}</div>
-                </div>
-                {kpis.costPerKm !== null && (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>Coût d&apos;entretien</div>
-                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Repère : {fmtPerKm(MAINTENANCE_COST_PER_KM.min)}–{fmtPerKm(MAINTENANCE_COST_PER_KM.max)} €/km</div>
-                    </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                        <Mono style={{ fontSize: 14, fontWeight: 600 }}>{fmtPerKm(kpis.costPerKm)}</Mono>
-                        <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€/km</span>
-                      </div>
-                      <div style={{ fontSize: 11, color: costColor, fontWeight: 600, marginTop: 1 }}>{costWord}</div>
-                    </div>
-                  </div>
-                )}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px", borderTop: kpis.costPerKm !== null ? "1px solid var(--bi-line)" : "none" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>Distance</div>
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Repère : {fmt(KM_PER_YEAR.min)}–{fmt(KM_PER_YEAR.max)} km/an</div>
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                      <Mono style={{ fontSize: 14, fontWeight: 600 }}>{fmt(kpis.km12m)}</Mono>
-                      <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km/an</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>sur 12 mois</div>
-                  </div>
-                </div>
-                <div style={{ padding: "10px 22px 14px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
-                  Ordres de grandeur indicatifs, à comparer avec prudence à ta pratique.
-                </div>
-              </BiCard>
-            )}
 
             {/* Activité · 3 mois — vue d'ensemble */}
             {activity.total > 0 && (

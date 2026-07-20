@@ -1,5 +1,56 @@
 # Changelog
 
+## [Non publié] — suppression : carte « Où tu te situes » (page Coût)
+
+### Supprimé
+- **`src/app/cout/page.tsx`** : carte « Où tu te situes » — comparaison du coût/km et du kilométrage annuel à des fourchettes de référence (0,03–0,08 €/km, 3000–8000 km/an). Repères génériques, non actionnables : savoir qu'on est « dans la moyenne » ne déclenche aucune décision d'entretien. Helper `fmtPerKm` et calculs `costVerdict`/`costColor`/`costWord` retirés avec elle.
+- **`src/lib/benchmarks.ts`** — n'était consommé que par cette carte.
+
+### À noter
+- `kpis.costPerKm` reste calculé dans `getCostData` mais n'est plus affiché nulle part. Conservé (simple division, aucune requête supplémentaire) ; à supprimer si aucun écran ne le reprend.
+
+## [Non publié] — fix : recherche de vélocistes (miroirs Overpass + repli Photon)
+
+### Corrigé
+- La recherche de vélocistes renvoyait « Recherche indisponible pour le moment » sur des adresses valides. Deux fragilités, toutes deux sur des services publics gratuits :
+  - **`src/lib/velocistes.ts` (`findVelocistes`)** : un seul serveur Overpass (`overpass-api.de`), régulièrement saturé (429 / 504) ou en maintenance → échec immédiat. La recherche essaie maintenant **trois miroirs** dans l'ordre et ne remonte l'erreur que si tous échouent.
+  - **`src/lib/velocistes.ts` (`geocodeAddress`)** : Nominatim bloque volontiers les IP de datacenter (Vercel). **Repli sur Photon**, déjà utilisé pour l'autocomplétion — aucune dépendance en plus.
+
+### Modifié
+- **`src/app/api/velocistes/route.ts`** : les deux `catch {}` avalaient l'erreur sans trace. Elles sont désormais **loguées** côté serveur, et les deux échecs ne partagent plus le même message opaque — « Impossible de localiser cette adresse » (géocodage) vs « L'annuaire des magasins ne répond pas » (Overpass). Diagnostic possible depuis les logs Vercel.
+
+## [Non publié] — fix : état des pièces lisible sur les cartes vélo
+
+### Corrigé
+- **`src/app/bikes/page.tsx`** — la bande d'état affichait un compteur nu (« ● 2 ● 1 ») quand des pièces demandaient une action, alors que le cas sain affichait « Tout OK » en toutes lettres : **l'état urgent était le moins lisible des deux**. Les trois états sont désormais des badges nommés sur fond teinté (`--bi-bad-soft` / `--bi-warn-soft` / `--bi-ok-soft`) — « 2 à remplacer », « 1 à surveiller », « Tout OK ».
+
+## [Non publié] — refactor : sélecteur de vélo unifié (dashboard = Coût)
+
+### Corrigé
+- Le sélecteur de vélo de la page **Coût** n'affichait pas la **pastille d'état** (vert / orange / rouge) présente sur le dashboard — deux composants distincts avaient divergé visuellement.
+
+### Modifié
+- **Nouveau `src/components/bi/bike-picker.tsx`** : composant `<BikePicker>` unique, utilisé par le dashboard **et** la page Coût. Deux modes de navigation (`onSelect` pour l'état client du dashboard, `hrefFor` pour le filtrage serveur `?bike=` de la page Coût), un seul rendu. Les deux ne peuvent plus diverger.
+- **`src/lib/data.ts` (`getCostData`)** : `allBikes` renvoie désormais un `status` par vélo (pire état de ses pièces actives — même règle que le dashboard), calculé sur **tous** les vélos et non sur la sélection courante, pour que les pastilles restent justes quand la page est filtrée.
+- **`src/app/dashboard/client.tsx`** + **`src/app/cout/page.tsx`** : consomment le composant partagé. Le garde `bikes.length > 1` vit maintenant dans `<BikePicker>`.
+
+### Supprimé
+- **`src/components/bi/cost-bike-picker.tsx`** — remplacé par `<BikePicker>`.
+
+## [Non publié] — fix : stats pièce lisibles (« 0 j » trompeur, Intensité inutile)
+
+### Corrigé
+- **`src/app/components/[id]/page.tsx`** — « Vie restante » affichait **`0 j`** dès que `km_used >= km_max`, ce qui se lisait « il reste zéro jour » alors que ça veut dire « limite d'usure déjà dépassée ». Affiche désormais **`Dépassé`**.
+- Même carte : le calcul de vie restante est réécrit en cas explicites (dépassé / estimable / non estimable) au lieu d'une condition composite dont le repli `-` était silencieux.
+- **Unité recollée au ratio d'usure** : le bloc affichait `5 917 / 8 000` puis, à la ligne, `km - 2 083 km restants` — le `km` qualifiait le ratio du dessus mais se lisait comme un préfixe orphelin. Devient `5 917 / 8 000 km` / `2 083 km restants`.
+- **`~` retiré des « km restants »** (page pièce + page « Remplacer ») : c'est une soustraction exacte (`km_max - km_used`), pas une estimation — le tilde suggérait à tort une incertitude. Il reste sur « Vie restante », qui est bien une extrapolation.
+
+### Supprimé
+- Stat **« Intensité »** (km/mois classé Faible/Modérée/Élevée) : non actionnable — elle décrit l'usage du cycliste, pas l'état de la pièce — et affichait `-` sans explication sur toute pièce sans `installed_at` (pièces d'origine, date inconnue).
+
+### Ajouté
+- Stat **« Coût / 1000 km »** (`prix d'achat ÷ km parcourus × 1000`) à sa place : rattachée au suivi de coût, elle permet de comparer une pièce chère qui dure à une pièce bon marché remplacée souvent. Affiche `-` si le prix d'achat ou le kilométrage manque.
+
 ## [Non publié] — fix : audit de fiabilité des chiffres (un vélo ≠ tous les vélos)
 
 ### Corrigé
