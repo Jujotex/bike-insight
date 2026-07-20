@@ -54,9 +54,8 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
         <BikePicker
           bikes={allBikes}
           selected={selectedBikeId}
-          hrefFor={(id) => `/cout?bike=${id}`}
+          basePath="/cout"
           allLabel="Tous les vélos"
-          allHref="/cout"
         />
 
         {!hasData ? (
