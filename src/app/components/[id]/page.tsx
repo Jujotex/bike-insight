@@ -112,10 +112,10 @@ export default async function ComponentDetailPage({
     }
     if (kmPerDay > 0) {
       const daysLeft = Math.round(kmRemaining / kmPerDay);
-      if (daysLeft < 7) daysRemaining = "~ " + daysLeft + " j";
-      else if (daysLeft < 60) daysRemaining = "~ " + Math.round(daysLeft / 7) + " sem.";
-      else if (daysLeft < 365) daysRemaining = "~ " + Math.round(daysLeft / 30) + " mois";
-      else daysRemaining = "~ " + (daysLeft / 365).toFixed(1).replace(".", ",") + (daysLeft >= 730 ? " ans" : " an");
+      if (daysLeft < 7) daysRemaining = daysLeft + " j";
+      else if (daysLeft < 60) daysRemaining = Math.round(daysLeft / 7) + " sem.";
+      else if (daysLeft < 365) daysRemaining = Math.round(daysLeft / 30) + " mois";
+      else daysRemaining = (daysLeft / 365).toFixed(1).replace(".", ",") + (daysLeft >= 730 ? " ans" : " an");
     }
   }
 

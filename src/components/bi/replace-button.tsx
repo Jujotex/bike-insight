@@ -47,8 +47,7 @@ export function ReplaceButton({
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"idle" | "reason" | "confirm" | "done">("idle");
-  const [newComponentParams, setNewComponentParams] = useState<string>("");
+  const [step, setStep] = useState<"idle" | "reason" | "confirm">("idle");
   const [reason, setReason] = useState<Reason>("usure");
 
   async function handleReplace() {
@@ -102,7 +101,7 @@ export function ReplaceButton({
       return;
     }
 
-    // Sinon → étape "done" avec choix utilisateur
+    // Sinon → on enchaîne directement sur l'ajout du remplaçant (formulaire pré-rempli)
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     const params = new URLSearchParams({
@@ -112,9 +111,8 @@ export function ReplaceButton({
       installed_km: String(Math.round(currentBikeKm)),
     });
 
-    setNewComponentParams(params.toString());
-    setLoading(false);
-    setStep("done");
+    showToast("Ancienne pièce archivée — ajoute la nouvelle");
+    router.push(`/components/new?${params.toString()}`);
     router.refresh();
   }
 
@@ -224,45 +222,6 @@ export function ReplaceButton({
               style={{ flex: 2, padding: "10px 16px", background: "var(--bi-bad)", color: "var(--bi-white)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: loading ? "not-allowed" : "pointer" }}
             >
               {loading ? "…" : "Confirmer le remplacement"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Done ──────────────────────────────────────────────────────
-  if (step === "done") {
-    return (
-      <div style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100,
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 20
-      }}>
-        <div style={{
-          background: "var(--bi-card)", borderRadius: 18, padding: 28,
-          width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.18)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 999, background: "var(--bi-ok)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7"/></svg>
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>Composant archivé</div>
-          </div>
-          <div style={{ fontSize: 13, color: "var(--bi-muted)", marginBottom: 24 }}>
-            Veux-tu créer le composant de remplacement maintenant ?
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => router.push("/bikes")}
-              style={{ flex: 1, padding: "10px 14px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)", fontWeight: 600 }}
-            >
-              Plus tard
-            </button>
-            <button
-              onClick={() => router.push(`/components/new?${newComponentParams}`)}
-              style={{ flex: 2, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
-            >
-              Créer le remplacement →
             </button>
           </div>
         </div>

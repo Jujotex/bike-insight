@@ -69,7 +69,6 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
   const [kmMax, setKmMax] = useState(String(initType.defaultKm));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [infoOpen, setInfoOpen] = useState<string | null>(null);
 
   function handleTypeChange(type: typeof COMPONENT_TYPES[0]) {
     setSelectedType(type);
@@ -128,7 +127,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     showToast("Pièce ajoutée — usure suivie automatiquement");
-    router.push("/components");
+    router.push("/bikes/" + bikeId);
     router.refresh();
   }
 
@@ -138,58 +137,38 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
       <BiCard pad={28}>
         {/* Type */}
         <BiLabel style={{ marginBottom: 12 }}>Type de composant</BiLabel>
-        <div className="bi-grid-4" style={{ gap: 8, marginBottom: infoOpen ? 12 : 24 }}>
+        <div className="bi-grid-4" style={{ gap: 8, marginBottom: 12 }}>
           {COMPONENT_TYPES.map((t) => {
             const active = selectedType.name === t.name;
             return (
-              <div key={t.name} style={{ position: "relative" }}>
-                <button
-                  onClick={() => handleTypeChange(t)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 8px",
-                    borderRadius: 10,
-                    textAlign: "center",
-                    background: active ? "var(--bi-ink)" : "var(--bi-card)",
-                    color: active ? "var(--bi-bg)" : "var(--bi-ink)",
-                    border: `1px solid ${active ? "var(--bi-ink)" : "var(--bi-line)"}`,
-                    fontSize: 13,
-                    fontWeight: active ? 600 : 500,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {t.name}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Info : ${t.name}`}
-                  onClick={(e) => { e.stopPropagation(); setInfoOpen(infoOpen === t.name ? null : t.name); }}
-                  style={{
-                    position: "absolute", top: 5, right: 5,
-                    width: 16, height: 16, borderRadius: 999, padding: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "none", cursor: "pointer",
-                    background: active ? "rgba(255,255,255,0.22)" : "var(--bi-bg)",
-                    color: active ? "var(--bi-bg)" : "var(--bi-muted)",
-                    fontFamily: "var(--bi-font-mono)", fontSize: 10, fontWeight: 700, lineHeight: 1,
-                  }}
-                >
-                  i
-                </button>
-              </div>
+              <button
+                key={t.name}
+                onClick={() => handleTypeChange(t)}
+                style={{
+                  padding: "12px 8px",
+                  borderRadius: 10,
+                  textAlign: "center",
+                  background: active ? "var(--bi-ink)" : "var(--bi-card)",
+                  color: active ? "var(--bi-bg)" : "var(--bi-ink)",
+                  border: `1px solid ${active ? "var(--bi-ink)" : "var(--bi-line)"}`,
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                {t.name}
+              </button>
             );
           })}
         </div>
-        {infoOpen && (
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 24, padding: "12px 14px", borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)" }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" strokeLinecap="round"/></svg>
-            <div style={{ flex: 1, fontSize: 12, lineHeight: 1.5, color: "var(--bi-ink)" }}>
-              <strong>{infoOpen}</strong> — {COMPONENT_TYPES.find((t) => t.name === infoOpen)?.desc}
-            </div>
-            <button type="button" aria-label="Fermer" onClick={() => setInfoOpen(null)} style={{ flexShrink: 0, background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", fontSize: 16, lineHeight: 1, padding: 0, fontFamily: "inherit" }}>×</button>
+        {/* Explication du type sélectionné */}
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 24, padding: "12px 14px", borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)" }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" strokeLinecap="round"/></svg>
+          <div style={{ flex: 1, fontSize: 12, lineHeight: 1.5, color: "var(--bi-muted)" }}>
+            <strong style={{ color: "var(--bi-ink)", fontWeight: 600 }}>{selectedType.name}</strong> — {selectedType.desc}
           </div>
-        )}
+        </div>
 
         {/* Bike + Brand */}
         <div className="bi-grid-2" style={{ marginBottom: 18 }}>
@@ -234,28 +213,34 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
           <div style={{ marginBottom: 20 }}>
             <BiLabel style={{ marginBottom: 10 }}>Suggestions compatibles avec ton groupe</BiLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {catalogEntry.products.slice(0, 6).map((p, i) => (
+              {catalogEntry.products.slice(0, 6).map((p, i) => {
+                const isActive = brand === p.name;
+                return (
                 <button key={i} onClick={() => {
-                  setBrand(p.brand);
+                  setBrand(p.name);
                   setPrice(String(p.price));
                   setKmMax(String(p.lifeKm));
                 }} style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "12px 14px", borderRadius: 14,
-                  border: `1px solid var(--bi-line)`,
-                  background: "var(--bi-bg)",
+                  border: `1.5px solid ${isActive ? "var(--bi-ink)" : "var(--bi-line)"}`,
+                  background: isActive ? "rgba(14,14,16,0.05)" : "var(--bi-bg)",
                   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                 }}>
+                  {isActive && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M4 12l5 5L20 7"/></svg>
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ink)" }}>{p.name}</div>
                     <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>{p.price} €</div>
-                    <div style={{ fontSize: 10, color: "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
+                    <div style={{ fontSize: 10, color: isActive ? "var(--bi-ok)" : "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: isActive ? 700 : 400 }}>{isActive ? "Sélectionné" : p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
