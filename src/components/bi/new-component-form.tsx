@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
 import { getCatalogForTemplate, checkBrandCompatibility, type CatalogEntry } from "@/lib/components-catalog";
+import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
 import { BIKE_TEMPLATES } from "@/lib/bike-templates";
 
 export interface FormBike {
@@ -17,14 +18,19 @@ export interface FormBike {
 }
 
 const COMPONENT_TYPES = [
-  { name: "Chaîne",     category: "transmission", defaultKm: 3000  },
-  { name: "Pneus",      category: "roues",        defaultKm: 8000  },
-  { name: "Cassette",   category: "transmission", defaultKm: 25000 },
-  { name: "Plateaux",   category: "transmission", defaultKm: 50000 },
-  { name: "Plaquettes", category: "freinage",     defaultKm: 3000  },
-  { name: "Disque",     category: "freinage",     defaultKm: 5000  },
-  { name: "Câble",      category: "transmission", defaultKm: 5000  },
-  { name: "Autre",      category: "autre",        defaultKm: 5000  },
+  { name: "Chaîne",     category: "transmission", defaultKm: 3000,  desc: "Relie le pédalier à la cassette et transmet ta force à la roue. C'est la pièce de la transmission qui s'use le plus vite ; la changer à temps évite d'abîmer la cassette et les plateaux." },
+  { name: "Pneus",      category: "roues",        defaultKm: 8000,  desc: "La gomme en contact avec le sol. S'use selon les kilomètres, ton poids et le revêtement — l'arrière plus vite que l'avant." },
+  { name: "Cassette",   category: "transmission", defaultKm: 25000, desc: "Le bloc de pignons sur la roue arrière qui donne les vitesses. S'use plus lentement que la chaîne, mais une chaîne trop usée l'abîme." },
+  { name: "Plateaux",   category: "transmission", defaultKm: 50000, desc: "Les grandes couronnes dentées à l'avant, sur le pédalier. Très longue durée de vie ; à surveiller quand les dents deviennent pointues." },
+  { name: "Plaquettes", category: "freinage",     defaultKm: 3000,  desc: "Les patins qui serrent le disque sur les freins à disque. À remplacer avant que la garniture soit à nu (bruit métallique au freinage)." },
+  { name: "Disque",     category: "freinage",     defaultKm: 5000,  desc: "Le rotor métallique fixé à la roue, sur lequel serrent les plaquettes (freins à disque). Se change s'il est trop fin ou voilé." },
+  { name: "Patins",     category: "freinage",     defaultKm: 4000,  desc: "Les patins de frein sur jante (freins classiques, sans disque). S'usent avec le freinage, surtout par temps humide." },
+  { name: "Câble",      category: "transmission", defaultKm: 5000,  desc: "Les câbles et gaines qui commandent dérailleurs et freins mécaniques. À changer quand le passage de vitesses devient dur ou imprécis." },
+  { name: "Galets",     category: "transmission", defaultKm: 12000, desc: "Les deux petites roues dentées du dérailleur arrière qui guident la chaîne. À changer s'ils sont creusés, bruyants ou ont du jeu." },
+  { name: "Boîtier",    category: "transmission", defaultKm: 15000, desc: "Le boîtier de pédalier : les roulements dans lesquels tourne l'axe du pédalier. À remplacer quand ça grince ou que le pédalier a du jeu." },
+  { name: "Roulements", category: "roues",        defaultKm: 18000, desc: "Les roulements des moyeux dans lesquels tournent les roues. À changer quand la roue accroche en tournant ou a du jeu latéral." },
+  { name: "Guidoline",  category: "cockpit",      defaultKm: 8000,  desc: "Le ruban enroulé autour du cintre (route/gravel). À refaire pour le grip et le confort quand elle est usée ou déchirée." },
+  { name: "Autre",      category: "autre",        defaultKm: 5000,  desc: "Une pièce non listée. Donne-lui un nom et une durée de vie estimée : le suivi d'usure fonctionne pareil." },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -63,6 +69,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
   const [kmMax, setKmMax] = useState(String(initType.defaultKm));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState<string | null>(null);
 
   function handleTypeChange(type: typeof COMPONENT_TYPES[0]) {
     setSelectedType(type);
@@ -131,28 +138,58 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
       <BiCard pad={28}>
         {/* Type */}
         <BiLabel style={{ marginBottom: 12 }}>Type de composant</BiLabel>
-        <div className="bi-grid-4" style={{ gap: 8, marginBottom: 24 }}>
-          {COMPONENT_TYPES.map((t) => (
-            <button
-              key={t.name}
-              onClick={() => handleTypeChange(t)}
-              style={{
-                padding: "12px 8px",
-                borderRadius: 10,
-                textAlign: "center",
-                background: selectedType.name === t.name ? "var(--bi-ink)" : "var(--bi-card)",
-                color: selectedType.name === t.name ? "var(--bi-bg)" : "var(--bi-ink)",
-                border: `1px solid ${selectedType.name === t.name ? "var(--bi-ink)" : "var(--bi-line)"}`,
-                fontSize: 13,
-                fontWeight: selectedType.name === t.name ? 600 : 500,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              {t.name}
-            </button>
-          ))}
+        <div className="bi-grid-4" style={{ gap: 8, marginBottom: infoOpen ? 12 : 24 }}>
+          {COMPONENT_TYPES.map((t) => {
+            const active = selectedType.name === t.name;
+            return (
+              <div key={t.name} style={{ position: "relative" }}>
+                <button
+                  onClick={() => handleTypeChange(t)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 8px",
+                    borderRadius: 10,
+                    textAlign: "center",
+                    background: active ? "var(--bi-ink)" : "var(--bi-card)",
+                    color: active ? "var(--bi-bg)" : "var(--bi-ink)",
+                    border: `1px solid ${active ? "var(--bi-ink)" : "var(--bi-line)"}`,
+                    fontSize: 13,
+                    fontWeight: active ? 600 : 500,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {t.name}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Info : ${t.name}`}
+                  onClick={(e) => { e.stopPropagation(); setInfoOpen(infoOpen === t.name ? null : t.name); }}
+                  style={{
+                    position: "absolute", top: 5, right: 5,
+                    width: 16, height: 16, borderRadius: 999, padding: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "none", cursor: "pointer",
+                    background: active ? "rgba(255,255,255,0.22)" : "var(--bi-bg)",
+                    color: active ? "var(--bi-bg)" : "var(--bi-muted)",
+                    fontFamily: "var(--bi-font-mono)", fontSize: 10, fontWeight: 700, lineHeight: 1,
+                  }}
+                >
+                  i
+                </button>
+              </div>
+            );
+          })}
         </div>
+        {infoOpen && (
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 24, padding: "12px 14px", borderRadius: 10, background: "var(--bi-bg)", border: "1px solid var(--bi-line)" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" strokeLinecap="round"/></svg>
+            <div style={{ flex: 1, fontSize: 12, lineHeight: 1.5, color: "var(--bi-ink)" }}>
+              <strong>{infoOpen}</strong> — {COMPONENT_TYPES.find((t) => t.name === infoOpen)?.desc}
+            </div>
+            <button type="button" aria-label="Fermer" onClick={() => setInfoOpen(null)} style={{ flexShrink: 0, background: "transparent", border: "none", cursor: "pointer", color: "var(--bi-muted)", fontSize: 16, lineHeight: 1, padding: 0, fontFamily: "inherit" }}>×</button>
+          </div>
+        )}
 
         {/* Bike + Brand */}
         <div className="bi-grid-2" style={{ marginBottom: 18 }}>
@@ -171,11 +208,16 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
           </div>
           <div>
             <BiLabel style={{ marginBottom: 8 }}>Modèle / marque (optionnel)</BiLabel>
-            <input
-              style={inputStyle}
+            <CatalogAutocomplete
+              inputStyle={inputStyle}
               value={brand}
-              onChange={e => setBrand(e.target.value)}
-              placeholder="ex. Shimano Ultegra"
+              onChange={setBrand}
+              onSelect={(p) => {
+                setBrand(p.name);
+                setPrice(String(p.price));
+                setKmMax(String(p.lifeKm));
+              }}
+              placeholder="ex. Continental GP5000, Michelin…"
             />
             {/* Compatibility warning */}
             {!compatCheck.compatible && compatCheck.warning && (
@@ -192,7 +234,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
           <div style={{ marginBottom: 20 }}>
             <BiLabel style={{ marginBottom: 10 }}>Suggestions compatibles avec ton groupe</BiLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {catalogEntry.products.map((p, i) => (
+              {catalogEntry.products.slice(0, 6).map((p, i) => (
                 <button key={i} onClick={() => {
                   setBrand(p.brand);
                   setPrice(String(p.price));

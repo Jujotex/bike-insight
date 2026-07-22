@@ -8,6 +8,7 @@ import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { MaintenanceCard } from "@/components/bi/maintenance-card";
 import { fetchBikeMaintenanceDefs } from "@/lib/maintenance-types";
 import type { MaintenanceLast } from "@/lib/maintenance-catalog";
+import { getComponentType } from "@/lib/components-catalog";
 
 const STATUS_COLORS: Record<string, string> = {
   ok: "var(--bi-ok)",
@@ -184,7 +185,7 @@ export default async function BikeDetailPage({
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{getComponentType(c.name as string)}</div>
                         <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
                       </div>
                     </div>

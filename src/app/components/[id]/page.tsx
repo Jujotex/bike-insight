@@ -88,14 +88,34 @@ export default async function ComponentDetailPage({
   let daysRemaining = "-";
   if (kmMax > 0 && kmRemaining === 0) {
     daysRemaining = "Dépassé";
-  } else if (kmMax > 0 && kmUsed > 0 && comp.installed_at) {
-    const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
-    if (ageDays > 0) {
-      const kmPerDay = kmUsed / ageDays;
+  } else if (kmMax > 0 && kmRemaining > 0 && comp.bike_id) {
+    // Rythme du vélo (km/jour). Mesuré sur les 180 derniers jours d'activités —
+    // marche même sans date d'installation (pièces "d'origine" / "je ne sais pas").
+    // À défaut, repli sur le rythme depuis l'installation.
+    let kmPerDay = 0;
+    const since = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: paceRides } = await supabase
+      .from("activities")
+      .select("started_at, distance_km")
+      .eq("bike_id", comp.bike_id as string)
+      .gte("started_at", since)
+      .order("started_at", { ascending: true });
+    if (paceRides && paceRides.length > 0) {
+      const totalKm = paceRides.reduce((sum, a) => sum + ((a.distance_km as number) ?? 0), 0);
+      const firstMs = new Date(paceRides[0].started_at as string).getTime();
+      const spanDays = Math.max(1, (Date.now() - firstMs) / (1000 * 60 * 60 * 24));
+      kmPerDay = totalKm / spanDays;
+    }
+    if (kmPerDay <= 0 && kmUsed > 0 && comp.installed_at) {
+      const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
+      if (ageDays > 0) kmPerDay = kmUsed / ageDays;
+    }
+    if (kmPerDay > 0) {
       const daysLeft = Math.round(kmRemaining / kmPerDay);
       if (daysLeft < 7) daysRemaining = "~ " + daysLeft + " j";
       else if (daysLeft < 60) daysRemaining = "~ " + Math.round(daysLeft / 7) + " sem.";
-      else daysRemaining = "~ " + Math.round(daysLeft / 30) + " mois";
+      else if (daysLeft < 365) daysRemaining = "~ " + Math.round(daysLeft / 30) + " mois";
+      else daysRemaining = "~ " + (daysLeft / 365).toFixed(1).replace(".", ",") + (daysLeft >= 730 ? " ans" : " an");
     }
   }
 

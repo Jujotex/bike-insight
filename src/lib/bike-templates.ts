@@ -360,6 +360,52 @@ export const BIKE_TEMPLATES: BikeTemplate[] = [
   },
 
   {
+    id: "shimano-grx-10v",
+    label: "Shimano GRX RX400 10v",
+    brand: "Shimano",
+    level: "Gravel entrée de gamme",
+    speeds: 10,
+    bikeTypes: ["gravel"],
+    components: {
+      disc: [
+        { name: "Chaîne Shimano HG54 10v", category: "transmission", brand: "Shimano", purchase_price: 16, km_max: 3000 },
+        { name: "Cassette Shimano CS-HG500 10v", category: "transmission", brand: "Shimano", purchase_price: 28, km_max: 15000 },
+        { name: "Pneus gravel 700c", category: "roues", brand: "Schwalbe", purchase_price: 42, km_max: 4000, note: "Schwalbe G-One recommandé" },
+        { name: "Plaquettes disque Shimano M06", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 3000 },
+      ],
+      rim: [
+        { name: "Chaîne Shimano HG54 10v", category: "transmission", brand: "Shimano", purchase_price: 16, km_max: 3000 },
+        { name: "Cassette Shimano CS-HG500 10v", category: "transmission", brand: "Shimano", purchase_price: 28, km_max: 15000 },
+        { name: "Pneus gravel 700c", category: "roues", brand: "Schwalbe", purchase_price: 42, km_max: 4000, note: "Schwalbe G-One recommandé" },
+        { name: "Patins frein Shimano R55C4", category: "freinage", brand: "Shimano", purchase_price: 16, km_max: 4000 },
+      ],
+    },
+  },
+
+  {
+    id: "shimano-grx-12v",
+    label: "Shimano GRX RX820 12v",
+    brand: "Shimano",
+    level: "Gravel milieu/haut de gamme",
+    speeds: 12,
+    bikeTypes: ["gravel"],
+    components: {
+      disc: [
+        { name: "Chaîne Shimano CN-M7100 12v", category: "transmission", brand: "Shimano", purchase_price: 32, km_max: 4000 },
+        { name: "Cassette Shimano CS-M7100 12v", category: "transmission", brand: "Shimano", purchase_price: 60, km_max: 18000 },
+        { name: "Pneus gravel 700c", category: "roues", brand: "Schwalbe", purchase_price: 42, km_max: 4000, note: "Schwalbe G-One recommandé" },
+        { name: "Plaquettes disque Shimano M06", category: "freinage", brand: "Shimano", purchase_price: 18, km_max: 3000 },
+      ],
+      rim: [
+        { name: "Chaîne Shimano CN-M7100 12v", category: "transmission", brand: "Shimano", purchase_price: 32, km_max: 4000 },
+        { name: "Cassette Shimano CS-M7100 12v", category: "transmission", brand: "Shimano", purchase_price: 60, km_max: 18000 },
+        { name: "Pneus gravel 700c", category: "roues", brand: "Schwalbe", purchase_price: 42, km_max: 4000, note: "Schwalbe G-One recommandé" },
+        { name: "Patins frein Shimano R55C4", category: "freinage", brand: "Shimano", purchase_price: 16, km_max: 4000 },
+      ],
+    },
+  },
+
+  {
     id: "sram-rival-axs-gravel",
     label: "SRAM Rival AXS 12v Gravel",
     brand: "SRAM",

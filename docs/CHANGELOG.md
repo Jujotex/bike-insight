@@ -5,6 +5,62 @@
 
 ---
 
+## [Unreleased] — Onboarding : pièces classiques créées par défaut
+
+### Changed
+- `src/app/onboarding/client.tsx` (`buildComponents`) : les pièces à usure lente (Plateaux, Boîtier de pédalier, Roulements de roues, Galets de dérailleur, et Guidoline en route/gravel) sont désormais **cochées par défaut** — elles étaient présentes mais décochées, donc jamais créées. La guidoline est exclue pour un VTT. Libellé de section ajusté (« cochées par défaut, décoche celles que tu ne veux pas suivre »).
+
+## [Unreleased] — Page Coût : « Où part ton argent » remonté en tête, km 3 mois fusionné
+
+### Changed
+- `src/app/cout/page.tsx` : le bloc « Où part ton argent » est déplacé juste après les deux chiffres clés (tout en haut). Le kilométrage des 3 derniers mois est affiché dans son en-tête et le graphe d'activité mensuel y est intégré ; l'ancienne carte séparée « Activité · 3 mois » est supprimée (fusionnée).
+
+## [Unreleased] — Fiche vélo : liste des pièces par type
+
+### Changed
+- `src/app/bikes/[id]/page.tsx` : la liste des pièces affiche désormais le **type** (Chaîne, Cassette, Pneus, Plaquettes…) au lieu du nom complet du modèle. La marque reste en sous-titre, le modèle exact reste sur la fiche de la pièce.
+- `src/lib/components-catalog.ts` : nouveau helper `getComponentType(name)` qui déduit le type d'une pièce depuis son nom (repli : nom conservé si le type n'est pas reconnu).
+
+## [Unreleased] — Fiche pièce : « Vie restante » calculée sur le rythme réel
+
+### Fixed
+- `src/app/components/[id]/page.tsx` : « Vie restante » affichait « - » pour toute pièce sans date d'installation (cas « d'origine » et « je ne sais pas », majoritaires). Le temps restant est maintenant estimé à partir du rythme réel du vélo (km/jour sur les 180 derniers jours d'activités), avec repli sur le rythme depuis l'installation. Format élargi (jours → semaines → mois → années).
+
+## [Unreleased] — Ajout pièce : liste complète des types + info par pièce
+
+### Added
+- `src/components/bi/new-component-form.tsx` : le sélecteur « Type de composant » couvre désormais toutes les familles du catalogue — ajout de Patins (frein jante), Galets, Boîtier (de pédalier), Roulements et Guidoline (avant on ne pouvait pas les créer depuis ce formulaire). Chaque type porte un bouton « i » qui ouvre une explication courte (à quoi sert la pièce et quand la remplacer).
+
+### Fixed
+- `src/lib/components-catalog.ts` (`getCatalogForTemplate`) : le type « Disque » (le rotor) renvoyait les plaquettes. Il renvoie maintenant les rotors (`rotor-disc`) ; « Plaquettes » et « Patins » inchangés.
+
+## [Unreleased] — Catalogue : enrichissement de toutes les catégories
+
+### Added
+- `src/lib/components-catalog.ts` : +44 références réparties sur toutes les familles (~180 produits au total). Chaînes 8→12v (KMC X11EL, Wippermann Connex, Shimano CN-M7100/M9100, SRAM X01/XX1 Eagle, PC-Force22, YBN, PowerLock SRAM 8/9/10v), cassettes (SunRace CSMS8/CSMZ90/CSM55, Shimano XTR CS-M9100, SRAM XX1 XG-1299, PG-1050), freins disque et patins (Galfer, SwissStop Disc/BXP, Shimano N03A 4 pistons, Jagwire, Kool-Stop Salmon), rotors (SRAM Centerline, Galfer Fixe), câbles (Jagwire Sport, Shimano OT-RS900), plateaux (SRAM Rival, Wolf Tooth 1x, Praxis), boîtiers (SRAM DUB, Praxis, CeramicSpeed), roulements (SKF), galets (SRAM, Kogel céramique), guidoline (Supacaz, Fizik, Silca).
+
+## [Unreleased] — Catalogue : plus de références (pneus, GRX 10v/12v)
+
+### Added
+- `src/lib/components-catalog.ts` : pneus ajoutés — gravel (Schwalbe G-One Allround & G-One R, WTB Riddler, Vittoria Terreno Dry, Continental Terra Speed), route (Schwalbe Pro One, Continental GP5000 S TR, Pirelli P Zero Race), VTT 29 & 27,5 (Maxxis Rekon, Schwalbe Nobby Nic, Continental Cross King).
+- `src/lib/bike-templates.ts` : groupes `shimano-grx-10v` (GRX RX400) et `shimano-grx-12v` (GRX RX820), absents jusqu'ici (seul GRX 11v existait).
+
+### Fixed
+- `src/lib/components-catalog.ts` (`getCatalogForTemplate`) : la branche pneus renvoyait toujours `tire-road-700c`. Elle dépend maintenant du type de vélo — gravel → `tire-gravel`, VTT → `tire-mtb-29`, sinon route. Un gravel voit enfin ses pneus gravel en suggestion.
+
+### Changed
+- `new-component-form.tsx` et `onboarding/client.tsx` : le panneau « Suggestions compatibles » est limité à 6 entrées (les catégories s'étant allongées) ; le reste du catalogue reste accessible via l'autocomplétion du champ modèle.
+
+## [Unreleased] — Catalogue : autocomplétion du modèle à la saisie
+
+### Added
+- `src/lib/components-catalog.ts` : `searchCatalog(query, limit)` — recherche libre dans tout le catalogue (dédupliqué), par mots sur nom + marque + référence. Ex. « gp 5000 » → Continental GP5000. Ajout de quelques pneus Michelin (Lithion 3, Power Cup) au catalogue route.
+- `src/components/bi/catalog-autocomplete.tsx` : champ texte réutilisable avec liste de suggestions ; à la sélection, pré-remplit nom/marque, prix et durée de vie.
+
+### Changed
+- `src/components/bi/new-component-form.tsx` : le champ « Modèle / marque » propose désormais les produits du catalogue en direct pendant la frappe.
+- `src/app/onboarding/client.tsx` : le champ « Nom » (personnalisation d'une pièce) propose les produits du catalogue en direct pendant la frappe.
+
 ## [Unreleased] — Design : convention de tableaux unifiée
 
 ### Changed
@@ -410,17 +466,4 @@
 ### Added
 - Landing page avec hero, feature strip et footer
 - Page login avec AuthShell (panneau gauche metric + formulaire droit)
-- Page signup avec AuthShell (étape 1/3)
-- Flow connexion Strava en 4 écrans : intro, auth OAuth simulée, import en cours, succès
-- Dashboard principal : KPIs, tableau composants avec barre d'usure, graphique activité 30j, répartition coûts
-- Page détail vélo `/bikes/[id]` : stats héros, composants, analyse intelligente
-- Page gestion composants
-- Page analyse avec tableau d'insights par catégorie
-- Page sync
-- Navigation latérale avec liste des vélos et indicateurs d'usure
-- Design system Pulse : tokens CSS `--bi-*` complets dans `globals.css`
-- Typographies Geist + JetBrains Mono
-- Composant partagé `AuthShell` pour toutes les pages auth
-- Composants UI : `BrandMark`, `SideNav`, `AppShell`, `BottomNav`
-- Déploiement Vercel sur `bike-insight-wheat.vercel.app`
-- Workflow Git : branche protégée `main`, preview deployments automatiques
+- Page signup avec AuthShell (ét
