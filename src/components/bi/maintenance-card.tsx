@@ -141,7 +141,7 @@ export function MaintenanceCard({
             <div className="bi-maint-row">
               {/* Entretien — cliquable pour modifier ce type */}
               <Link
-                href={`/reglages/entretiens?bike=${bikeId}&edit=${t.id}`}
+                href={`/reglages/entretiens/${t.id}?bike=${bikeId}`}
                 title="Modifier cet entretien"
                 style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textDecoration: "none", color: "inherit" }}
               >

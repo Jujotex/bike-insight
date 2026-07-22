@@ -223,20 +223,17 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
                 }} style={{
                   display: "flex", alignItems: "center", gap: 12,
                   padding: "12px 14px", borderRadius: 14,
-                  border: `1.5px solid ${isActive ? "var(--bi-ink)" : "var(--bi-line)"}`,
-                  background: isActive ? "rgba(14,14,16,0.05)" : "var(--bi-bg)",
+                  border: `1px solid ${isActive ? "var(--bi-ink)" : "var(--bi-line)"}`,
+                  background: isActive ? "var(--bi-ink)" : "var(--bi-bg)",
                   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                 }}>
-                  {isActive && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M4 12l5 5L20 7"/></svg>
-                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ink)" }}>{p.name}</div>
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isActive ? "var(--bi-bg)" : "var(--bi-ink)" }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: isActive ? "rgba(255,255,255,0.6)" : "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)" }}>{p.price} €</div>
-                    <div style={{ fontSize: 10, color: isActive ? "var(--bi-ok)" : "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: isActive ? 700 : 400 }}>{isActive ? "Sélectionné" : p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", color: isActive ? "var(--bi-bg)" : "var(--bi-ink)" }}>{p.price} €</div>
+                    <div style={{ fontSize: 10, color: isActive ? "rgba(255,255,255,0.6)" : "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
                   </div>
                 </button>
                 );

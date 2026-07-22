@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — Entretiens : gestion par page dédiée
+
+### Modifié
+- **`reglages/entretiens/`** : la gestion passe d'un tableau à édition en ligne à un index + une page par entretien (`[slug]`) pour ses réglages et sa suppression ; création via `/new`. La carte entretien pointe désormais vers la page de l'entretien.
+## [Non publié] — Ajout pièce : sélection uniforme
+
+### Modifié
+- **`new-component-form.tsx`** : la suggestion sélectionnée utilise le même style de remplissage foncé que les boutons Type et Durée de vie — état sélectionné uniforme sur tout le formulaire.
+
 ## [Non publié] — Remplacement de pièce : process continu
 
 ### Modifié
