@@ -5,6 +5,26 @@
 
 ---
 
+## [Unreleased] — Remplacement : enchaînement direct sur l'ajout du remplaçant
+
+### Changed
+- `src/components/bi/replace-button.tsx` : après confirmation (raison + archivage + log d'entretien), on est redirigé directement vers le formulaire d'ajout pré-rempli (vélo, type, km d'installation) au lieu de la modale « Composant archivé — créer le remplacement ? ». Le remplacement devient un vrai enchaînement plutôt qu'une suppression suivie d'un ajout séparé. Étape/état « done » supprimés.
+
+## [Unreleased] — Ajout pièce : état sélectionné sur les suggestions
+
+### Changed
+- `src/components/bi/new-component-form.tsx` : la suggestion cliquée est mise en évidence (bordure foncée, fond teinté, coche verte, libellé « Sélectionné »). Le clic renseigne le champ modèle complet, l'état reste synchronisé avec l'autocomplétion.
+
+## [Unreleased] — Page Coût : activité et dépenses côte à côte
+
+### Changed
+- `src/app/cout/page.tsx` : « Où part ton argent » et « Activité · 3 mois » repassent en deux cartes distinctes affichées côte à côte (2 colonnes sur desktop, empilées sur mobile), au lieu des deux graphes empilés dans une même carte.
+
+## [Unreleased] — Ajout pièce : sélecteur de type épuré (explication auto)
+
+### Changed
+- `src/components/bi/new-component-form.tsx` : retrait des petits « i » dans chaque bouton de type (trop chargé). La grille est propre ; l'explication du type sélectionné s'affiche automatiquement dans une barre sous la grille (état `infoOpen` supprimé).
+
 ## [Unreleased] — Onboarding : pièces classiques créées par défaut
 
 ### Changed

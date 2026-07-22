@@ -1,5 +1,25 @@
 # Changelog
 
+## [Non publié] — Remplacement de pièce : process continu
+
+### Modifié
+- **`replace-button.tsx`** : le remplacement enchaîne désormais directement sur le formulaire d'ajout pré-rempli (raison → confirmation → ajout du remplaçant), au lieu d'archiver puis proposer un ajout séparé.
+
+## [Non publié] — Ajout pièce : suggestion sélectionnée visible
+
+### Modifié
+- **`new-component-form.tsx`** : la suggestion choisie est surlignée (bordure, fond, coche verte, « Sélectionné ») au lieu de ne rien montrer.
+
+## [Non publié] — Page Coût : activité et dépenses côte à côte
+
+### Modifié
+- **`cout/page.tsx`** : « Où part ton argent » et « Activité · 3 mois » sont deux cartes distinctes côte à côte (2 colonnes desktop, empilées sur mobile) — plus de graphes empilés dans la même carte.
+
+## [Non publié] — Ajout pièce : grille de types épurée
+
+### Modifié
+- **`new-component-form.tsx`** : suppression des icônes « i » par bouton. L'explication du type sélectionné s'affiche d'office sous la grille (plus lisible, moins chargé).
+
 ## [Non publié] — Onboarding : pièces classiques cochées par défaut
 
 ### Modifié
