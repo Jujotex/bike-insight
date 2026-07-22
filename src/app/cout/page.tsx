@@ -82,18 +82,58 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
               </div>
             </div>
 
-            {/* Activité · 3 mois — vue d'ensemble */}
-            {activity.total > 0 && (
-              <BiCard pad={22} style={{ marginBottom: 14 }}>
-                <BiLabel>Activité · 3 mois</BiLabel>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total)}</Mono>
-                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+            {/* Dépenses + activité (3 mois) — remonté tout en haut */}
+            {(breakdown.length > 0 || activity.total > 0) && (
+              <BiCard pad={0} style={{ marginBottom: 14 }}>
+                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 600 }}>Où part ton argent</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
+                  </div>
+                  {activity.total > 0 && (
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                        <Mono style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5 }}>{fmt(activity.total)}</Mono>
+                        <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--bi-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}>3 derniers mois</div>
+                    </div>
+                  )}
                 </div>
-                <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
-                  {activity.chart.map((h, i) => (
-                    <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
-                  ))}
+                <div style={{ padding: "20px 22px" }}>
+                  {/* Activité : barres mensuelles de km */}
+                  {activity.total > 0 && (
+                    <div style={{ height: 44, display: "flex", alignItems: "flex-end", gap: 3, marginBottom: 18 }}>
+                      {activity.chart.map((h, i) => (
+                        <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
+                      ))}
+                    </div>
+                  )}
+                  {/* Barre empilée : proportions en un coup d'œil */}
+                  {breakdown.length > 0 && (
+                    <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
+                      {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
+                        <div key={key} style={{ width: `${pct}%`, background: COLORS[key] ?? "var(--bi-muted)" }} />
+                      ))}
+                    </div>
+                  )}
+                  {/* Légende détaillée : catégorie + détail par opération */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    {breakdown.map(({ key, pct, items }) => (
+                      <div key={key}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
+                          <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
+                        </div>
+                        {items.length > 0 && (
+                          <div style={{ marginLeft: 18, marginTop: 4, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+                            {items.map((it) => it.label).join(" · ")}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </BiCard>
             )}
@@ -178,41 +218,6 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                       <span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--bi-warn)" }} />Gaspillé (évitable)
                     </div>
                     <Mono style={{ fontSize: 24, fontWeight: 600, letterSpacing: -0.5, color: "var(--bi-warn)", marginTop: 6, display: "block" }}>{fmt(insights.wastedTransmission)} €</Mono>
-                  </div>
-                </div>
-              </BiCard>
-            )}
-
-            {/* Où part ton argent */}
-            {breakdown.length > 0 && (
-              <BiCard pad={0} style={{ marginBottom: 14 }}>
-                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>Où part ton argent</div>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
-                </div>
-                <div style={{ padding: "20px 22px" }}>
-                  {/* Barre empilée : proportions en un coup d'œil */}
-                  <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
-                    {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
-                      <div key={key} style={{ width: `${pct}%`, background: COLORS[key] ?? "var(--bi-muted)" }} />
-                    ))}
-                  </div>
-                  {/* Légende détaillée : catégorie + détail par opération */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {breakdown.map(({ key, pct, items }) => (
-                      <div key={key}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
-                          <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
-                        </div>
-                        {items.length > 0 && (
-                          <div style={{ marginLeft: 18, marginTop: 4, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-                            {items.map((it) => it.label).join(" · ")}
-                          </div>
-                        )}
-                      </div>
-                    ))}
                   </div>
                 </div>
               </BiCard>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
 import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
+import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
 import { resolveBikeModel, type Confidence } from "@/lib/bike-models";
 
 type Bike = {
@@ -122,10 +123,13 @@ export function OnboardingWizard({
   function buildComponents(tmplId: string, brake: "disc" | "rim"): ComponentRow[] {
     const tmpl = BIKE_TEMPLATES.find(t => t.id === tmplId);
     if (!tmpl) return [];
+    // Guidoline : route/gravel uniquement (un VTT n'en a pas).
+    const isVttOnly = tmpl.bikeTypes.includes("vtt") && !tmpl.bikeTypes.some(b => b === "route" || b === "gravel");
+    const classics = OPTIONAL_COMPONENTS.filter(c => !(isVttOnly && c.name === "Guidoline"));
     return [
       ...tmpl.components[brake].map(c => ({ ...c, enabled: true })),
-      // Pièces à usure lente (plateaux, roulements, ...) — décochées par défaut
-      ...OPTIONAL_COMPONENTS.map(c => ({ ...c, enabled: false, optional: true })),
+      // Pièces classiques à usure lente (plateaux, boîtier, roulements, galets…) — cochées par défaut
+      ...classics.map(c => ({ ...c, enabled: true, optional: true })),
     ];
   }
 
@@ -394,7 +398,7 @@ export function OnboardingWizard({
                   <Fragment key={idx}>
                   {isFirstOptional && (
                     <div style={{ ...sectionLabel, marginTop: 10, marginBottom: 0 }}>
-                      Optionnel <span style={{ textTransform: "none", fontWeight: 400 }}>— pièces à usure lente, coche ce que tu veux suivre</span>
+                      Pièces à usure lente <span style={{ textTransform: "none", fontWeight: 400 }}>— cochées par défaut, décoche celles que tu ne veux pas suivre</span>
                     </div>
                   )}
                   <div style={{ borderRadius: 14, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
@@ -429,7 +433,7 @@ export function OnboardingWizard({
                               Suggestions compatibles
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                              {catalogEntry.products.map((p, pi) => {
+                              {catalogEntry.products.slice(0, 6).map((p, pi) => {
                                 const isActive = c.name === p.name;
                                 return (
                                   <button key={pi} onClick={() => {
@@ -471,7 +475,18 @@ export function OnboardingWizard({
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                           <div>
                             <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Nom</div>
-                            <input value={c.name} onChange={e => updateComponent(idx, "name", e.target.value)} style={{ ...inputStyle, fontSize: 13 }} placeholder="ex. Shimano HG601" />
+                            <CatalogAutocomplete
+                              inputStyle={{ ...inputStyle, fontSize: 13 }}
+                              value={c.name}
+                              onChange={(v) => updateComponent(idx, "name", v)}
+                              onSelect={(p) => {
+                                updateComponent(idx, "name", p.name);
+                                updateComponent(idx, "brand", p.brand);
+                                updateComponent(idx, "purchase_price", p.price);
+                                updateComponent(idx, "km_max", p.lifeKm);
+                              }}
+                              placeholder="ex. Continental GP5000, Michelin…"
+                            />
                           </div>
                           <div>
                             <div style={{ fontSize: 11, color: T.muted, marginBottom: 5, fontWeight: 600, textTransform: "uppercase" }}>Marque</div>

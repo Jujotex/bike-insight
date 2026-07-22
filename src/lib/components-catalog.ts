@@ -34,6 +34,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X11", brand: "KMC", reference: "X11-1", price: 22, lifeKm: 3000, tier: "budget", note: "Compatible universelle 11v, bon rapport qualité/prix" },
       { name: "Shimano HG601-11", brand: "Shimano", reference: "CS-HG601", price: 28, lifeKm: 4000, tier: "original", note: "Chaîne de série 105/Ultegra, traitement anti-corrosion" },
       { name: "Shimano HG701-11 Ultegra", brand: "Shimano", reference: "CN-HG701", price: 38, lifeKm: 4500, tier: "premium", note: "Qualité Ultegra, traitement SIL-TEC réduit la friction" },
+      { name: "KMC X11EL", brand: "KMC", reference: "X11EL", price: 45, lifeKm: 4000, tier: "premium", note: "Axes creux, plus légère et fluide" },
+      { name: "Wippermann Connex 11SX", brand: "Wippermann", reference: "Connex-11SX", price: 42, lifeKm: 5000, tier: "premium", note: "Inox, très longue durée, maillon réutilisable" },
     ],
   },
 
@@ -45,6 +47,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X12", brand: "KMC", reference: "X12", price: 25, lifeKm: 3000, tier: "budget", note: "Compatible universelle 12v route et VTT" },
       { name: "Shimano CN-M6100", brand: "Shimano", reference: "CN-M6100", price: 32, lifeKm: 4000, tier: "original", note: "Entrée de gamme 12v Shimano, fiable et économique" },
       { name: "Shimano XT CN-M8100", brand: "Shimano", reference: "CN-M8100", price: 48, lifeKm: 5000, tier: "premium", note: "Qualité XT, traitement Hyper-Drive réduit le poids et la friction" },
+      { name: "Shimano SLX/GRX CN-M7100", brand: "Shimano", reference: "CN-M7100", price: 35, lifeKm: 4200, tier: "original", note: "12v SLX/GRX, bon compromis prix/durée" },
+      { name: "Shimano XTR/Dura-Ace CN-M9100", brand: "Shimano", reference: "CN-M9100", price: 55, lifeKm: 5500, tier: "premium", note: "Haut de gamme 12v, partagée route et VTT" },
     ],
   },
 
@@ -56,6 +60,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X12 SRAM", brand: "KMC", reference: "X12-1", price: 25, lifeKm: 3000, tier: "budget", note: "Compatible SRAM Eagle 12v" },
       { name: "SRAM PC-1130", brand: "SRAM", reference: "PC-1130", price: 30, lifeKm: 3500, tier: "original", note: "Chaîne SRAM NX 12v, solide et accessible" },
       { name: "SRAM GX Eagle", brand: "SRAM", reference: "PC-GX-Eagle", price: 55, lifeKm: 5000, tier: "premium", note: "Chaîne GX Eagle, Power Lock inclus, légère" },
+      { name: "SRAM X01 Eagle", brand: "SRAM", reference: "PC-X01-Eagle", price: 70, lifeKm: 5000, tier: "premium", note: "Hard Chrome, légère, PowerLock inclus" },
+      { name: "SRAM XX1 Eagle", brand: "SRAM", reference: "PC-XX1-Eagle", price: 90, lifeKm: 5500, tier: "premium", note: "La plus durable de la gamme Eagle" },
     ],
   },
 
@@ -67,6 +73,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X11 SRAM", brand: "KMC", reference: "X11-1", price: 22, lifeKm: 3000, tier: "budget", note: "Compatible universelle SRAM 11v" },
       { name: "SRAM PC-1130", brand: "SRAM", reference: "PC-1130", price: 28, lifeKm: 3500, tier: "original", note: "Chaîne SRAM Rival 11v standard" },
       { name: "SRAM PC-Red 22", brand: "SRAM", reference: "PC-Red22", price: 65, lifeKm: 4500, tier: "premium", note: "Chaîne Red 22, PowerGlide, revêtement cuivre" },
+      { name: "SRAM PC-1110", brand: "SRAM", reference: "PC-1110", price: 22, lifeKm: 3000, tier: "budget", note: "11v Apex/Rival, PowerLock inclus" },
+      { name: "SRAM Force PC-Force22", brand: "SRAM", reference: "PC-Force22", price: 45, lifeKm: 4000, tier: "premium", note: "Hollow-pin, Hard Chrome, légère" },
     ],
   },
 
@@ -78,6 +86,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC Z11", brand: "KMC", reference: "Z11", price: 15, lifeKm: 2500, tier: "budget", note: "Entrée de gamme 11v, compatible Shimano et SRAM" },
       { name: "KMC X11", brand: "KMC", reference: "X11", price: 22, lifeKm: 3500, tier: "original", note: "Référence polyvalente 11v" },
       { name: "Shimano HG601-11", brand: "Shimano", reference: "HG601-11", price: 28, lifeKm: 4000, tier: "premium", note: "Qualité groupe 105, fiable et durable" },
+      { name: "YBN SLA-210", brand: "YBN", reference: "SLA-210", price: 20, lifeKm: 3000, tier: "budget", note: "11v universelle, bon rapport qualité/prix" },
     ],
   },
 
@@ -89,6 +98,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X12", brand: "KMC", reference: "X12", price: 25, lifeKm: 2500, tier: "budget", note: "Compatible Shimano et SRAM 12v" },
       { name: "SRAM PC-1130", brand: "SRAM", reference: "PC-1130", price: 30, lifeKm: 3500, tier: "original", note: "Solide et économique" },
       { name: "Shimano CN-M6100", brand: "Shimano", reference: "M6100", price: 32, lifeKm: 4000, tier: "premium", note: "Qualité Deore 12v" },
+      { name: "YBN SLA-H12", brand: "YBN", reference: "SLA-H12", price: 24, lifeKm: 3000, tier: "budget", note: "12v universelle Shimano et SRAM" },
     ],
   },
 
@@ -113,6 +123,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Shimano CS-HG500-11", brand: "Shimano", reference: "CS-HG500-11", price: 25, lifeKm: 15000, tier: "budget", note: "Entrée de gamme 11v, compatible roue libre Shimano" },
       { name: "Shimano 105 CS-HG700-11", brand: "Shimano", reference: "CS-HG700-11", price: 50, lifeKm: 20000, tier: "original", note: "Cassette 105, aluminium, légère" },
       { name: "Shimano Ultegra CS-R8000", brand: "Shimano", reference: "CS-R8000", price: 80, lifeKm: 25000, tier: "premium", note: "Aluminium usiné, jusqu'à 200g, compatible Di2" },
+      { name: "SunRace CSMS8 11v", brand: "SunRace", reference: "CSMS8", price: 32, lifeKm: 14000, tier: "budget", note: "Large plage 11-40, alternative éco compatible Shimano" },
     ],
   },
 
@@ -124,6 +135,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "SRAM SX Eagle PG-1210", brand: "SRAM", reference: "PG-1210", price: 30, lifeKm: 12000, tier: "budget", note: "Entrée de gamme Eagle 12v" },
       { name: "SRAM NX Eagle PG-1230", brand: "SRAM", reference: "PG-1230", price: 50, lifeKm: 15000, tier: "original", note: "NX Eagle, acier, très robuste" },
       { name: "SRAM GX Eagle PG-1275", brand: "SRAM", reference: "PG-1275", price: 85, lifeKm: 20000, tier: "premium", note: "Alu/acier, léger, XD driver requis" },
+      { name: "SRAM XX1 Eagle XG-1299", brand: "SRAM", reference: "XG-1299", price: 350, lifeKm: 22000, tier: "premium", note: "10-52, monobloc X-Dome, ultra légère" },
     ],
   },
 
@@ -135,6 +147,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Shimano Deore CS-M6100", brand: "Shimano", reference: "CS-M6100", price: 35, lifeKm: 12000, tier: "budget", note: "Deore 12v, microspline requis" },
       { name: "Shimano SLX CS-M7100", brand: "Shimano", reference: "CS-M7100", price: 55, lifeKm: 18000, tier: "original", note: "SLX 12v, alu sur grandes couronnes" },
       { name: "Shimano XT CS-M8100", brand: "Shimano", reference: "CS-M8100", price: 90, lifeKm: 25000, tier: "premium", note: "XT 12v, hyperglide+ pour changements sous charge" },
+      { name: "SunRace CSMZ90 12v", brand: "SunRace", reference: "CSMZ90", price: 60, lifeKm: 14000, tier: "budget", note: "10-50/10-51 microspline, alternative éco" },
+      { name: "Shimano XTR CS-M9100", brand: "Shimano", reference: "CS-M9100", price: 150, lifeKm: 28000, tier: "premium", note: "12v XTR, titane, 10-45 ou 10-51" },
     ],
   },
 
@@ -147,6 +161,11 @@ export const CATALOG: CatalogEntry[] = [
     products: [
       { name: "Continental Ultra Sport III", brand: "Continental", reference: "US3-700c", price: 18, lifeKm: 3000, tier: "budget", note: "Entrée de gamme solide, excellente durabilité" },
       { name: "Continental GP5000", brand: "Continental", reference: "GP5000", price: 52, lifeKm: 5000, tier: "original", note: "Référence route, faible résistance au roulement, anti-crevaison" },
+      { name: "Michelin Lithion 3", brand: "Michelin", reference: "Lithion-3", price: 28, lifeKm: 5000, tier: "original", note: "Polyvalent entraînement, bon compromis grip/longévité" },
+      { name: "Michelin Power Cup TLR", brand: "Michelin", reference: "Power-Cup", price: 55, lifeKm: 4000, tier: "premium", note: "Compétition tubeless, très faible résistance au roulement" },
+      { name: "Schwalbe Pro One TLE", brand: "Schwalbe", reference: "Pro-One", price: 55, lifeKm: 4000, tier: "premium", note: "Tubeless rapide, bon compromis confort/vitesse" },
+      { name: "Continental GP5000 S TR", brand: "Continental", reference: "GP5000-S-TR", price: 62, lifeKm: 5000, tier: "premium", note: "Version tubeless du GP5000, anti-crevaison" },
+      { name: "Pirelli P Zero Race", brand: "Pirelli", reference: "PZero-Race", price: 50, lifeKm: 4000, tier: "premium", note: "Grip sec et humide, pneu de compétition" },
       { name: "Vittoria Corsa Pro", brand: "Vittoria", reference: "Corsa-Pro", price: 68, lifeKm: 5000, tier: "premium", note: "Pneu de compétition, graphène, très grippy" },
     ],
   },
@@ -157,7 +176,12 @@ export const CATALOG: CatalogEntry[] = [
     keywords: [["pneu", "tire", "tyre"], ["gravel", "700x40", "700x38", "700x45", "650b"]],
     products: [
       { name: "Donnelly Strada USH", brand: "Donnelly", reference: "Strada-USH", price: 30, lifeKm: 4000, tier: "budget", note: "Bon compromis route/gravel léger" },
+      { name: "Schwalbe G-One Allround", brand: "Schwalbe", reference: "G-One-Allround", price: 42, lifeKm: 4000, tier: "original", note: "Référence gravel polyvalente, roule bien sur route et chemins secs" },
       { name: "Panaracer GravelKing SS+", brand: "Panaracer", reference: "GK-SS", price: 42, lifeKm: 5000, tier: "original", note: "Référence gravel, polyvalent et léger" },
+      { name: "WTB Riddler", brand: "WTB", reference: "Riddler", price: 40, lifeKm: 4000, tier: "original", note: "Crampons bas, rapide sur gravel roulant" },
+      { name: "Vittoria Terreno Dry", brand: "Vittoria", reference: "Terreno-Dry", price: 42, lifeKm: 4500, tier: "original", note: "Terrain sec, bon grip en courbe" },
+      { name: "Schwalbe G-One R", brand: "Schwalbe", reference: "G-One-R", price: 58, lifeKm: 3500, tier: "premium", note: "Gravel race tubeless, très roulant" },
+      { name: "Continental Terra Speed", brand: "Continental", reference: "Terra-Speed", price: 55, lifeKm: 5000, tier: "premium", note: "Compétition gravel, faible résistance au roulement" },
       { name: "Pirelli Cinturato Gravel H", brand: "Pirelli", reference: "Cinturato-GH", price: 55, lifeKm: 6000, tier: "premium", note: "Haute performance gravel, anti-crevaison SpeedArmor" },
     ],
   },
@@ -168,6 +192,9 @@ export const CATALOG: CatalogEntry[] = [
     keywords: [["pneu", "tire", "tyre"], ["29", "vtt", "mtb", "mountain", "29\"", "29x"]],
     products: [
       { name: "Kenda Booster Pro", brand: "Kenda", reference: "Booster-29", price: 28, lifeKm: 3000, tier: "budget", note: "Bon compromis grip/endurance en XC" },
+      { name: "Maxxis Rekon 29", brand: "Maxxis", reference: "Rekon-29", price: 45, lifeKm: 3800, tier: "original", note: "Trail/XC roulant, bon grip polyvalent" },
+      { name: "Schwalbe Nobby Nic 29", brand: "Schwalbe", reference: "NobbyNic-29", price: 48, lifeKm: 3500, tier: "original", note: "All-mountain polyvalent, sec comme humide" },
+      { name: "Continental Cross King 29", brand: "Continental", reference: "CrossKing-29", price: 40, lifeKm: 4000, tier: "original", note: "XC roulant, longue durée de vie" },
       { name: "Maxxis Aggressor 29", brand: "Maxxis", reference: "TB00143400", price: 42, lifeKm: 4000, tier: "original", note: "Pneu arrière polyvalent enduro/trail" },
       { name: "Maxxis Minion DHF 29", brand: "Maxxis", reference: "DHF-29", price: 58, lifeKm: 4500, tier: "premium", note: "Référence descente/enduro, grip exceptionnel" },
     ],
@@ -184,6 +211,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Comprex compatible Shimano", brand: "Comprex", price: 8, lifeKm: 2000, tier: "budget", note: "Compatible Shimano VTT, organique — vérifier le modèle (M03/M04/M06)" },
       { name: "Shimano M06 Organique", brand: "Shimano", reference: "M06", price: 18, lifeKm: 3000, tier: "original", note: "Plaquettes VTT d'origine organique, bon mordant, silencieuses" },
       { name: "Shimano M07 Métal", brand: "Shimano", reference: "M07", price: 24, lifeKm: 5000, tier: "premium", note: "Métal fritté, longévité x2, idéal descente et pluie" },
+      { name: "Galfer compatible Shimano", brand: "Galfer", price: 22, lifeKm: 4000, tier: "original", note: "Composé Pro, bon mordant, peu bruyant" },
+      { name: "Shimano N03A métal (4 pistons)", brand: "Shimano", reference: "N03A", price: 30, lifeKm: 5000, tier: "premium", note: "Étriers 4 pistons XT/XTR, métal fritté" },
     ],
   },
 
@@ -196,6 +225,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Comprex compatible Shimano L", brand: "Comprex", price: 10, lifeKm: 2000, tier: "budget", note: "Résine compatible étriers route flat-mount — vérifier L02A/L03A" },
       { name: "Shimano L03A résine", brand: "Shimano", reference: "L03A", price: 20, lifeKm: 2500, tier: "original", note: "Plaquettes route d'origine (résine), silencieuses" },
       { name: "Shimano L04C métal", brand: "Shimano", reference: "L04C", price: 30, lifeKm: 4000, tier: "premium", note: "Métal fritté, longévité accrue, meilleur par temps humide" },
+      { name: "Galfer route type L", brand: "Galfer", price: 22, lifeKm: 3500, tier: "premium", note: "Composé longue durée, bon par temps humide" },
+      { name: "SwissStop Disc 34 RS", brand: "SwissStop", reference: "Disc-34-RS", price: 28, lifeKm: 3500, tier: "premium", note: "Compatible étriers route Shimano type L" },
     ],
   },
 
@@ -208,6 +239,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Comprex compatible Shimano K", brand: "Comprex", price: 12, lifeKm: 2000, tier: "budget", note: "Résine compatible étriers route 12v — vérifier K02S/K03S" },
       { name: "Shimano K02S résine", brand: "Shimano", reference: "K02S", price: 22, lifeKm: 2500, tier: "original", note: "Plaquettes route 12v d'origine (résine)" },
       { name: "Shimano K-type métal", brand: "Shimano", price: 32, lifeKm: 4000, tier: "premium", note: "Métal fritté, longévité accrue — vérifie la réf. (K03S/K04S selon ton étrier)" },
+      { name: "Galfer route type K", brand: "Galfer", price: 24, lifeKm: 3500, tier: "premium", note: "Composé longue durée, étriers route 12v type K" },
     ],
   },
 
@@ -219,6 +251,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Comprex compatible SRAM", brand: "Comprex", price: 9, lifeKm: 2000, tier: "budget", note: "Compatible SRAM Guide/Level — vérifier la référence" },
       { name: "SRAM Organique", brand: "SRAM", price: 20, lifeKm: 2500, tier: "original", note: "Plaquettes SRAM d'origine, organique" },
       { name: "SRAM Métal fritté", brand: "SRAM", price: 28, lifeKm: 4500, tier: "premium", note: "Métal fritté, longévité maximale, mordant en descente" },
+      { name: "Galfer compatible SRAM", brand: "Galfer", price: 22, lifeKm: 4000, tier: "original", note: "Composé Pro, bon mordant" },
+      { name: "Jagwire Pro SRAM", brand: "Jagwire", price: 20, lifeKm: 3500, tier: "original", note: "Compatible Level/Guide, semi-métallique" },
     ],
   },
 
@@ -230,6 +264,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Kool-Stop Dura 2 (paire)", brand: "Kool-Stop", price: 9, lifeKm: 3000, tier: "budget", note: "Bon grip, compatible cartouche Shimano/SRAM" },
       { name: "Shimano R55C4 (paire)", brand: "Shimano", reference: "R55C4", price: 16, lifeKm: 4000, tier: "original", note: "Patins d'origine 105/Ultegra, cartouche replacable" },
       { name: "Swiss Stop Flash Pro (paire)", brand: "Swiss Stop", reference: "Flash-Pro", price: 22, lifeKm: 5500, tier: "premium", note: "Référence performance, excellent mordant par temps humide" },
+      { name: "Kool-Stop Salmon (paire)", brand: "Kool-Stop", price: 12, lifeKm: 3500, tier: "original", note: "Composé saumon, excellent par temps humide" },
+      { name: "SwissStop BXP (paire)", brand: "SwissStop", reference: "BXP", price: 20, lifeKm: 5000, tier: "premium", note: "Polyvalent alu, silencieux et endurant" },
     ],
   },
 
@@ -253,6 +289,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC Z8", brand: "KMC", reference: "Z8.3", price: 12, lifeKm: 2500, tier: "budget", note: "Référence économique 8v, compatible Shimano et SRAM" },
       { name: "Shimano CN-HG40", brand: "Shimano", reference: "CN-HG40", price: 14, lifeKm: 3000, tier: "original", note: "Chaîne d'origine 6/7/8v" },
       { name: "Shimano CN-HG71", brand: "Shimano", reference: "CN-HG71", price: 20, lifeKm: 4000, tier: "premium", note: "Renforcée, très durable, idéale usage quotidien" },
+      { name: "SRAM PC-830", brand: "SRAM", reference: "PC-830", price: 14, lifeKm: 2800, tier: "original", note: "6/7/8v, PowerLink inclus" },
     ],
   },
 
@@ -264,6 +301,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X9", brand: "KMC", reference: "X9.93", price: 14, lifeKm: 2500, tier: "budget", note: "Compatible universelle 9v" },
       { name: "Shimano CN-HG53", brand: "Shimano", reference: "CN-HG53", price: 18, lifeKm: 3000, tier: "original", note: "Chaîne de série Sora / Alivio" },
       { name: "Shimano CN-HG93", brand: "Shimano", reference: "CN-HG93", price: 25, lifeKm: 3500, tier: "premium", note: "Qualité supérieure, rivets renforcés" },
+      { name: "SRAM PC-971", brand: "SRAM", reference: "PC-971", price: 20, lifeKm: 3000, tier: "premium", note: "9v, PowerLink, robuste" },
     ],
   },
 
@@ -275,6 +313,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "KMC X10", brand: "KMC", reference: "X10.93", price: 18, lifeKm: 3000, tier: "budget", note: "Compatible universelle 10v" },
       { name: "Shimano CN-HG54", brand: "Shimano", reference: "CN-HG54", price: 22, lifeKm: 3000, tier: "original", note: "Chaîne de série Tiagra / Deore" },
       { name: "Shimano CN-HG95", brand: "Shimano", reference: "CN-HG95", price: 28, lifeKm: 4000, tier: "premium", note: "Qualité XT/Ultegra 10v, traitement SIL-TEC" },
+      { name: "SRAM PC-1051", brand: "SRAM", reference: "PC-1051", price: 24, lifeKm: 3200, tier: "original", note: "10v, PowerLock inclus" },
     ],
   },
 
@@ -369,6 +408,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Shimano CS-HG31-8", brand: "Shimano", reference: "CS-HG31-8", price: 18, lifeKm: 12000, tier: "budget", note: "Cassette de série Claris" },
       { name: "Shimano CS-HG41-8", brand: "Shimano", reference: "CS-HG41-8", price: 22, lifeKm: 12000, tier: "original", note: "Acier renforcé" },
       { name: "Shimano CS-HG50-8", brand: "Shimano", reference: "CS-HG50-8", price: 30, lifeKm: 15000, tier: "premium", note: "Pignons nickelés, plus durable" },
+      { name: "SunRace CSM55 8v", brand: "SunRace", reference: "CSM55", price: 16, lifeKm: 12000, tier: "budget", note: "Alternative éco compatible Shimano 8v" },
     ],
   },
 
@@ -391,6 +431,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "SunRace CSMS3 10v", brand: "SunRace", reference: "CSMS3", price: 22, lifeKm: 12000, tier: "budget", note: "Alternative économique compatible Shimano" },
       { name: "Shimano Tiagra CS-HG500-10", brand: "Shimano", reference: "CS-HG500-10", price: 28, lifeKm: 15000, tier: "original", note: "Cassette de série Tiagra" },
       { name: "Shimano Deore CS-M4100-10", brand: "Shimano", reference: "CS-M4100-10", price: 35, lifeKm: 16000, tier: "premium", note: "Large plage, très robuste" },
+      { name: "SRAM PG-1050 10v", brand: "SRAM", reference: "PG-1050", price: 35, lifeKm: 14000, tier: "original", note: "10v, compatible corps Shimano/SRAM" },
     ],
   },
 
@@ -404,6 +445,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Shimano SM-RT54", brand: "Shimano", reference: "SM-RT54", price: 18, lifeKm: 15000, tier: "budget", note: "Centerlock, usage route/gravel courant" },
       { name: "Shimano SM-RT70", brand: "Shimano", reference: "SM-RT70", price: 30, lifeKm: 18000, tier: "original", note: "Niveau 105/SLX, Ice-Tech" },
       { name: "Shimano RT-MT800", brand: "Shimano", reference: "RT-MT800", price: 45, lifeKm: 20000, tier: "premium", note: "Ice-Tech Freeza, meilleure dissipation thermique" },
+      { name: "SRAM Centerline X", brand: "SRAM", reference: "Centerline-X", price: 35, lifeKm: 18000, tier: "original", note: "Centerlock ou 6 trous, rond et silencieux" },
+      { name: "Galfer Fixe Disc", brand: "Galfer", price: 30, lifeKm: 18000, tier: "original", note: "Acier inox, bon rapport prix/durée" },
     ],
   },
 
@@ -430,6 +473,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Kit câbles + gaines générique", brand: "Générique", price: 12, lifeKm: 8000, tier: "budget", note: "Kit complet dérailleur ou frein" },
       { name: "Shimano OT-SP41", brand: "Shimano", reference: "OT-SP41", price: 25, lifeKm: 10000, tier: "original", note: "Gaine de référence, glisse optimale" },
       { name: "Jagwire Road Elite", brand: "Jagwire", reference: "Road-Elite", price: 45, lifeKm: 12000, tier: "premium", note: "Câbles polis, gaines compressionless" },
+      { name: "Jagwire Sport (kit)", brand: "Jagwire", reference: "Sport-Shop", price: 20, lifeKm: 9000, tier: "original", note: "Kit complet dérailleur/frein, bon rapport qualité/prix" },
+      { name: "Shimano OT-RS900", brand: "Shimano", reference: "OT-RS900", price: 35, lifeKm: 11000, tier: "premium", note: "Gaine polymère route, friction minimale" },
     ],
   },
 
@@ -442,6 +487,8 @@ export const CATALOG: CatalogEntry[] = [
     products: [
       { name: "Kenda Booster 27.5", brand: "Kenda", reference: "Booster-275", price: 25, lifeKm: 3000, tier: "budget", note: "Bon compromis XC/trail" },
       { name: "Maxxis Ardent 27.5", brand: "Maxxis", reference: "Ardent-275", price: 40, lifeKm: 4000, tier: "original", note: "Polyvalent trail, roulant" },
+      { name: "Maxxis Rekon 27.5", brand: "Maxxis", reference: "Rekon-275", price: 42, lifeKm: 3800, tier: "original", note: "Trail/XC roulant, bon grip polyvalent" },
+      { name: "Schwalbe Nobby Nic 27.5", brand: "Schwalbe", reference: "NobbyNic-275", price: 45, lifeKm: 3500, tier: "original", note: "All-mountain polyvalent, sec comme humide" },
       { name: "Maxxis Minion DHF 27.5", brand: "Maxxis", reference: "DHF-275", price: 55, lifeKm: 4500, tier: "premium", note: "Référence enduro, grip maximal" },
     ],
   },
@@ -455,6 +502,9 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Plateau Stronglight compatible", brand: "Stronglight", price: 25, lifeKm: 25000, tier: "budget", note: "Alternative française, vérifier BCD et denture" },
       { name: "Plateaux Shimano 105 FC-R7000", brand: "Shimano", reference: "FC-R7000", price: 50, lifeKm: 30000, tier: "original", note: "Plateaux d'origine 105, denture usinée" },
       { name: "Plateaux Shimano Ultegra FC-R8000", brand: "Shimano", reference: "FC-R8000", price: 80, lifeKm: 35000, tier: "premium", note: "Usinage Hollowglide, passage de chaîne optimisé" },
+      { name: "Plateaux SRAM Rival", brand: "SRAM", reference: "Rival-Ring", price: 60, lifeKm: 30000, tier: "original", note: "Plateaux d'origine Rival, denture X-Sync" },
+      { name: "Plateau Wolf Tooth 1x", brand: "Wolf Tooth", price: 55, lifeKm: 25000, tier: "premium", note: "Denture Drop-Stop pour montage mono (gravel/VTT)" },
+      { name: "Plateaux Praxis", brand: "Praxis", price: 70, lifeKm: 30000, tier: "premium", note: "Usinage à froid, passage de chaîne fluide" },
     ],
   },
 
@@ -468,6 +518,9 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Boîtier scellé générique", brand: "Générique", price: 18, lifeKm: 12000, tier: "budget", note: "Roulements scellés standard" },
       { name: "Shimano SM-BBR60", brand: "Shimano", reference: "SM-BBR60", price: 30, lifeKm: 15000, tier: "original", note: "BSA fileté, référence route Shimano" },
       { name: "Boîtier céramique (Kogel / CeramicSpeed entrée)", brand: "Kogel", price: 90, lifeKm: 20000, tier: "premium", note: "Roulements céramique, friction réduite" },
+      { name: "SRAM DUB BSA", brand: "SRAM", reference: "DUB-BSA", price: 35, lifeKm: 15000, tier: "original", note: "Filetage BSA, standard DUB" },
+      { name: "Boîtier Praxis (Press-Fit)", brand: "Praxis", price: 45, lifeKm: 15000, tier: "original", note: "Roulements de qualité, adaptateurs PF30/BB86" },
+      { name: "Boîtier CeramicSpeed", brand: "CeramicSpeed", price: 200, lifeKm: 25000, tier: "premium", note: "Céramique, friction minimale, très durable" },
     ],
   },
 
@@ -481,6 +534,7 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Jeu de roulements scellés", brand: "Générique", price: 15, lifeKm: 15000, tier: "budget", note: "Roulements standard ABEC-3, pose par tes soins" },
       { name: "Remplacement chez le vélociste", brand: "Prestation", price: 40, lifeKm: 18000, tier: "original", note: "Roulements qualité + pose et réglage" },
       { name: "Roulements Enduro ABEC-5", brand: "Enduro", price: 60, lifeKm: 25000, tier: "premium", note: "Étanchéité renforcée, idéal pluie/hiver" },
+      { name: "Roulements SKF étanches", brand: "SKF", price: 45, lifeKm: 22000, tier: "premium", note: "Étanchéité renforcée, référence industrielle" },
     ],
   },
 
@@ -494,6 +548,8 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Galets standard (paire)", brand: "Générique", price: 12, lifeKm: 8000, tier: "budget", note: "Bagues plastique, à vérifier régulièrement" },
       { name: "Galets Shimano d'origine (paire)", brand: "Shimano", price: 20, lifeKm: 10000, tier: "original", note: "Roulements scellés, silencieux" },
       { name: "Galets céramique (paire)", brand: "BBB", price: 60, lifeKm: 15000, tier: "premium", note: "Roulements céramique, friction réduite" },
+      { name: "Galets SRAM d'origine (paire)", brand: "SRAM", price: 25, lifeKm: 10000, tier: "original", note: "Roulements scellés, compatibles Eagle/AXS" },
+      { name: "Galets Kogel céramique (paire)", brand: "Kogel", price: 90, lifeKm: 18000, tier: "premium", note: "Céramique, roulements haut de gamme, friction réduite" },
     ],
   },
 
@@ -507,11 +563,41 @@ export const CATALOG: CatalogEntry[] = [
       { name: "Guidoline EVA basique", brand: "Générique", price: 12, lifeKm: 6000, tier: "budget", note: "Mousse EVA, bon grip" },
       { name: "Lizard Skins DSP 2.5", brand: "Lizard Skins", reference: "DSP-2.5", price: 30, lifeKm: 8000, tier: "original", note: "Référence confort/grip, durable" },
       { name: "Guidoline cuir Brooks", brand: "Brooks", price: 45, lifeKm: 12000, tier: "premium", note: "Cuir, patine avec le temps" },
+      { name: "Supacaz Super Sticky Kush", brand: "Supacaz", reference: "SSK", price: 30, lifeKm: 8000, tier: "original", note: "Grip collant, épais, très populaire" },
+      { name: "Fizik Tempo Bondcush", brand: "Fizik", reference: "Bondcush", price: 28, lifeKm: 9000, tier: "original", note: "Amorti confort, bonne tenue dans le temps" },
+      { name: "Silca Nastro Cuscino", brand: "Silca", price: 45, lifeKm: 12000, tier: "premium", note: "Double couche, confort et durabilité premium" },
     ],
   },
 ];
 
 // ── Détection automatique ─────────────────────────────────────
+
+// ── Type générique d'une pièce (pour l'affichage en liste) ────
+// À partir du nom complet ("Cassette Shimano 105 CS-HG700-11"), renvoie le
+// type court ("Cassette"). Sert à afficher le type plutôt que le modèle exact.
+
+export function getComponentType(name: string): string {
+  const n = (name ?? "").toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/plaquette/, "Plaquettes"],
+    [/patin/, "Patins"],
+    [/rotor|disque de frein/, "Disque"],
+    [/cassette/, "Cassette"],
+    [/chaîne|chaine|chain/, "Chaîne"],
+    [/plateau/, "Plateaux"],
+    [/galet|jockey/, "Galets"],
+    [/boîtier|boitier|pédalier|pedalier|bottom bracket/, "Boîtier"],
+    [/roulement|moyeu|bearing/, "Roulements"],
+    [/guidoline|ruban|bar tape/, "Guidoline"],
+    [/pneu|tire|tyre/, "Pneus"],
+    [/câble|cable|gaine/, "Câble"],
+    [/disque|disc/, "Disque"],
+  ];
+  for (const [re, label] of rules) if (re.test(n)) return label;
+  // Format "Type · marque" du formulaire d'ajout
+  if (name && name.includes(" · ")) return name.split(" · ")[0].trim();
+  return name || "Pièce";
+}
 
 export function findCatalogEntry(componentName: string, componentCategory: string): CatalogEntry | null {
   const n = componentName.toLowerCase();
@@ -526,6 +612,49 @@ export function findCatalogEntry(componentName: string, componentCategory: strin
   }
 
   return null;
+}
+
+// ── Recherche libre dans tout le catalogue (autocomplete) ─────
+// Tape "gp 5000", "conti gp", "ultegra chaîne"… → produits correspondants.
+// Chaque mot de la requête doit apparaître dans nom + marque + référence.
+
+export type CatalogSuggestion = CatalogProduct & { source: string };
+
+// Liste à plat, dédupliquée (un même produit apparaît dans plusieurs entrées)
+let _flatProducts: CatalogSuggestion[] | null = null;
+function flatProducts(): CatalogSuggestion[] {
+  if (_flatProducts) return _flatProducts;
+  const seen = new Set<string>();
+  const out: CatalogSuggestion[] = [];
+  for (const entry of CATALOG) {
+    for (const prod of entry.products) {
+      const key = `${prod.brand}|${prod.name}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ ...prod, source: entry.id });
+    }
+  }
+  _flatProducts = out;
+  return out;
+}
+
+export function searchCatalog(query: string, limit = 6): CatalogSuggestion[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
+
+  const scored: { p: CatalogSuggestion; score: number }[] = [];
+  for (const prod of flatProducts()) {
+    const hay = `${prod.brand} ${prod.name} ${prod.reference ?? ""}`.toLowerCase();
+    if (!tokens.every((t) => hay.includes(t))) continue;
+    // Priorité : nom ou marque commençant par la requête, puis position du 1er mot
+    const starts =
+      prod.name.toLowerCase().startsWith(q) || prod.brand.toLowerCase().startsWith(q);
+    const score = (starts ? 0 : 100) + hay.indexOf(tokens[0]);
+    scored.push({ p: prod, score });
+  }
+  scored.sort((a, b) => a.score - b.score);
+  return scored.slice(0, limit).map((x) => x.p);
 }
 
 export const TIER_LABELS: Record<string, string> = {
@@ -578,6 +707,10 @@ export function getCatalogForTemplate(
       ?? CATALOG.find(e => e.id === `cassette-${brand}-${sv}`)
       ?? null;
   }
+  // "Disque" = le rotor (pas les plaquettes) — prioritaire si pas de "plaquette" dans le nom.
+  if (cat === "freinage" && (name.includes("rotor") || (name.includes("disque") && !name.includes("plaquette")))) {
+    return CATALOG.find(e => e.id === "rotor-disc") ?? null;
+  }
   if (isDiscBrake) {
     // Source de vérité : le groupe détermine le type de plaquette (déterministe).
     if (templateId) {
@@ -599,7 +732,12 @@ export function getCatalogForTemplate(
     return CATALOG.find(e => e.id === "brake-rim") ?? null;
   }
   if (isTire) {
-    return CATALOG.find(e => e.id === "tire-road-700c") ?? null;
+    const tireId = templateBikeTypes.includes("vtt")
+      ? "tire-mtb-29"
+      : templateBikeTypes.includes("gravel")
+        ? "tire-gravel"
+        : "tire-road-700c";
+    return CATALOG.find(e => e.id === tireId) ?? null;
   }
 
   return findCatalogEntry(componentName, componentCategory);
