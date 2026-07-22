@@ -5,6 +5,20 @@
 
 ---
 
+## [Unreleased] — Entretiens : une page de gestion par entretien
+
+### Changed
+- `src/app/reglages/entretiens/` : la page de gestion devient un index — chaque entretien est une ligne cliquable qui mène à sa propre page `reglages/entretiens/[slug]` (réglages nom/description/échéances km & mois/coût + suppression). La création passe par `reglages/entretiens/new`. Plus d'édition en ligne groupée.
+- `src/components/bi/maintenance-card.tsx` : le clic sur une ligne d'entretien ouvre directement sa page de gestion.
+
+### Added
+- `src/app/reglages/entretiens/[slug]/{page.tsx,client.tsx}` : page détail/édition d'un entretien (et création via slug « new »).
+
+## [Unreleased] — Ajout pièce : état sélectionné uniforme
+
+### Changed
+- `src/components/bi/new-component-form.tsx` : la suggestion sélectionnée adopte le même style « rempli foncé » que les boutons Type et Durée de vie (au lieu de bordure + coche verte). Les trois sélecteurs du formulaire ont un état sélectionné cohérent.
+
 ## [Unreleased] — Remplacement : enchaînement direct sur l'ajout du remplaçant
 
 ### Changed

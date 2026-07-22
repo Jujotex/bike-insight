@@ -8,9 +8,9 @@ import { MaintenanceSettingsClient, type MaintenanceTypeRow } from "./client";
 export default async function MaintenanceSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ bike?: string; edit?: string }>;
+  searchParams: Promise<{ bike?: string }>;
 }) {
-  const { bike, edit } = await searchParams;
+  const { bike } = await searchParams;
 
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -43,11 +43,9 @@ export default async function MaintenanceSettingsPage({
           breadcrumb={["Réglages", "Entretiens"]}
         />
         <MaintenanceSettingsClient
-          userId={user.id}
           bikes={bikeList}
           types={(types ?? []) as MaintenanceTypeRow[]}
           initialBikeId={initialBikeId}
-          initialEditSlug={edit ?? null}
         />
       </div>
     </AppShell>
