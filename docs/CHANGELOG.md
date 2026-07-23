@@ -5,6 +5,16 @@
 
 ---
 
+## [Unreleased] — Carte entretien : retrait du bouton « Gérer »
+
+### Removed
+- `src/components/bi/maintenance-card.tsx` : bouton « Gérer » retiré de l'en-tête de la carte entretien (page vélo). Les lignes restent cliquables vers la page de chaque entretien.
+
+## [Unreleased] — Fix : dashboard « vélo non configuré » après remplacement
+
+### Fixed
+- `src/app/dashboard/client.tsx` : `hasNoComponents` se basait sur l'absence d'alerte/prédiction, pas sur le nombre réel de pièces. Après un remplacement qui remettait le vélo tout au vert, le dashboard affichait « Aucune pièce configurée » alors que les pièces existaient toujours. Désormais basé sur le nombre de pièces suivies (`readinessByBike[bike].components`).
+
 ## [Unreleased] — Entretiens : une page de gestion par entretien
 
 ### Changed

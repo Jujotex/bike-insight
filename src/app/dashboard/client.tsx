@@ -111,7 +111,10 @@ export function DashboardClient({
   const badItems = filteredAttention.filter(a => a.status === "bad");
   const warnItems = filteredAttention.filter(a => a.status === "warn");
 
-  const hasNoComponents = filteredAttention.length === 0 && filteredPredictions.length === 0;
+  // Vrai « vélo non configuré » = aucune pièce suivie. Avant on se basait sur
+  // l'absence d'alerte/prédiction : après un remplacement qui remet tout au vert,
+  // le vélo semblait vide alors que les pièces existent toujours.
+  const hasNoComponents = (readinessByBike[selectedBikeId]?.components ?? 0) === 0;
 
   // Les entretiens dus comptent dans le statut global du vélo
   const dueMaint = filteredMaintenance.filter(m => m.state === "due");
