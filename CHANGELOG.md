@@ -1,5 +1,15 @@
 # Changelog
 
+## [Non publié] — Carte entretien : bouton « Gérer » retiré
+
+### Supprimé
+- **`maintenance-card.tsx`** : bouton « Gérer » de l'en-tête retiré. Les lignes mènent toujours à la page de chaque entretien.
+
+## [Non publié] — fix : dashboard affichait « non configuré » après un remplacement
+
+### Corrigé
+- **`dashboard/client.tsx`** : le vélo semblait vide sur le dashboard après un remplacement qui remettait tout au vert (plus d'alerte ⇒ écran « Aucune pièce configurée »). `hasNoComponents` se base maintenant sur le nombre réel de pièces suivies, plus sur la présence d'alertes.
+
 ## [Non publié] — Entretiens : gestion par page dédiée
 
 ### Modifié
