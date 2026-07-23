@@ -12,6 +12,7 @@ import {
   DIFFICULTY_COLOR,
   formatRepairTime,
 } from "@/lib/repair-guides";
+import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -336,6 +337,35 @@ export function DashboardClient({
                         <Mono style={{ fontSize: 11, color }}>{Math.round(m.pct)}%</Mono>
                       </div>
                       <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{m.statusLabel}</div>
+                      {(() => {
+                        const mt = findMaintenanceTuto(m.typeId);
+                        if (!mt) return null;
+                        return (
+                          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <span style={{ display: "flex", gap: 2 }}>
+                                {[1, 2, 3].map(n => (
+                                  <span key={n} style={{ width: 12, height: 4, borderRadius: 2, background: n <= DIFFICULTY_LEVEL[mt.difficulty] ? DIFFICULTY_COLOR[mt.difficulty] : "var(--bi-line)" }} />
+                                ))}
+                              </span>
+                              <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>{DIFFICULTY_LABELS[mt.difficulty]}</span>
+                            </span>
+                            {mt.timeMax > 0 && (
+                              <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Soi-même : <Mono>{formatRepairTime(mt.timeMin, mt.timeMax)}</Mono></span>
+                            )}
+                            {mt.laborMin != null && mt.laborMax != null && (
+                              <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Atelier : <Mono>{mt.laborMin}–{mt.laborMax} €</Mono></span>
+                            )}
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(mt.tutorialUrl, "_blank", "noopener,noreferrer"); }}
+                              style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", border: "none", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", padding: "4px 11px" }}
+                            >
+                              Voir le tuto
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </Link>
                 );
