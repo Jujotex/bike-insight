@@ -194,37 +194,45 @@ export function MaintenanceEditClient({
     </BiCard>
 
     {tuto && (
-      <BiCard pad={22} style={{ maxWidth: 620, marginTop: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 0 }}>
-            <BiLabel>Comment le faire</BiLabel>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ display: "flex", gap: 2 }}>
-                  {[1, 2, 3].map((n) => (
-                    <span key={n} style={{ width: 12, height: 4, borderRadius: 2, background: n <= DIFFICULTY_LEVEL[tuto.difficulty] ? DIFFICULTY_COLOR[tuto.difficulty] : "var(--bi-line)" }} />
-                  ))}
-                </span>
-                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>{DIFFICULTY_LABELS[tuto.difficulty]}</span>
-              </span>
-              {tuto.timeMax > 0 && (
-                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>Soi-même : <Mono style={{ fontSize: 12 }}>{formatRepairTime(tuto.timeMin, tuto.timeMax)}</Mono></span>
-              )}
-              {tuto.shopOnly && (
-                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>Plutôt en atelier</span>
-              )}
+      <BiCard pad={0} style={{ maxWidth: 620, marginTop: 14, overflow: "hidden" }}>
+        <a href={tuto.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+          {/* En-tête lime */}
+          <div style={{ padding: "18px 22px", background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 999, background: "var(--bi-ink)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-accent-ink)" }}>Comment le faire</div>
+                <div style={{ fontSize: 16, fontWeight: 600, marginTop: 3, color: "var(--bi-accent-ink)" }}>{type?.label}</div>
+              </div>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0, color: "var(--bi-white)", background: "var(--bi-ink)", padding: "10px 16px", borderRadius: 999 }}>
+              Voir le tuto
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
             </div>
           </div>
-          <a
-            href={tuto.tutorialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
-            Voir le tuto ({tuto.tutorialSource})
-          </a>
-        </div>
+          {/* Arbitrage : temps (soi-même) vs coût (vélociste) */}
+          <div className="bi-grid-2" style={{ gap: 1, background: "var(--bi-line)", borderTop: "1px solid var(--bi-line)" }}>
+            <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+              <BiLabel style={{ fontSize: 10 }}>Je le fais moi-même</BiLabel>
+              <Mono style={{ fontSize: 16, fontWeight: 500 }}>{tuto.timeMax > 0 ? formatRepairTime(tuto.timeMin, tuto.timeMax) : "En atelier"}</Mono>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 3 }}>
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} style={{ width: 16, height: 5, borderRadius: 999, background: n <= DIFFICULTY_LEVEL[tuto.difficulty] ? DIFFICULTY_COLOR[tuto.difficulty] : "var(--bi-line)" }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>{DIFFICULTY_LABELS[tuto.difficulty]}</span>
+              </div>
+            </div>
+            <div style={{ background: "var(--bi-card)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+              <BiLabel style={{ fontSize: 10 }}>Je passe chez le vélociste</BiLabel>
+              <Mono style={{ fontSize: 16, fontWeight: 500 }}>{type?.default_cost != null ? `${type?.default_cost} €` : "—"}</Mono>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>{type?.default_cost != null ? "Coût indicatif, hors pièces" : "Généralement fait soi-même"}</div>
+            </div>
+          </div>
+        </a>
       </BiCard>
     )}
     </>

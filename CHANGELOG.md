@@ -1,5 +1,9 @@
 # Changelog
 
+## [Non publié] — Page entretien : carte tuto riche (façon « Et maintenant ? »)
+
+### Modifié
+- **`reglages/entretiens/[slug]/client.tsx`** : carte tuto au format des pièces (bandeau lime, difficulté/temps DIY vs coût vélociste, bouton « Voir le tuto »).
 ## [Non publié] — Tutos pour les entretiens
 
 ### Ajouté

@@ -319,7 +319,7 @@ export function DashboardClient({
                 const pill = m.state === "due" ? "À FAIRE" : m.state === "soon" ? "BIENTÔT" : "À JOUR";
                 const pillBg = m.state === "due" ? "var(--bi-bad-soft)" : m.state === "soon" ? "var(--bi-warn-soft)" : "var(--bi-ok-soft)";
                 return (
-                  <Link key={m.typeId} href={`/reglages/entretiens?bike=${selectedBikeId}&edit=${m.typeId}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                  <Link key={m.typeId} href={`/reglages/entretiens/${m.typeId}?bike=${selectedBikeId}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                     <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -441,10 +441,10 @@ export function DashboardClient({
                           </span>
                           <button
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/components/${c.id}/tuto`); }}
-                            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "var(--bi-ink)", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", border: "none", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", padding: "4px 11px" }}
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                             Voir le tuto
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
                           </button>
                         </div>
                       );
