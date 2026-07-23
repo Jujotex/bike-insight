@@ -5,6 +5,17 @@
 
 ---
 
+## [Unreleased] — Page entretien : carte tuto adaptative (comme les pièces)
+
+### Changed
+- `src/app/reglages/entretiens/[slug]/{page.tsx,client.tsx}` : la carte tuto suit désormais l'état de l'entretien — bandeau lime vif + bouton sombre si l'entretien est à faire/bientôt, lime pâle + lien discret s'il est à jour (comme la carte « Et maintenant ? » des pièces). L'état est calculé depuis le dernier enregistrement et le km du vélo.
+
+## [Unreleased] — Dashboard entretien : ligne difficulté/temps/atelier + tuto
+
+### Added
+- `src/app/dashboard/client.tsx` : sous chaque entretien de la carte « Entretien », une ligne difficulté + « Soi-même : X min » + « Atelier : X–Y € » + pastille lime « Voir le tuto » (comme les pièces à traiter). Affichée pour les entretiens ayant un tuto dédié.
+- `src/lib/maintenance-tutos.ts` : coût atelier indicatif (`laborMin`/`laborMax`) ajouté aux tutos d'entretien.
+
 ## [Unreleased] — Page entretien : carte tuto façon « Et maintenant ? »
 
 ### Changed

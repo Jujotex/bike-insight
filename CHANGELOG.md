@@ -1,5 +1,14 @@
 # Changelog
 
+## [Non publié] — Carte tuto entretien : couleur selon l'état
+
+### Modifié
+- **`reglages/entretiens/[slug]`** : la carte tuto passe en lime vif (bouton sombre) quand l'entretien est dû/bientôt, et en lime pâle (lien discret) quand il est à jour — comme les pièces.
+## [Non publié] — Dashboard : infos DIY/atelier + tuto sur les entretiens
+
+### Ajouté
+- **`dashboard/client.tsx`** : ligne difficulté · temps DIY · coût atelier · pastille « Voir le tuto » sous chaque entretien (comme les pièces).
+- **`maintenance-tutos.ts`** : coût atelier indicatif ajouté.
 ## [Non publié] — Page entretien : carte tuto riche (façon « Et maintenant ? »)
 
 ### Modifié
