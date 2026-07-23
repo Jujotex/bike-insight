@@ -5,6 +5,18 @@
 
 ---
 
+## [Unreleased] — Tutos d'entretien (comme pour les pièces)
+
+### Added
+- `src/lib/maintenance-tutos.ts` : catalogue de tutos par type d'entretien (difficulté, temps DIY, lien Alltricks vérifié) — lubrification/nettoyage transmission, purge freins, préventif tubeless, contrôle des serrages, suspension et révision (atelier). `findMaintenanceTuto(slug)` renvoie null pour les entretiens personnalisés.
+- `src/app/reglages/entretiens/[slug]/client.tsx` : carte « Comment le faire » (difficulté + temps + lien tuto) sur la page d'un entretien.
+- `src/components/bi/maintenance-card.tsx` : lien « Voir le tuto » dans le formulaire « marquer comme fait » (visible page vélo et dashboard).
+
+## [Unreleased] — Dashboard « À traiter » : lien vers le tuto
+
+### Added
+- `src/app/dashboard/client.tsx` : chaque ligne « À traiter » affiche un lien « Voir le tuto » à côté des infos difficulté/temps/atelier, qui ouvre la page tuto du composant (`/components/[id]/tuto`).
+
 ## [Unreleased] — Carte entretien : retrait du bouton « Gérer »
 
 ### Removed

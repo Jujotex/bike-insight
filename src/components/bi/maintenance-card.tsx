@@ -12,6 +12,7 @@ import {
   type MaintenanceDef,
   type MaintenanceLast,
 } from "@/lib/maintenance-catalog";
+import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 
 // Même langage visuel que le tableau des pièces :
 // barre latérale colorée, barre de progression vers l'échéance + %,
@@ -225,6 +226,12 @@ export function MaintenanceCard({
                 <div style={{ flexBasis: "100%", fontSize: 11, color: "var(--bi-muted)" }}>
                   Enregistré au kilométrage actuel du vélo (<Mono style={{ fontSize: 11 }}>{bikeKm.toLocaleString("fr")} km</Mono>).
                 </div>
+                {(() => { const tuto = findMaintenanceTuto(t.id); return tuto ? (
+                  <a href={tuto.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ flexBasis: "100%", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--bi-ink)", textDecoration: "none" }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                    Voir le tuto ({tuto.tutorialSource})
+                  </a>
+                ) : null; })()}
               </div>
             )}
           </div>

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BiCard } from "@/components/bi/ui";
+import { BiCard, BiLabel, Mono } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
+import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
+import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
 
 export type EditType = {
   id: string;
@@ -61,6 +63,7 @@ export function MaintenanceEditClient({
   const [error, setError] = useState("");
 
   const backHref = `/reglages/entretiens?bike=${bikeId}`;
+  const tuto = type ? findMaintenanceTuto(type.slug) : null;
 
   async function save() {
     if (!fLabel.trim()) { setError("Le nom est requis."); return; }
@@ -118,6 +121,7 @@ export function MaintenanceEditClient({
   }
 
   return (
+    <>
     <BiCard pad={24} style={{ maxWidth: 620 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
@@ -188,5 +192,41 @@ export function MaintenanceEditClient({
         </div>
       </div>
     </BiCard>
+
+    {tuto && (
+      <BiCard pad={22} style={{ maxWidth: 620, marginTop: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 0 }}>
+            <BiLabel>Comment le faire</BiLabel>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ display: "flex", gap: 2 }}>
+                  {[1, 2, 3].map((n) => (
+                    <span key={n} style={{ width: 12, height: 4, borderRadius: 2, background: n <= DIFFICULTY_LEVEL[tuto.difficulty] ? DIFFICULTY_COLOR[tuto.difficulty] : "var(--bi-line)" }} />
+                  ))}
+                </span>
+                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>{DIFFICULTY_LABELS[tuto.difficulty]}</span>
+              </span>
+              {tuto.timeMax > 0 && (
+                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>Soi-même : <Mono style={{ fontSize: 12 }}>{formatRepairTime(tuto.timeMin, tuto.timeMax)}</Mono></span>
+              )}
+              {tuto.shopOnly && (
+                <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>Plutôt en atelier</span>
+              )}
+            </div>
+          </div>
+          <a
+            href={tuto.tutorialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+            Voir le tuto ({tuto.tutorialSource})
+          </a>
+        </div>
+      </BiCard>
+    )}
+    </>
   );
 }
