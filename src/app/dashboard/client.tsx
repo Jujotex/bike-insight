@@ -439,12 +439,19 @@ export function DashboardClient({
                           <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>
                             Atelier : <Mono>{g.laborMin}–{g.laborMax} €</Mono>
                           </span>
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/components/${c.id}/tuto`); }}
+                            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: "var(--bi-ink)", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                            Voir le tuto
+                          </button>
                         </div>
                       );
                     })()}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
-                    {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>~{c.cost} €</Mono>}
+                    {c.cost !== null && <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{c.cost} €</Mono>}
                     <button
                       onClick={(e) => {
                         e.preventDefault();

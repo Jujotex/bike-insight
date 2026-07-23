@@ -1,5 +1,15 @@
 # Changelog
 
+## [Non publié] — Tutos pour les entretiens
+
+### Ajouté
+- **`maintenance-tutos.ts`** : tutos par type d'entretien (difficulté, temps, lien Alltricks), calqués sur les guides de réparation des pièces.
+- **Page entretien** (`[slug]`) : carte « Comment le faire » ; **carte entretien** : lien « Voir le tuto » dans le formulaire de suivi.
+## [Non publié] — Dashboard : « Voir le tuto » sur les pièces à traiter
+
+### Ajouté
+- **`dashboard/client.tsx`** : lien « Voir le tuto » sur chaque ligne « À traiter » (à côté de la difficulté/temps/atelier) → page tuto du composant.
+
 ## [Non publié] — Carte entretien : bouton « Gérer » retiré
 
 ### Supprimé
