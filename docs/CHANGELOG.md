@@ -5,6 +5,11 @@
 
 ---
 
+## [Unreleased] — Page entretien : carte tuto façon « Et maintenant ? »
+
+### Changed
+- `src/app/reglages/entretiens/[slug]/client.tsx` : la carte tuto reprend le format riche des pièces — bandeau lime (clé + « Comment le faire » + nom de l'entretien + bouton « Voir le tuto »), puis deux colonnes « Je le fais moi-même » (temps + difficulté) et « Je passe chez le vélociste » (coût indicatif). La carte entière ouvre le tuto Alltricks.
+
 ## [Unreleased] — Tutos d'entretien (comme pour les pièces)
 
 ### Added
