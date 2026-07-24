@@ -5,6 +5,30 @@
 
 ---
 
+## [Unreleased] — Page Coût : historique remplacements + entretiens
+
+### Added
+- `src/app/cout/history-client.tsx` (nouveau) + `src/app/cout/page.tsx` : carte « Historique » en bas de la page Coût — flux chronologique unifié des remplacements de pièces et des entretiens (icône distincte, date, km, raison, coût), filtres Tout / Remplacements / Entretiens, 20 derniers + « Voir tout », total par filtre. Données depuis `maintenance_logs` du vélo sélectionné (jointure `components(name)` pour le nom de la pièce remplacée).
+
+## [Unreleased] — Pages tuto : vrai bouton retour
+
+### Fixed
+- `src/components/bi/back-button.tsx` (nouveau) + pages tuto composant et entretien : le bouton « Retour » utilise désormais l'historique du navigateur (`router.back()`) au lieu d'un lien fixe. Si tu ouvres le tuto depuis le dashboard, « Retour » te ramène au dashboard (repli sur la fiche si pas d'historique).
+
+## [Unreleased] — Création vélo : description sous chaque composant
+
+### Added
+- `src/lib/components-catalog.ts` : `getComponentDescription(name)` — description courte par type de pièce (débutants).
+- `src/app/onboarding/client.tsx` : à la création d'un vélo, chaque composant affiche une phrase expliquant à quoi il sert (comme la barre d'info à la création d'une pièce).
+
+## [Unreleased] — Tutos entretien : page en app (tuto + vélociste)
+
+### Added
+- `src/app/reglages/entretiens/[slug]/tuto/page.tsx` : page tuto d'un entretien (comme les pièces) — héros, « Je le fais moi-même » (temps + lien tuto Alltricks) et « Je passe chez le vélociste » (coût + recherche de vélociste).
+
+### Changed
+- Les liens « Voir le tuto » des entretiens (dashboard, carte entretien, fiche entretien) mènent désormais vers cette page en app au lieu d'ouvrir directement Alltricks.
+
 ## [Unreleased] — Page entretien : carte tuto adaptative (comme les pièces)
 
 ### Changed

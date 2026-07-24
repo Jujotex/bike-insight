@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
-import { getCatalogForTemplate, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
+import { getCatalogForTemplate, getComponentDescription, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
 import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
 import { resolveBikeModel, type Confidence } from "@/lib/bike-models";
 
@@ -410,6 +410,7 @@ export function OnboardingWizard({
                       </button>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{c.name}</div>
+                        {(() => { const d = getComponentDescription(c.name); return d ? <div style={{ fontSize: 11, color: T.muted, marginTop: 2, lineHeight: 1.35 }}>{d}</div> : null; })()}
                         <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km · {c.purchase_price} €</div>
                       </div>
                       {c.enabled && (

@@ -599,6 +599,27 @@ export function getComponentType(name: string): string {
   return name || "Pièce";
 }
 
+// Description courte d'un type de pièce, pour aider les débutants (création vélo).
+const COMPONENT_TYPE_DESC: Record<string, string> = {
+  "Chaîne": "Transmet ta force à la roue ; la pièce qui s'use le plus vite.",
+  "Pneus": "La gomme en contact avec le sol.",
+  "Cassette": "Le bloc de pignons à l'arrière qui donne les vitesses.",
+  "Plateaux": "Les grandes couronnes dentées du pédalier, à l'avant.",
+  "Plaquettes": "Les patins qui serrent le disque (freins à disque).",
+  "Disque": "Le rotor de frein fixé à la roue.",
+  "Patins": "Les patins de frein sur jante (sans disque).",
+  "Câble": "Les câbles et gaines des dérailleurs et freins mécaniques.",
+  "Galets": "Les petites roues du dérailleur arrière qui guident la chaîne.",
+  "Boîtier": "Les roulements dans lesquels tourne l'axe du pédalier.",
+  "Roulements": "Les roulements des moyeux de roue.",
+  "Guidoline": "Le ruban enroulé autour du cintre.",
+};
+
+// Renvoie une description courte selon le type détecté, ou null si inconnu (pièce libre).
+export function getComponentDescription(name: string): string | null {
+  return COMPONENT_TYPE_DESC[getComponentType(name)] ?? null;
+}
+
 export function findCatalogEntry(componentName: string, componentCategory: string): CatalogEntry | null {
   const n = componentName.toLowerCase();
   const c = componentCategory.toLowerCase();

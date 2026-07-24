@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { CostHistory, type HistoryItem } from "./history-client";
 
 const LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -45,6 +47,34 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
   const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
   const maxActivity = Math.max(...activity.chart, 1);
+
+  // Historique unifié (remplacements + entretiens) du vélo sélectionné
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: logRows } = user
+    ? await supabase
+        .from("maintenance_logs")
+        .select("id, action, maintenance_type, performed_at, km_at_action, cost, reason, components(name)")
+        .eq("user_id", user.id)
+        .eq("bike_id", selectedBikeId)
+        .order("performed_at", { ascending: false })
+        .limit(200)
+    : { data: [] as unknown[] };
+  const historyItems: HistoryItem[] = (logRows ?? []).map((l) => {
+    const compRaw = (l as { components?: { name?: string } | { name?: string }[] | null }).components;
+    const comp = Array.isArray(compRaw) ? compRaw[0] : compRaw;
+    const isMaint = (l as { maintenance_type?: string | null }).maintenance_type != null;
+    const kind: HistoryItem["kind"] = isMaint ? "maint" : "repl";
+    return {
+      id: (l as { id: string }).id,
+      kind,
+      title: isMaint ? ((l as { action: string }).action) : (comp?.name ?? "Pièce remplacée"),
+      dateISO: (l as { performed_at: string }).performed_at,
+      km: ((l as { km_at_action?: number | null }).km_at_action) ?? null,
+      reason: ((l as { reason?: string | null }).reason) ?? null,
+      cost: ((l as { cost?: number | null }).cost) ?? null,
+    };
+  });
 
   return (
     <AppShell nav={<SideNavLoader />}>
@@ -241,6 +271,8 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
           </>
         )}
+
+        <CostHistory items={historyItems} />
       </div>
     </AppShell>
   );
