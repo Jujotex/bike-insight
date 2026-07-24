@@ -25,6 +25,12 @@ const NAV_ITEMS = [
     icon: "M3 3v18h18M7 15l4-4 3 3 5-6",
   },
   {
+    id: "historique",
+    label: "Historique",
+    href: "/historique",
+    icon: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v4l3 2",
+  },
+  {
     id: "account",
     label: "Compte",
     href: "/account",

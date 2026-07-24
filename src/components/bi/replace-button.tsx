@@ -65,6 +65,7 @@ export function ReplaceButton({
 
     await supabase.from("maintenance_logs").insert({
       component_id: componentId,
+      bike_id:      bikeId,
       user_id:      user.id,
       action:       "Remplacement",
       km_at_action: currentBikeKm,

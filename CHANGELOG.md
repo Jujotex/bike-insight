@@ -1,5 +1,21 @@
 # Changelog
 
+## [Non publié] — Historique déplacé sur sa propre page
+
+### Ajouté
+- **`app/historique/page.tsx`** + entrée nav « Historique » (desktop + mobile) : journal complet (remplacements + entretiens) avec sélecteur de vélo et filtres.
+
+### Modifié
+- **`cout/page.tsx`** : historique retiré (page trop chargée), remplacé par un lien vers `/historique`.
+## [Non publié] — fix : les remplacements manquaient dans l'historique Coût
+
+### Corrigé
+- **`replace-button.tsx`** : le log de remplacement enregistre `bike_id` (manquant avant).
+- **`cout/page.tsx`** : les remplacements existants (sans `bike_id`) sont rattachés au vélo via le composant, donc ils apparaissent bien dans l'historique.
+## [Non publié] — Création vélo : description sous un « (i) »
+
+### Modifié
+- **`onboarding/client.tsx`** : la description par composant passe derrière un « (i) » cliquable (au lieu d'être toujours visible) pour désencombrer la liste.
 ## [Non publié] — Page Coût : historique unifié
 
 ### Ajouté
