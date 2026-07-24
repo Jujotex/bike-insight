@@ -1,5 +1,25 @@
 # Changelog
 
+## [Non publié] — Page Coût : historique unifié
+
+### Ajouté
+- **`cout/page.tsx` + `cout/history-client.tsx`** : carte « Historique » (remplacements + entretiens) en bas de la page Coût — chronologique, filtrable (Tout / Remplacements / Entretiens), 20 derniers + « Voir tout », date/km/raison/coût. Source : `maintenance_logs` du vélo sélectionné.
+## [Non publié] — Bouton retour des tutos : vrai retour
+
+### Corrigé
+- **`back-button.tsx`** (nouveau) sur les pages tuto (composant + entretien) : « Retour » suit l'historique (`router.back()`) — depuis le dashboard, on revient au dashboard, plus vers une page fixe.
+## [Non publié] — Création vélo : descriptif par composant
+
+### Ajouté
+- **`components-catalog.ts`** : `getComponentDescription(name)` (description courte par type).
+- **`onboarding/client.tsx`** : chaque composant affiche une phrase « à quoi ça sert » pendant la création du vélo, pour les débutants.
+## [Non publié] — Tutos entretien : page intermédiaire (tuto + vélociste)
+
+### Ajouté
+- **`reglages/entretiens/[slug]/tuto`** : page tuto d'entretien avec « je le fais moi-même » (tuto Alltricks) et « je passe chez le vélociste » (recherche), comme les pièces.
+
+### Modifié
+- Les « Voir le tuto » des entretiens (dashboard, cartes, fiche) ouvrent cette page au lieu d'aller direct sur Alltricks.
 ## [Non publié] — Carte tuto entretien : couleur selon l'état
 
 ### Modifié

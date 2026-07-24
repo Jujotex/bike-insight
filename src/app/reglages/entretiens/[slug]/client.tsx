@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BiCard, BiLabel, Mono } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
+import Link from "next/link";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
 
@@ -197,7 +198,7 @@ export function MaintenanceEditClient({
 
     {tuto && (
       <BiCard pad={0} style={{ marginTop: 14, overflow: "hidden" }}>
-        <a href={tuto.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+        <Link href={`/reglages/entretiens/${type?.slug}/tuto?bike=${bikeId}`} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
           {/* En-tête lime */}
           <div style={{ padding: "18px 22px", background: urgent ? "var(--bi-accent)" : "var(--bi-accent-soft)", borderBottom: urgent ? "none" : "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -234,7 +235,7 @@ export function MaintenanceEditClient({
               <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>{type?.default_cost != null ? "Coût indicatif, hors pièces" : "Généralement fait soi-même"}</div>
             </div>
           </div>
-        </a>
+        </Link>
       </BiCard>
     )}
     </>

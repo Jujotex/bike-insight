@@ -357,7 +357,7 @@ export function DashboardClient({
                               <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Atelier : <Mono>{mt.laborMin}–{mt.laborMax} €</Mono></span>
                             )}
                             <button
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(mt.tutorialUrl, "_blank", "noopener,noreferrer"); }}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/reglages/entretiens/${m.typeId}/tuto?bike=${selectedBikeId}`); }}
                               style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", border: "none", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", padding: "4px 11px" }}
                             >
                               Voir le tuto

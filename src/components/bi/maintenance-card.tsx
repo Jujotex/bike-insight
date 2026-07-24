@@ -227,10 +227,10 @@ export function MaintenanceCard({
                   Enregistré au kilométrage actuel du vélo (<Mono style={{ fontSize: 11 }}>{bikeKm.toLocaleString("fr")} km</Mono>).
                 </div>
                 {(() => { const tuto = findMaintenanceTuto(t.id); return tuto ? (
-                  <a href={tuto.tutorialUrl} target="_blank" rel="noopener noreferrer" style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", borderRadius: 999, padding: "4px 11px", textDecoration: "none" }}>
+                  <Link href={`/reglages/entretiens/${t.id}/tuto?bike=${bikeId}`} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", borderRadius: 999, padding: "4px 11px", textDecoration: "none" }}>
                     Voir le tuto ({tuto.tutorialSource})
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-                  </a>
+                  </Link>
                 ) : null; })()}
               </div>
             )}
