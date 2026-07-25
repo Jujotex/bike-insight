@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { CostHistory, type HistoryItem } from "./history-client";
 
 const LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -48,34 +46,6 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
   const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
   const maxActivity = Math.max(...activity.chart, 1);
 
-  // Historique unifié (remplacements + entretiens) du vélo sélectionné
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: logRows } = user
-    ? await supabase
-        .from("maintenance_logs")
-        .select("id, action, maintenance_type, performed_at, km_at_action, cost, reason, components(name)")
-        .eq("user_id", user.id)
-        .eq("bike_id", selectedBikeId)
-        .order("performed_at", { ascending: false })
-        .limit(200)
-    : { data: [] as unknown[] };
-  const historyItems: HistoryItem[] = (logRows ?? []).map((l) => {
-    const compRaw = (l as { components?: { name?: string } | { name?: string }[] | null }).components;
-    const comp = Array.isArray(compRaw) ? compRaw[0] : compRaw;
-    const isMaint = (l as { maintenance_type?: string | null }).maintenance_type != null;
-    const kind: HistoryItem["kind"] = isMaint ? "maint" : "repl";
-    return {
-      id: (l as { id: string }).id,
-      kind,
-      title: isMaint ? ((l as { action: string }).action) : (comp?.name ?? "Pièce remplacée"),
-      dateISO: (l as { performed_at: string }).performed_at,
-      km: ((l as { km_at_action?: number | null }).km_at_action) ?? null,
-      reason: ((l as { reason?: string | null }).reason) ?? null,
-      cost: ((l as { cost?: number | null }).cost) ?? null,
-    };
-  });
-
   return (
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page">
@@ -93,23 +63,23 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
         ) : (
           <>
             {/* Deux chiffres clés */}
-            <div style={{ display: "grid", gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 14 }} className="bi-grid-2">
-              <div style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
+            <div className="bi-grid-2" style={{ marginBottom: 14 }}>
+              <BiCard pad={22}>
                 <BiLabel>Dépensé en entretien</BiLabel>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
                   <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spendTotal)}</Mono>
                   <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>remplacements + entretiens</div>
-              </div>
-              <div style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
+              </BiCard>
+              <BiCard pad={22}>
                 <BiLabel>Cette année</BiLabel>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
                   <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spend12m)}</Mono>
                   <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
-              </div>
+              </BiCard>
             </div>
 
             {/* Activité 3 mois + Où part ton argent — côte à côte */}
@@ -272,7 +242,13 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
           </>
         )}
 
-        <CostHistory items={historyItems} />
+        <Link href={`/historique?bike=${selectedBikeId}`} className="bi-component-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 22px", marginTop: 14, background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 18, textDecoration: "none", color: "inherit" }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
+            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Tes remplacements et entretiens, datés et chiffrés</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6"/></svg>
+        </Link>
       </div>
     </AppShell>
   );

@@ -91,6 +91,7 @@ export function OnboardingWizard({
   const [wearState, setWearState] = useState<WearState | null>(null);
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
+  const [descOpen, setDescOpen] = useState<number | null>(null);
   const [modelHint, setModelHint] = useState("");
   const [modelConfidence, setModelConfidence] = useState<Confidence | null>(null);
   const [modelNote, setModelNote] = useState("");
@@ -409,8 +410,23 @@ export function OnboardingWizard({
                         {c.enabled && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="3.5" strokeLinecap="round"><path d="M4 12l5 5L20 7"/></svg>}
                       </button>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{c.name}</div>
-                        {(() => { const d = getComponentDescription(c.name); return d ? <div style={{ fontSize: 11, color: T.muted, marginTop: 2, lineHeight: 1.35 }}>{d}</div> : null; })()}
+                        {(() => {
+                          const desc = getComponentDescription(c.name);
+                          const open = descOpen === idx;
+                          return (
+                            <>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{c.name}</span>
+                                {desc && (
+                                  <button type="button" aria-label="À quoi sert cette pièce ?" onClick={() => setDescOpen(o => o === idx ? null : idx)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, background: "none", border: "none", cursor: "pointer", color: open ? T.ink : T.muted, lineHeight: 0 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                  </button>
+                                )}
+                              </div>
+                              {open && desc && <div style={{ fontSize: 11, color: T.muted, marginTop: 3, lineHeight: 1.4 }}>{desc}</div>}
+                            </>
+                          );
+                        })()}
                         <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{c.brand} · {c.km_max.toLocaleString("fr")} km · {c.purchase_price} €</div>
                       </div>
                       {c.enabled && (
