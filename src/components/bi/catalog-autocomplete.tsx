@@ -14,6 +14,7 @@ export function CatalogAutocomplete({
   placeholder,
   inputStyle,
   style,
+  family,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -21,10 +22,13 @@ export function CatalogAutocomplete({
   placeholder?: string;
   inputStyle: React.CSSProperties;
   style?: React.CSSProperties;
+  // Ne suggérer que les produits de cette famille (ex. "cassette").
+  // Absent → toutes les familles.
+  family?: string;
 }) {
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const results = open ? searchCatalog(value) : [];
+  const results = open ? searchCatalog(value, { family }) : [];
 
   return (
     <div style={{ position: "relative", ...style }}>

@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
-import { getCatalogForTemplate, checkBrandCompatibility, type CatalogEntry } from "@/lib/components-catalog";
+import { getCatalogForTemplate, checkBrandCompatibility, componentFamily, type CatalogEntry } from "@/lib/components-catalog";
 import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
 import { BIKE_TEMPLATES } from "@/lib/bike-templates";
 
@@ -190,6 +190,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
             <CatalogAutocomplete
               inputStyle={inputStyle}
               value={brand}
+              family={componentFamily(selectedType.name, selectedType.category)}
               onChange={setBrand}
               onSelect={(p) => {
                 setBrand(p.name);

@@ -659,13 +659,62 @@ function flatProducts(): CatalogSuggestion[] {
   return out;
 }
 
-export function searchCatalog(query: string, limit = 6): CatalogSuggestion[] {
+// ── Famille de pièce ─────────────────────────────────────────
+// Sert à ne suggérer que les produits du même type que la pièce éditée
+// (ex. n'afficher que des cassettes quand on change une cassette).
+// Renvoie un jeton stable partagé par catalogFamily (id catalogue) et
+// componentFamily (nom + catégorie de la pièce).
+
+// Depuis l'id d'une entrée catalogue (= `source` d'une suggestion).
+export function catalogFamily(sourceId: string): string {
+  const id = sourceId.toLowerCase();
+  if (id.startsWith("cassette")) return "cassette";
+  if (id.startsWith("chain")) return "chaine";
+  if (id.startsWith("tire")) return "pneu";
+  if (id.startsWith("rotor")) return "disque";
+  if (id.startsWith("brake-rim")) return "patin";
+  if (id.startsWith("brake-disc") || id.startsWith("brake-generic")) return "plaquette";
+  if (id.startsWith("chainring")) return "plateau";
+  if (id.startsWith("cable")) return "cable";
+  if (id.startsWith("bottom-bracket")) return "boitier";
+  if (id.startsWith("wheel-bearings")) return "roulements";
+  if (id.startsWith("jockey")) return "galets";
+  if (id.startsWith("bar-tape")) return "guidoline";
+  return "autre";
+}
+
+// Depuis le nom (+ catégorie) de la pièce qu'on est en train d'éditer.
+export function componentFamily(name: string, _category?: string): string {
+  const n = (name ?? "").toLowerCase();
+  if (n.includes("cassette") || n.includes("cs-")) return "cassette";
+  if (n.includes("plateau") || n.includes("chainring")) return "plateau";
+  if (n.includes("chaine") || n.includes("chaîne") || n.includes("chain") || n.includes("kmc")) return "chaine";
+  if (n.includes("pneu") || n.includes("tire") || n.includes("tyre")) return "pneu";
+  if (n.includes("plaquette")) return "plaquette";
+  if (n.includes("patin")) return "patin";
+  if (n.includes("rotor") || (n.includes("disque") && !n.includes("plaquette"))) return "disque";
+  if (n.includes("câble") || n.includes("cable") || n.includes("gaine")) return "cable";
+  if (n.includes("boîtier") || n.includes("boitier")) return "boitier";
+  if (n.includes("roulement") || n.includes("bearing")) return "roulements";
+  if (n.includes("galet") || n.includes("jockey")) return "galets";
+  if (n.includes("guidoline") || n.includes("ruban")) return "guidoline";
+  return "autre";
+}
+
+export function searchCatalog(
+  query: string,
+  opts: { family?: string; limit?: number } = {}
+): CatalogSuggestion[] {
+  const { family, limit = 6 } = opts;
   const q = query.trim().toLowerCase();
   if (q.length < 2) return [];
   const tokens = q.split(/\s+/).filter(Boolean);
+  // Filtre par famille seulement si elle est connue et reconnue par le catalogue.
+  const filterFamily = family && family !== "autre" ? family : null;
 
   const scored: { p: CatalogSuggestion; score: number }[] = [];
   for (const prod of flatProducts()) {
+    if (filterFamily && catalogFamily(prod.source) !== filterFamily) continue;
     const hay = `${prod.brand} ${prod.name} ${prod.reference ?? ""}`.toLowerCase();
     if (!tokens.every((t) => hay.includes(t))) continue;
     // Priorité : nom ou marque commençant par la requête, puis position du 1er mot
