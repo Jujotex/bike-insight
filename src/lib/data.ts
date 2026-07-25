@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from './supabase-server'
+import { createSupabaseServerClient, getCachedUser } from './supabase-server'
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 
@@ -6,12 +6,10 @@ import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 
 export async function getDashboardData() {
   const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) return null
 
   const now = new Date()
-  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-  const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
 
   const { data: bikes } = await supabase
     .from('bike_stats')
@@ -22,49 +20,38 @@ export async function getDashboardData() {
 
   const [
     { data: allComponents },
-    { data: ninetyDaysActivities },
-    { data: yearActivitiesByBike },
+    { data: activityStats },
     { data: bikeMaintLogs },
+    defsByBike,
   ] = await Promise.all([
     // Composants actifs SUIVIS (km_max renseigné → km_remaining non nul) de tous
     // les vélos. Les pièces sans suivi km n'ont ni usure ni statut : les inclure
     // fausserait les moyennes.
     supabase.from('component_stats').select('*').eq('user_id', user.id).eq('is_active', true).not('km_remaining', 'is', null),
-    // Activités 90j + 12m par vélo pour calculer le rythme km/semaine (avec fallback)
-    supabase.from('activities').select('bike_id, distance_km, started_at').eq('user_id', user.id).gte('started_at', ninetyDaysAgo.toISOString()),
-    supabase.from('activities').select('bike_id, distance_km').eq('user_id', user.id).gte('started_at', twelveMonthsAgo.toISOString()),
+    // Agrégats d'activité par vélo (90j + 12m) calculés en base — évite de
+    // rapatrier toutes les sorties pour les additionner ici.
+    supabase.from('activity_bike_stats').select('bike_id, km_90d, km_365d, rides_365d').eq('user_id', user.id),
     // Entretiens au niveau vélo (lubrification, purge, ...) pour les alertes
     supabase.from('maintenance_logs').select('bike_id, maintenance_type, performed_at, km_at_action').eq('user_id', user.id).not('maintenance_type', 'is', null).order('performed_at', { ascending: false }),
+    // Types d'entretien par vélo — parallélisé ici plutôt qu'en série plus bas.
+    fetchUserMaintenanceDefsByBike(supabase, user.id),
   ])
 
-  // Distance + sorties 12 mois PAR VÉLO — tous les chiffres du dashboard sont
-  // rattachés au vélo sélectionné, jamais mélangés avec le global tous vélos.
+  // Distance + sorties 12 mois PAR VÉLO + rythme km/semaine (90j, repli 12m).
+  // Tout vient de la vue agrégée : un objet par vélo, plus de reduce sur les
+  // sorties brutes.
   const km12mByBike: Record<string, number> = {}
   const rides12mByBike: Record<string, number> = {}
-  for (const a of yearActivitiesByBike ?? []) {
-    const bid = a.bike_id as string | null
-    if (!bid) continue
-    km12mByBike[bid] = (km12mByBike[bid] ?? 0) + (a.distance_km ?? 0)
-    rides12mByBike[bid] = (rides12mByBike[bid] ?? 0) + 1
-  }
-  for (const k of Object.keys(km12mByBike)) km12mByBike[k] = Math.round(km12mByBike[k])
-
-  // ── Prédictions de remplacement ──────────────────────────────
-  // Rythme km/semaine par vélo sur les 90 derniers jours
   const kmPerWeekByBike = new Map<string, number>()
-  for (const bike of (bikes ?? [])) {
-    const bikeKm90d = (ninetyDaysActivities ?? [])
-      .filter(a => a.bike_id === bike.id)
-      .reduce((s, a) => s + (a.distance_km ?? 0), 0)
-    if (bikeKm90d > 0) {
-      kmPerWeekByBike.set(bike.id as string, bikeKm90d / 13) // 90j ≈ 13 semaines
-    } else {
-      // Fallback: utiliser le rythme sur 12 mois si 90j est vide (période creuse)
-      const bikeKm12m = (yearActivitiesByBike ?? [])
-        .filter(a => a.bike_id === bike.id)
-        .reduce((s, a) => s + (a.distance_km ?? 0), 0)
-      kmPerWeekByBike.set(bike.id as string, bikeKm12m / 52)
-    }
+  for (const s of activityStats ?? []) {
+    const bid = s.bike_id as string | null
+    if (!bid) continue
+    const km90 = (s.km_90d as number) ?? 0
+    const km365 = (s.km_365d as number) ?? 0
+    km12mByBike[bid] = Math.round(km365)
+    rides12mByBike[bid] = (s.rides_365d as number) ?? 0
+    // 90j ≈ 13 semaines ; repli sur 12 mois (52 sem.) si période creuse.
+    kmPerWeekByBike.set(bid, km90 > 0 ? km90 / 13 : km365 / 52)
   }
 
   const bikeName = new Map((bikes ?? []).map(b => [b.id as string, b.name as string]))
@@ -166,7 +153,7 @@ export async function getDashboardData() {
   // On n'alerte que sur les entretiens déjà enregistrés au moins une fois :
   // pas de fausses alertes pour les entretiens non pertinents pour l'utilisateur.
   // Les types d'entretien sont désormais propres à chaque vélo (table maintenance_types).
-  const defsByBike = await fetchUserMaintenanceDefsByBike(supabase, user.id)
+  // (defsByBike est chargé en parallèle plus haut, dans le Promise.all.)
   const lastMaintByBikeType: Record<string, MaintenanceLast> = {}
   for (const l of bikeMaintLogs ?? []) {
     const key = `${l.bike_id}:${l.maintenance_type}`
@@ -254,7 +241,7 @@ export async function getDashboardData() {
 
 export async function getCostData(bikeId?: string | null) {
   const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) return null
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
@@ -267,7 +254,7 @@ export async function getCostData(bikeId?: string | null) {
   const [
     { data: allBikesRaw },
     { data: allBikeCompStatus },
-    { data: allBikeActs12m },
+    { data: allBikeStats12m },
   ] = await Promise.all([
     supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
     // État des pièces de TOUS les vélos — pastille de couleur du sélecteur.
@@ -276,15 +263,20 @@ export async function getCostData(bikeId?: string | null) {
       .select('bike_id, status')
       .eq('user_id', user.id)
       .eq('is_active', true),
-    // Distance 12 mois de TOUS les vélos — ordre du sélecteur. Non filtrée :
-    // l'ordre des pastilles ne doit pas dépendre du vélo sélectionné, sinon
-    // elles bougeraient sous le clic.
+    // Distance 12 mois de TOUS les vélos — ordre du sélecteur. Agrégée en base
+    // (vue), non filtrée par vélo : l'ordre des pastilles ne doit pas dépendre
+    // du vélo sélectionné, sinon elles bougeraient sous le clic.
     supabase
-      .from('activities')
-      .select('bike_id, distance_km')
-      .eq('user_id', user.id)
-      .gte('started_at', twelveMonthsAgo),
+      .from('activity_bike_stats')
+      .select('bike_id, km_365d')
+      .eq('user_id', user.id),
   ])
+
+  const km12mByBikeAll: Record<string, number> = {}
+  for (const s of allBikeStats12m ?? []) {
+    const bid = s.bike_id as string | null
+    if (bid) km12mByBikeAll[bid] = (s.km_365d as number) ?? 0
+  }
 
   const allBikes = (allBikesRaw ?? [])
     .map(b => {
@@ -295,9 +287,7 @@ export async function getCostData(bikeId?: string | null) {
         : own.some(c => c.status === 'warn')
           ? 'warn' as const
           : 'ok' as const
-      const km12m = (allBikeActs12m ?? [])
-        .filter(a => a.bike_id === b.id)
-        .reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
+      const km12m = km12mByBikeAll[b.id as string] ?? 0
       return { id: b.id as string, name: b.name as string, status, km12m }
     })
     // Le vélo le plus roulé sur 12 mois en premier : c'est celui que
@@ -344,6 +334,7 @@ export async function getCostData(bikeId?: string | null) {
     { data: maintLogs },
     { data: replacements },
     { data: bikeMaintLogs },
+    defsByBikeCost,
   ] = await Promise.all([
     effectiveBikeId ? compQ.eq('bike_id', effectiveBikeId) : compQ,
     effectiveBikeId ? bikeQ.eq('id', effectiveBikeId) : bikeQ,
@@ -356,6 +347,8 @@ export async function getCostData(bikeId?: string | null) {
       .eq('user_id', user.id)
       .eq('action', 'Remplacement'),
     effectiveBikeId ? bikeMaintQ.eq('bike_id', effectiveBikeId) : bikeMaintQ,
+    // Types d'entretien par vélo — parallélisé ici plutôt qu'en série plus bas.
+    fetchUserMaintenanceDefsByBike(supabase, user.id),
   ])
 
   const comps = components ?? []
@@ -541,7 +534,7 @@ export async function getCostData(bikeId?: string | null) {
 
   // Entretiens à venir qui ont un coût atelier indicatif (purge, révision, suspension…) :
   // ils font partie du budget à prévoir, on les intègre à la projection.
-  const defsByBikeCost = await fetchUserMaintenanceDefsByBike(supabase, user.id)
+  // (defsByBikeCost est chargé en parallèle plus haut, dans le Promise.all.)
   const lastMaintCost: Record<string, MaintenanceLast> = {}
   for (const l of bikeMaintLogs ?? []) {
     const k = `${l.bike_id}:${l.maintenance_type}`
@@ -636,7 +629,7 @@ export async function getCostData(bikeId?: string | null) {
 
 export async function getSyncData() {
   const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) return null
 
   const [{ data: bikes }, { data: activities }, { data: profile }] = await Promise.all([
@@ -662,7 +655,7 @@ export async function getSyncData() {
 
 export async function getBikeData(bikeId: string) {
   const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) return null
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
