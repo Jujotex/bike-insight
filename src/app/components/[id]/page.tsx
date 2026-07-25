@@ -82,6 +82,18 @@ export default async function ComponentDetailPage({
     ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : "-";
 
+  // Activités du vélo — une seule requête, réutilisée pour le rythme (vie restante) et le graphe.
+  let bikeRides: { started_at: string; distance_km: number | null }[] = [];
+  if (kmMax > 0 && comp.bike_id) {
+    let ridesQuery = supabase
+      .from("activities")
+      .select("started_at, distance_km")
+      .eq("bike_id", comp.bike_id as string);
+    if (comp.installed_at) ridesQuery = ridesQuery.gte("started_at", comp.installed_at as string);
+    const { data: ra } = await ridesQuery.order("started_at", { ascending: true });
+    bikeRides = (ra ?? []) as { started_at: string; distance_km: number | null }[];
+  }
+
   // Vie restante : estimation du temps avant la limite d'usure, extrapolée
   // depuis le rythme moyen (km/jour) constaté depuis l'installation.
   // Sans date d'installation, aucun rythme n'est calculable → on l'assume.
@@ -93,16 +105,11 @@ export default async function ComponentDetailPage({
     // marche même sans date d'installation (pièces "d'origine" / "je ne sais pas").
     // À défaut, repli sur le rythme depuis l'installation.
     let kmPerDay = 0;
-    const since = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: paceRides } = await supabase
-      .from("activities")
-      .select("started_at, distance_km")
-      .eq("bike_id", comp.bike_id as string)
-      .gte("started_at", since)
-      .order("started_at", { ascending: true });
-    if (paceRides && paceRides.length > 0) {
-      const totalKm = paceRides.reduce((sum, a) => sum + ((a.distance_km as number) ?? 0), 0);
-      const firstMs = new Date(paceRides[0].started_at as string).getTime();
+    const sinceMs = Date.now() - 180 * 24 * 60 * 60 * 1000;
+    const recentRides = bikeRides.filter((a) => new Date(a.started_at).getTime() >= sinceMs);
+    if (recentRides.length > 0) {
+      const totalKm = recentRides.reduce((sum, a) => sum + (a.distance_km ?? 0), 0);
+      const firstMs = new Date(recentRides[0].started_at).getTime();
       const spanDays = Math.max(1, (Date.now() - firstMs) / (1000 * 60 * 60 * 24));
       kmPerDay = totalKm / spanDays;
     }
@@ -138,14 +145,7 @@ export default async function ComponentDetailPage({
   // "je ne sais pas"), le graphe démarre à la première activité connue du vélo,
   // avec l'usure déjà accumulée à ce moment-là comme point de départ.
   if (kmMax > 0 && comp.bike_id) {
-    let ridesQuery = supabase
-      .from("activities")
-      .select("started_at, distance_km")
-      .eq("bike_id", comp.bike_id as string);
-    if (comp.installed_at) ridesQuery = ridesQuery.gte("started_at", comp.installed_at as string);
-    const { data: rideActivities } = await ridesQuery.order("started_at", { ascending: true });
-
-    const rides = rideActivities ?? [];
+    const rides = bikeRides;
     const chartStartMs = installedMs
       ?? (rides.length > 0 ? new Date(rides[0].started_at as string).getTime() : null);
 

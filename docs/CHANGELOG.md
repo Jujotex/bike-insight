@@ -5,6 +5,28 @@
 
 ---
 
+## [Unreleased] — Historique : uniformisation avec la charte
+
+### Changed
+- `src/app/historique/page.tsx` : le sélecteur de vélo affiche les pastilles de statut colorées comme sur le dashboard et Coût (état des pièces par vélo) ; le `PageHead` n'a plus de fil d'Ariane (comme les pages de premier niveau).
+- `src/app/cout/history-client.tsx` : la carte de la liste s'intitule « Journal » (au lieu de « Historique », doublon avec le titre de page).
+
+## [Unreleased] — Historique : graphes dépenses/mois + subi vs choisi
+
+### Added
+- `src/app/historique/history-charts.tsx` (nouveau) : deux graphes en haut de la page Historique — histogramme des dépenses par mois (12 derniers mois, survol pour le détail) et répartition « Subi ou choisi ? » par nature (entretien planifié / usure / incident / anticipé). Calculés depuis les logs déjà chargés (aucune requête en plus) ; masqués si aucune dépense.
+
+## [Unreleased] — Perf : la nav n'appelle plus la vue bike_stats
+
+### Fixed
+- `src/components/bi/side-nav-loader.tsx` : la navigation (chargée sur chaque page) lisait la vue `bike_stats` juste pour les noms de vélos, forçant à recalculer les agrégats de coûts et la sous-requête « pièce la plus critique » à chaque page. Elle lit désormais la table `bikes` directement — chargement plus rapide sur toute l'app.
+- `src/app/historique/page.tsx` : même optimisation pour le sélecteur de vélo.
+
+## [Unreleased] — Perf : fiche composant, une seule requête activités
+
+### Fixed
+- `src/app/components/[id]/page.tsx` : la « Vie restante » interrogeait `activities` une 2e fois (en plus du graphe). Les activités du vélo sont désormais récupérées une seule fois et réutilisées pour le rythme et le graphe — une requête et un aller-retour réseau en moins sur chaque fiche composant.
+
 ## [Unreleased] — Historique : page dédiée
 
 ### Added
