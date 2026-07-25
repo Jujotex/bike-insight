@@ -63,21 +63,6 @@ export default async function ComparePage({
   const statusColor = status === "bad" ? "var(--bi-bad)" : status === "warn" ? "var(--bi-warn)" : "var(--bi-ok)";
   const urgencyLabel = status === "bad" ? "URGENT" : status === "warn" ? "À SURVEILLER" : "OK";
 
-  // Vie restante estimée
-  let daysLabel = "—";
-  if (kmRemaining > 0 && kmUsed > 0 && comp.installed_at) {
-    const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
-    if (ageDays > 0) {
-      const kmPerDay = kmUsed / ageDays;
-      const daysLeft = Math.round(kmRemaining / kmPerDay);
-      if (daysLeft < 7) daysLabel = "~ " + daysLeft + " j";
-      else if (daysLeft < 30) daysLabel = "~ " + Math.round(daysLeft / 7) + " sem.";
-      else daysLabel = "~ " + Math.round(daysLeft / 30) + " mois";
-    }
-  } else if (kmRemaining === 0 && kmMax > 0) {
-    daysLabel = "Dépassé";
-  }
-
   // ── Catalogue ──────────────────────────────────────────────
   // Priorité au groupe enregistré du vélo (fiable), fallback sur la détection par mots-clés
   const bikeTemplate = bike?.groupset_template_id
@@ -136,6 +121,20 @@ export default async function ComparePage({
     kmPerYear = km365;
   } else {
     kmPerYear = 3000;
+  }
+
+  // Vie restante estimée — basée sur le MÊME rythme que le reste de la page
+  // (kmPerYear = vraie distance 12 mois, avec repli odomètre), et non sur la
+  // moyenne à vie depuis l'installation qui sous-estimait le rythme récent.
+  let daysLabel = "—";
+  if (kmRemaining === 0 && kmMax > 0) {
+    daysLabel = "Dépassé";
+  } else if (kmRemaining > 0 && kmPerYear > 0) {
+    const daysLeft = Math.round((kmRemaining / kmPerYear) * 365);
+    if (daysLeft < 7) daysLabel = "~ " + daysLeft + " j";
+    else if (daysLeft < 30) daysLabel = "~ " + Math.round(daysLeft / 7) + " sem.";
+    else if (daysLeft < 730) daysLabel = "~ " + Math.round(daysLeft / 30) + " mois";
+    else daysLabel = "~ " + (daysLeft / 365).toFixed(1).replace(".", ",") + " ans";
   }
 
   return (
