@@ -120,34 +120,44 @@ export async function getDashboardData() {
     readinessByBike[_bid] = { value: _cScore, components: _comps.length }
   }
 
-  // ── Attention items (bad + warn, tous vélos) ─────────────────
+  // ── Items pièces (mêmes champs quel que soit le statut) ──────
+  const toItem = (c: (typeof allActive)[number]) => {
+    const bikeId = c.bike_id as string
+    const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
+    const kmRem = (c.km_remaining as number) ?? 0
+    const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRem / weeklyKm)) : null
+    return {
+      id: c.id as string,
+      name: c.name as string,
+      brand: (c.brand as string) ?? null,
+      category: (c.category as string) ?? 'autre',
+      bikeName: bikeName.get(bikeId) ?? '—',
+      bikeId,
+      status: c.status as string,
+      wearPct: Math.round((c.wear_pct as number) ?? 0),
+      kmRemaining: Math.max(0, Math.round(kmRem)),
+      weeksUntil,
+      cost: (c.purchase_price as number) ?? null,
+    }
+  }
+
+  // Attention (bad + warn) — les pièces qui demandent une action.
   const attentionItems = allActive
     .filter(c => c.status === 'bad' || c.status === 'warn')
-    .map(c => {
-      const bikeId = c.bike_id as string
-      const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
-      const kmRem = (c.km_remaining as number) ?? 0
-      const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRem / weeklyKm)) : null
-      return {
-        id: c.id as string,
-        name: c.name as string,
-        brand: (c.brand as string) ?? null,
-        category: (c.category as string) ?? 'autre',
-        bikeName: bikeName.get(bikeId) ?? '—',
-        bikeId,
-        status: c.status as string,
-        wearPct: Math.round((c.wear_pct as number) ?? 0),
-        kmRemaining: Math.max(0, Math.round(kmRem)),
-        weeksUntil,
-        cost: (c.purchase_price as number) ?? null,
-      }
-    })
+    .map(toItem)
     .sort((a, b) => {
       if (a.status === 'bad' && b.status !== 'bad') return -1
       if (a.status !== 'bad' && b.status === 'bad') return 1
       return b.wearPct - a.wearPct
     })
-    
+
+  // Pièces OK (rien à faire) — renvoyées quand même pour toujours montrer
+  // sur le dashboard où en est chaque pièce, la plus usée en premier.
+  const okItems = allActive
+    .filter(c => c.status !== 'bad' && c.status !== 'warn')
+    .map(toItem)
+    .sort((a, b) => b.wearPct - a.wearPct)
+
 
   // ── Alertes entretien (niveau vélo) ──────────────────────────
   // On n'alerte que sur les entretiens déjà enregistrés au moins une fois :
@@ -227,6 +237,7 @@ export async function getDashboardData() {
     rides12mByBike,
     predictions,
     attentionItems,
+    okItems,
     readinessByBike,
     maintenanceAlerts,
     maintenanceSummaryByBike,
