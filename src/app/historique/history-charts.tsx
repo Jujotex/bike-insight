@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BiCard, Mono } from "@/components/bi/ui";
-import type { HistoryItem } from "./history-client";
+import type { HistoryItem } from "../cout/history-client";
 
 export function HistoryCharts({ items }: { items: HistoryItem[] }) {
   const totalCost = items.reduce((s, i) => s + (i.cost ?? 0), 0);
