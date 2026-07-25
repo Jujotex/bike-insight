@@ -1,7 +1,7 @@
 // Server Component — pas de "use client"
 // Fait le fetch des vélos + notifs non lues et renvoie <SideNav> avec les vraies données.
 
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseServerClient, getCachedUser } from '@/lib/supabase-server'
 import { SideNav, SideNavBike } from './side-nav'
 
 export async function SideNavLoader() {
@@ -12,10 +12,10 @@ export async function SideNavLoader() {
   let unreadCount = 0
 
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCachedUser()
 
     if (user) {
+      const supabase = await createSupabaseServerClient()
       const [{ data: bikesData }, { count }] = await Promise.all([
         supabase
           .from('bikes')
