@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
-import { getCatalogForTemplate, getComponentDescription, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
+import { getCatalogForTemplate, getComponentDescription, componentFamily, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
 import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
 import { resolveBikeModel, type Confidence } from "@/lib/bike-models";
 
@@ -91,6 +91,9 @@ export function OnboardingWizard({
   const [wearState, setWearState] = useState<WearState | null>(null);
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [swappingIdx, setSwappingIdx] = useState<number | null>(null);
+  // Famille de la pièce en cours d'édition (capturée à l'ouverture du panneau,
+  // depuis le nom canonique) → filtre les suggestions du catalogue.
+  const [swapFamily, setSwapFamily] = useState<string | null>(null);
   const [modelHint, setModelHint] = useState("");
   const [modelConfidence, setModelConfidence] = useState<Confidence | null>(null);
   const [modelNote, setModelNote] = useState("");
@@ -401,7 +404,7 @@ export function OnboardingWizard({
                       Pièces à usure lente <span style={{ textTransform: "none", fontWeight: 400 }}>— cochées par défaut, décoche celles que tu ne veux pas suivre</span>
                     </div>
                   )}
-                  <div style={{ borderRadius: 14, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", overflow: "hidden", opacity: c.enabled ? 1 : 0.5 }}>
+                  <div style={{ borderRadius: 14, border: `1px solid ${c.enabled ? T.line : "rgba(14,14,16,0.06)"}`, background: c.enabled ? T.bg : "rgba(14,14,16,0.02)", opacity: c.enabled ? 1 : 0.5 }}>
                     {/* Header row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
                       <button onClick={() => { updateComponent(idx, "enabled", !c.enabled); if (!c.enabled) setSwappingIdx(null); }}
@@ -429,7 +432,11 @@ export function OnboardingWizard({
                       </div>
                       {c.enabled && (
                         <button
-                          onClick={() => setSwappingIdx(swappingIdx === idx ? null : idx)}
+                          onClick={() => {
+                            const willOpen = swappingIdx !== idx;
+                            setSwappingIdx(willOpen ? idx : null);
+                            setSwapFamily(willOpen ? componentFamily(c.name, c.category) : null);
+                          }}
                           style={{ fontSize: 12, padding: "5px 12px", borderRadius: 999, border: `1px solid ${swappingIdx === idx ? T.ink : T.line}`, background: swappingIdx === idx ? T.ink : "transparent", color: swappingIdx === idx ? T.bg : T.muted, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, flexShrink: 0 }}
                         >
                           {swappingIdx === idx ? "Fermer" : "Modifier"}
@@ -493,6 +500,7 @@ export function OnboardingWizard({
                             <CatalogAutocomplete
                               inputStyle={{ ...inputStyle, fontSize: 13 }}
                               value={c.name}
+                              family={swapFamily ?? undefined}
                               onChange={(v) => updateComponent(idx, "name", v)}
                               onSelect={(p) => {
                                 updateComponent(idx, "name", p.name);

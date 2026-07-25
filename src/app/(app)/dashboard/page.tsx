@@ -8,7 +8,7 @@ export default async function DashboardPage() {
 
   const {
     user, bikes,
-    readinessByBike, attentionItems, predictions,
+    readinessByBike, attentionItems, okItems, predictions,
     maintenanceAlerts, maintenanceSummaryByBike,
     km12mByBike, rides12mByBike,
   } = data;
@@ -26,6 +26,7 @@ export default async function DashboardPage() {
           bikes={bikes as unknown as Array<Record<string, unknown>>}
           readinessByBike={readinessByBike}
           attentionItems={attentionItems}
+          okItems={okItems}
           predictions={predictions}
           maintenanceAlerts={maintenanceAlerts}
           maintenanceSummaryByBike={maintenanceSummaryByBike}

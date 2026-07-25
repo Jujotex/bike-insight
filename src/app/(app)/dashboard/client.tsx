@@ -87,6 +87,7 @@ export interface DashboardClientProps {
   bikes: Array<Record<string, unknown>>;
   readinessByBike: Record<string, { value: number; components: number }>;
   attentionItems: AttentionItem[];
+  okItems: AttentionItem[];
   predictions: Prediction[];
   maintenanceAlerts: MaintenanceAlert[];
   maintenanceSummaryByBike: Record<string, MaintenanceSummary>;
@@ -96,7 +97,7 @@ export interface DashboardClientProps {
 
 export function DashboardClient({
   userName, todayCap, bikes,
-  attentionItems, predictions, maintenanceAlerts, maintenanceSummaryByBike, readinessByBike,
+  attentionItems, okItems, predictions, maintenanceAlerts, maintenanceSummaryByBike, readinessByBike,
   km12mByBike, rides12mByBike,
 }: DashboardClientProps) {
   const router = useRouter();
@@ -105,6 +106,7 @@ export function DashboardClient({
   const selectedBike = bikes.find(b => (b.id as string) === selectedBikeId) ?? bikes[0] ?? null;
 
   const filteredAttention = attentionItems.filter(a => a.bikeId === selectedBikeId);
+  const filteredOk = okItems.filter(a => a.bikeId === selectedBikeId);
   const filteredPredictions = predictions.filter(p => p.bikeId === selectedBikeId);
   const filteredMaintenance = maintenanceAlerts.filter(m => m.bikeId === selectedBikeId);
   const maintenanceSummary = maintenanceSummaryByBike[selectedBikeId] ?? { counts: { due: 0, soon: 0, ok: 0 }, items: [] };
@@ -404,17 +406,41 @@ export function DashboardClient({
           </div>
 
           {filteredAttention.length === 0 ? (
-            <div style={{ padding: "8px 22px 24px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 999, background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Tout est en ordre.</div>
-                  <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucune pièce ne nécessite d&apos;attention.</div>
+            filteredOk.length === 0 ? (
+              <div style={{ padding: "8px 22px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 999, background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-ok)" }}>Tout est en ordre.</div>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Aucune pièce suivie sur ce vélo.</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              // Rien à traiter : on affiche quand même chaque pièce avec son usure
+              // et ses km restants — le dashboard reste informatif dans tous les cas.
+              filteredOk.map((c) => (
+                <Link key={c.id} href={`/components/${c.id}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                  <div style={{ width: 4, height: 40, background: "var(--bi-ok)", borderRadius: 2, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{CATEGORY_LABELS[c.category] ?? c.name}</span>
+                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{c.name}</div>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ flex: 1, maxWidth: 180, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ width: `${c.wearPct}%`, height: "100%", background: "var(--bi-ok)", borderRadius: 999 }} />
+                      </div>
+                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{c.wearPct}%</Mono>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <Mono style={{ fontSize: 13, fontWeight: 600 }}>{c.kmRemaining.toLocaleString("fr")}</Mono>
+                    <div style={{ fontSize: 11, color: "var(--bi-muted)" }}>km restants</div>
+                  </div>
+                </Link>
+              ))
+            )
           ) : (
             filteredAttention.map((c, i) => {
               const color = c.status === "bad" ? "var(--bi-bad)" : "var(--bi-warn)";
