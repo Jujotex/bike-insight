@@ -44,7 +44,7 @@ export function CostHistory({ items }: { items: HistoryItem[] }) {
     <BiCard pad={0} style={{ marginTop: 14, overflow: "hidden" }}>
       <div style={{ padding: "20px 22px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", borderBottom: "1px solid var(--bi-line)" }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600 }}>Historique</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Journal</div>
           <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Tes remplacements et entretiens, du plus récent au plus ancien</div>
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>

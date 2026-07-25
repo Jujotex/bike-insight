@@ -1,5 +1,22 @@
 # Changelog
 
+## [Non publié] — Historique : cohérence graphique
+
+### Modifié
+- **`historique/page.tsx`** : pastilles de statut colorées sur le sélecteur de vélo (comme dashboard/Coût), fil d'Ariane retiré du PageHead.
+- **`cout/history-client.tsx`** : carte liste renommée « Journal » (évite le doublon avec le titre « Historique »).
+## [Non publié] — Historique : deux graphes
+
+### Ajouté
+- **`historique/history-charts.tsx`** : histogramme des dépenses par mois + répartition « subi vs choisi » (par nature), au-dessus du journal. Calculés côté client depuis les logs déjà chargés.
+## [Non publié] — perf : nav plus légère (partout)
+
+### Corrigé
+- **`side-nav-loader.tsx`** : la nav (toutes les pages) lit la table `bikes` au lieu de la vue `bike_stats` (qui recalculait coûts + pièce critique à chaque chargement). Idem sur la page historique.
+## [Non publié] — perf : fiche composant
+
+### Corrigé
+- **`components/[id]/page.tsx`** : suppression d'une requête `activities` en double (la « vie restante » réutilise maintenant les données du graphe).
 ## [Non publié] — Historique déplacé sur sa propre page
 
 ### Ajouté

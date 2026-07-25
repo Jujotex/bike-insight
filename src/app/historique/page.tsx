@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { BikePicker } from "@/components/bi/bike-picker";
 import { CostHistory, type HistoryItem } from "../cout/history-client";
+import { HistoryCharts } from "./history-charts";
 
 export default async function HistoriquePage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
   const { bike } = await searchParams;
@@ -13,13 +14,34 @@ export default async function HistoriquePage({ searchParams }: { searchParams: P
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: bikes } = await supabase
-    .from("bike_stats")
-    .select("id, name")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("total_km", { ascending: false });
-  const bikeList = (bikes ?? []).map((b) => ({ id: b.id as string, name: b.name as string }));
+  const [{ data: bikes }, { data: compStatuses }] = await Promise.all([
+    supabase
+      .from("bikes")
+      .select("id, name")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("total_km", { ascending: false }),
+    // État des pièces de chaque vélo → pastille colorée du sélecteur (comme dashboard/coût).
+    supabase
+      .from("component_stats")
+      .select("bike_id, status")
+      .eq("user_id", user.id)
+      .eq("is_active", true),
+  ]);
+  const statusByBike = new Map<string, "ok" | "warn" | "bad">();
+  for (const c of compStatuses ?? []) {
+    const bid = c.bike_id as string;
+    const st = c.status as string;
+    const cur = statusByBike.get(bid);
+    if (st === "bad") statusByBike.set(bid, "bad");
+    else if (st === "warn" && cur !== "bad") statusByBike.set(bid, "warn");
+    else if (!cur) statusByBike.set(bid, "ok");
+  }
+  const bikeList = (bikes ?? []).map((b) => ({
+    id: b.id as string,
+    name: b.name as string,
+    status: statusByBike.get(b.id as string) ?? ("ok" as const),
+  }));
   const selectedBikeId = bike && bikeList.some((b) => b.id === bike) ? bike : bikeList[0]?.id ?? "";
 
   const { data: logRows } = selectedBikeId
@@ -58,7 +80,7 @@ export default async function HistoriquePage({ searchParams }: { searchParams: P
   return (
     <AppShell nav={<SideNavLoader />}>
       <div className="bi-page">
-        <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" breadcrumb={["Historique"]} />
+        <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" />
         <BikePicker bikes={bikeList} selected={selectedBikeId} basePath="/historique" />
         {historyItems.length === 0 ? (
           <BiCard pad={40} style={{ textAlign: "center", marginTop: 14 }}>
@@ -68,7 +90,10 @@ export default async function HistoriquePage({ searchParams }: { searchParams: P
             </div>
           </BiCard>
         ) : (
-          <CostHistory items={historyItems} />
+          <>
+            <HistoryCharts items={historyItems} />
+            <CostHistory items={historyItems} />
+          </>
         )}
       </div>
     </AppShell>
