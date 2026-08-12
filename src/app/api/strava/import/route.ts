@@ -147,22 +147,25 @@ export async function POST(request: Request) {
     const activities = await res.json()
     if (!Array.isArray(activities) || activities.length === 0) break
 
+    // Minimisation des données (API Policy §6.2/6.4 : ne retenir que le nécessaire).
+    // On ne conserve QUE ce qui sert réellement :
+    //   - strava_id  : idempotence de l'upsert (pas de double comptage des km) et,
+    //                  surtout, capacité à retirer la contribution d'une sortie que
+    //                  l'athlète supprimerait sur Strava (obligation §6.3, sous 48 h) ;
+    //   - bike_id, distance_km, started_at : seules colonnes lues par les graphes
+    //                  et les statistiques 12 mois.
+    // Volontairement PAS repris : `name` (contenu de l'athlète), `total_elevation_gain`,
+    // `moving_time` — ils n'étaient lus que par `getSyncData`, supprimée car orpheline.
     const rows = activities.filter(isCycling).map((a: {
       id: number
-      name: string
       distance: number
-      moving_time: number
-      total_elevation_gain: number
       start_date: string
       gear_id: string | null
     }) => ({
       user_id: user.id,
       strava_id: a.id,
       bike_id: a.gear_id ? (bikeMap.get(a.gear_id) ?? null) : null,
-      name: a.name,
       distance_km: Math.round((a.distance / 1000) * 10) / 10,
-      moving_time_s: a.moving_time,
-      elevation_m: a.total_elevation_gain,
       started_at: a.start_date,
     }))
 

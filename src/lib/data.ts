@@ -636,31 +636,10 @@ export async function getCostData(bikeId?: string | null) {
   }
 }
 
-// ── Sync page data ─────────────────────────────────────────────
-
-export async function getSyncData() {
-  const supabase = await createSupabaseServerClient()
-  const user = await getCachedUser()
-  if (!user) return null
-
-  const [{ data: bikes }, { data: activities }, { data: profile }] = await Promise.all([
-    supabase.from('bike_stats').select('id, name, total_km, strava_gear_id').eq('user_id', user.id).eq('is_active', true).order('total_km', { ascending: false }),
-    supabase.from('activities').select('name, bike_id, started_at, distance_km, moving_time_s, elevation_m').eq('user_id', user.id).order('started_at', { ascending: false }).limit(10),
-    supabase.from('profiles').select('full_name, strava_athlete_id').eq('id', user.id).single(),
-  ])
-
-  const bikeNames = new Map((bikes ?? []).map(b => [b.id, b.name]))
-
-  return {
-    user,
-    profile: profile ?? null,
-    bikes: bikes ?? [],
-    activities: (activities ?? []).map(a => ({
-      ...a,
-      bikeName: a.bike_id ? (bikeNames.get(a.bike_id) ?? '—') : '—',
-    })),
-  }
-}
+// `getSyncData` supprimée (2026-08-12) : fonction orpheline, importée nulle part.
+// C'était le seul consommateur de `activities.name`, `.moving_time_s` et `.elevation_m` —
+// des données Strava conservées sans être affichées, donc sans finalité au sens de
+// l'API Policy §6.4. L'import ne les écrit plus.
 
 // ── Bike detail data ───────────────────────────────────────────
 
