@@ -85,10 +85,15 @@ export default async function BikesPage() {
   const totalRides = rides12m;
   const totalCost = Math.round((maintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0));
 
+  // Horloge lue une seule fois pour toute la page : un composant serveur est
+  // rendu une fois par requête.
+  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  const nowMs = Date.now();
+
   function formatLastRide(iso: string | null): string {
     if (!iso) return "Aucune sortie";
     const d = new Date(iso);
-    const diffDays = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((nowMs - d.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays === 0) return "Aujourd'hui";
     if (diffDays === 1) return "Hier";
     if (diffDays < 7) return `Il y a ${diffDays} j`;

@@ -3,6 +3,7 @@
  * Mirrors the design tokens from the Pulse maquettes.
  */
 import React from "react";
+import Link from "next/link";
 
 // ── Status dot ────────────────────────────────────────────────
 export function Dot({ color, size = 8 }: { color: string; size?: number }) {
@@ -52,14 +53,18 @@ export function ProgressBar({
 }
 
 // ── Card ──────────────────────────────────────────────────────
+// `pad` : trois usages seulement.
+//   défaut ("20px 22px") → carte normale
+//   0                    → carte à sections (CardHead + .bi-rows)
+//   40                   → état vide (voir EmptyState)
 export function BiCard({
   children,
-  pad = 18,
+  pad = "20px 22px",
   style = {},
   className = "",
 }: {
   children: React.ReactNode;
-  pad?: number;
+  pad?: number | string;
   style?: React.CSSProperties;
   className?: string;
 }) {
@@ -92,13 +97,328 @@ export function BiLabel({
       style={{
         fontSize: 11,
         fontWeight: 600,
-        letterSpacing: "0.06em",
+        letterSpacing: "0.07em",
         textTransform: "uppercase",
         color: "var(--bi-muted)",
         ...style,
       }}
     >
       {children}
+    </div>
+  );
+}
+
+// ── Card header ───────────────────────────────────────────────
+// En-tête des cartes CONTENEUR (liste, graphe, tableau).
+// Les cartes MÉTRIQUE (un chiffre et rien d'autre) utilisent <BiLabel>.
+export function CardHead({
+  title,
+  sub,
+  right,
+}: {
+  title: React.ReactNode;
+  sub?: React.ReactNode;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        padding: "20px 22px 14px",
+        borderBottom: "1px solid var(--bi-line)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+        {sub && (
+          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
+            {sub}
+          </div>
+        )}
+      </div>
+      {right && <div style={{ textAlign: "right", flexShrink: 0 }}>{right}</div>}
+    </div>
+  );
+}
+
+// ── Metric ────────────────────────────────────────────────────
+// Chiffre + unité. Deux tailles, pas plus :
+//   lg → chiffre principal d'une carte métrique
+//   sm → chiffre secondaire (en-tête de carte, colonne)
+// L'unité est toujours détachée, en 12px muted mono, alignée sur la baseline.
+export function Metric({
+  value,
+  unit,
+  size = "lg",
+  color,
+  align = "left",
+}: {
+  value: React.ReactNode;
+  unit?: string;
+  size?: "lg" | "sm";
+  color?: string;
+  align?: "left" | "right";
+}) {
+  const scale =
+    size === "lg"
+      ? { fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }
+      : { fontSize: 20, fontWeight: 600, letterSpacing: -0.4 };
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: 6,
+        justifyContent: align === "right" ? "flex-end" : "flex-start",
+      }}
+    >
+      <Mono style={{ ...scale, color: color ?? "var(--bi-ink)" }}>{value}</Mono>
+      {unit && (
+        <span
+          style={{
+            fontSize: 12,
+            color: "var(--bi-muted)",
+            fontFamily: "var(--bi-font-mono)",
+          }}
+        >
+          {unit}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Chevron ───────────────────────────────────────────────────
+// Une seule taille pour les lignes cliquables : 14.
+// (Le chevron de fil d'ariane de PageHead est un cas à part, il reste à 9.)
+export function Chevron({ size = 14 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--bi-muted)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ flexShrink: 0 }}
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+// ── List row ──────────────────────────────────────────────────
+// Ligne de liste dans une carte `pad={0}`. À placer dans un
+// conteneur .bi-rows, qui gère les filets entre lignes.
+//   accent  → barre latérale colorée (statut, catégorie)
+//   leading → pastille / avatar (événement)
+export function ListRow({
+  href,
+  accent,
+  leading,
+  title,
+  sub,
+  trailing,
+  chevron,
+}: {
+  href?: string;
+  accent?: string;
+  leading?: React.ReactNode;
+  title: React.ReactNode;
+  sub?: React.ReactNode;
+  trailing?: React.ReactNode;
+  chevron?: boolean;
+}) {
+  const showChevron = chevron ?? !!href;
+  const style: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "14px 22px",
+    textDecoration: "none",
+    color: "inherit",
+  };
+
+  const inner = (
+    <>
+      {accent && (
+        <div
+          style={{
+            width: 4,
+            height: 26,
+            background: accent,
+            borderRadius: 2,
+            flexShrink: 0,
+          }}
+        />
+      )}
+      {leading}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            minWidth: 0,
+          }}
+        >
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {title}
+          </span>
+        </div>
+        {sub && (
+          <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
+            {sub}
+          </div>
+        )}
+      </div>
+      {trailing}
+      {showChevron && <Chevron />}
+    </>
+  );
+
+  return href ? (
+    <Link href={href} className="bi-row bi-component-row" style={style}>
+      {inner}
+    </Link>
+  ) : (
+    <div className="bi-row" style={style}>
+      {inner}
+    </div>
+  );
+}
+
+// ── Chip (filtre cliquable) ───────────────────────────────────
+// Deux tailles : md pour un sélecteur de page (BikePicker),
+// sm pour un filtre à l'intérieur d'une carte.
+export function chipStyle(active: boolean, size: "md" | "sm" = "sm"): React.CSSProperties {
+  const scale =
+    size === "md"
+      ? { padding: "7px 16px", fontSize: 13 }
+      : { padding: "5px 12px", fontSize: 12 };
+  return {
+    ...scale,
+    borderRadius: 999,
+    border: `1px solid ${active ? "var(--bi-ink)" : "var(--bi-line)"}`,
+    background: active ? "var(--bi-ink)" : "transparent",
+    color: active ? "var(--bi-bg)" : "var(--bi-muted)",
+    fontWeight: active ? 600 : 500,
+    fontFamily: "inherit",
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+    transition: "all 0.12s",
+  };
+}
+
+export function Chip({
+  active,
+  onClick,
+  size = "sm",
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  size?: "md" | "sm";
+  children: React.ReactNode;
+}) {
+  return (
+    <button onClick={onClick} style={chipStyle(active, size)}>
+      {children}
+    </button>
+  );
+}
+
+// ── Empty state ───────────────────────────────────────────────
+export function EmptyState({
+  title,
+  text,
+  action,
+}: {
+  title: string;
+  text: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <BiCard pad={40} style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>{text}</div>
+      {action && <div style={{ marginTop: 20 }}>{action}</div>}
+    </BiCard>
+  );
+}
+
+// ── Bars (mini histogramme) ───────────────────────────────────
+// Barres verticales : h90, gap 4, radius 2.
+// accent au-dessus du seuil · --bi-bar-idle en dessous · --bi-line si zéro.
+// `onHover` n'est passé que depuis un composant client.
+export function Bars({
+  values,
+  height = 90,
+  gap = 4,
+  hovered = null,
+  onHover,
+}: {
+  values: number[];
+  height?: number;
+  gap?: number;
+  hovered?: number | null;
+  onHover?: (i: number | null) => void;
+}) {
+  const max = Math.max(...values, 1);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap, height }}>
+      {values.map((v, i) => (
+        <div
+          key={i}
+          // Les handlers ne sont attachés que si `onHover` est fourni :
+          // sans ça, un composant serveur poserait une prop d'événement.
+          {...(onHover
+            ? { onMouseEnter: () => onHover(i), onMouseLeave: () => onHover(null) }
+            : {})}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "flex-end",
+            height: "100%",
+            cursor: "default",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: `${v > 0 ? Math.max(4, Math.round((v / max) * 100)) : 2}%`,
+              minHeight: 2,
+              borderRadius: 2,
+              background:
+                v <= 0
+                  ? "var(--bi-line)"
+                  : v > max * 0.6
+                    ? "var(--bi-accent)"
+                    : "var(--bi-bar-idle)",
+              opacity: hovered === i ? 0.7 : 1,
+              transition: "opacity 0.1s",
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 }

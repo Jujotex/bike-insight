@@ -1,0 +1,43 @@
+name: CI
+
+# Vérifie chaque PR et chaque push sur main. Raison d'être : le 12/08/2026, une
+# erreur de type (une classe CSS passée à un composant qui n'accepte pas `className`)
+# est passée jusqu'au build Vercel, donc après le commit et le push. `tsc` l'aurait
+# attrapée sur la PR.
+#
+# Périmètre volontairement réduit à tsc + lint : c'est rapide (moins d'une minute) et
+# ça couvre la classe d'erreurs rencontrée. Le `next build` complet reste fait par
+# Vercel sur chaque preview — inutile de le payer deux fois. Les tests unitaires
+# viendront s'ajouter ici quand ils existeront.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Une PR poussée plusieurs fois d'affilée n'exécute que la dernière série.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # À garder aligné avec la version Node configurée sur Vercel
+          # (Project Settings → General → Node.js Version).
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint

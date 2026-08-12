@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Mono } from "@/components/bi/ui";
+import { Bars, Chip, Mono } from "@/components/bi/ui";
 
 type Period = "30j" | "90j" | "12m";
 
@@ -68,7 +68,6 @@ export function ActivityChart({ activities }: ActivityChartProps) {
 
   const { bars, labels } = useMemo(() => buildChart(activities, period), [activities, period]);
 
-  const maxVal = Math.max(...bars, 1);
   const totalKm = bars.reduce((s, v) => s + v, 0);
   const totalRides = bars.filter(v => v > 0).length;
   const avgKm = totalRides > 0 ? Math.round(totalKm / totalRides) : 0;
@@ -88,40 +87,15 @@ export function ActivityChart({ activities }: ActivityChartProps) {
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {PERIODS.map(p => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              style={{
-                fontSize: 11,
-                padding: "4px 10px",
-                borderRadius: 999,
-                border: period === p ? "none" : "1px solid var(--bi-line)",
-                background: period === p ? "var(--bi-ink)" : "transparent",
-                color: period === p ? "var(--bi-bg)" : "var(--bi-muted)",
-                fontWeight: period === p ? 600 : 400,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
+            <Chip key={p} active={period === p} onClick={() => setPeriod(p)}>
               {p}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>
 
-      <div style={{ marginTop: 18, height: 80, display: "flex", alignItems: "flex-end", gap: period === "12m" ? 6 : 4 }}>
-        {bars.map((h, i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: `${Math.max(2, Math.round((h / maxVal) * 100))}%`,
-              background: h > maxVal * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)",
-              borderRadius: 2,
-              minHeight: 2,
-            }}
-          />
-        ))}
+      <div style={{ marginTop: 18 }}>
+        <Bars values={bars} height={80} gap={period === "12m" ? 6 : 4} />
       </div>
 
       <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
