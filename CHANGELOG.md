@@ -1,5 +1,99 @@
 # Changelog
 
+## [Non publié] — Politique de confidentialité (API Policy §7.3, §6.5, §7.7)
+
+### Ajouté
+- **`app/confidentialite/page.tsx`** (nouveau) : page publique, accessible **sans compte** — Strava comme les stores exigent une URL consultable par un reviewer non connecté. Couvre le §7.3 (conformité RGPD : responsable de traitement, finalités et bases légales, durées de conservation, droits, recours CNIL), le §6.5 (mention obligatoire des Usage Data collectées par Strava et primauté de sa politique en cas de contradiction) et le §7.7 (sous-traitants : Supabase, Vercel, Strava). Détaille ce qui est récupéré sur Strava — identifiant de sortie, vélo, distance, date — et surtout ce qui ne l'est **pas** : tracés GPS, noms de sorties, fréquence cardiaque, puissance, photos, données d'autres athlètes.
+- Lien vers la page dans le **pied de page de la landing** (l'endroit qu'un reviewer regarde en premier), en plus de la page Compte.
+
+### Corrigé
+- **`app/signup/page.tsx`** : « Conditions » et « Politique de confidentialité » étaient de **faux liens** (`<span>` stylés en liens, sans destination) — on faisait accepter à l'inscription des documents introuvables. Le lien confidentialité est désormais réel ; la mention des CGU est retirée en attendant qu'elles existent, plutôt que de promettre un document inexistant.
+
+### Notes
+- ⚠️ **Trois constantes à renseigner en tête de la page avant publication** : statut juridique du responsable de traitement (particulier / micro-entreprise + SIRET) et **région d'hébergement Supabase** — cette dernière détermine s'il y a un transfert hors UE à déclarer.
+- ⚠️ Texte rédigé à partir du code et des obligations contractuelles, **non relu par un juriste**.
+- CGU toujours à écrire (§9.2). Non bloquant pour la demande Strava, bloquant pour les stores.
+
+## [Non publié] — Suppression de compte réelle (Apple + API Policy §2.5/§7.4)
+
+*Le bouton « Supprimer mon compte » ouvrait un `mailto` : rien n'était supprimé. Non conforme à
+l'exigence Apple de suppression déclenchable dans l'app (ferme depuis 2022, motif de rejet direct)
+et aux §2.5/§7.4 de l'API Policy Strava.*
+
+### Ajouté
+- **`supabase/migrations/20260812000002_delete_own_account.sql`** : fonction `delete_own_account()` en `security definer`, qui supprime `auth.users` où `id = auth.uid()`. **Choix assumé plutôt qu'une route utilisant la clé de service** : pas de `SUPABASE_SERVICE_ROLE_KEY` introduite dans l'application, donc pas de secret tout-puissant supplémentaire à protéger. `search_path` vide et identifiants pleinement qualifiés (une fonction `security definer` ne doit pas être détournable via le search_path) ; `execute` révoqué à `public`/`anon`, accordé au seul rôle `authenticated`. L'identifiant vient d'`auth.uid()`, jamais d'un paramètre : un utilisateur ne peut supprimer que lui-même.
+- **`api/account/delete/route.ts`** (nouveau) : révoque d'abord l'autorisation chez Strava (`POST /oauth/deauthorize`, best effort — supprimer nos copies ne suffit pas si l'accès reste ouvert chez eux), appelle la fonction, puis vide la session locale (`signOut({ scope: 'local' })`, un signOut global échouerait sur un compte déjà supprimé).
+
+### Modifié
+- **`account/client.tsx`** : le bouton déclenche la vraie suppression, avec état de chargement, gestion d'erreur, et un **écran de confirmation** qui tient lieu de trace écrite immédiate (§2.5).
+
+### Notes
+- Cascades vérifiées migration par migration : `auth.users` → `profiles` → `bikes` → `components`/`maintenance_types`, plus `activities`, `maintenance_logs`, `notifications`, `notification_settings`. Aucune table orpheline.
+- ⚠️ **Migration à appliquer manuellement sur Supabase.**
+- ⚠️ **Reste à faire** : la confirmation écrite par **email** (§2.5). L'écran de confirmation est un premier niveau ; un email est plus solide, mais aucun fournisseur d'envoi n'est branché. Marqué en commentaire dans la route.
+- ⚠️ **À tester sur un compte jetable avant tout** — l'opération est irréversible.
+
+## [Non publié] — Consentement, support et liens légaux (API Policy §2.1, §2.4, §7.2, §7.3)
+
+### Modifié
+- **`connect/strava/page.tsx`** : l'écran d'autorisation portait une liste de bénéfices produit (« Import en une fois », « Auto-détection »…). Remplacée par les **divulgations de consentement exigées avant toute autorisation** : types de données récupérées, ce qui n'est explicitement **pas** récupéré (GPS, noms de sorties, fréquence cardiaque, données d'autres athlètes), méthode de collecte, finalité — plus le retrait du consentement (lien direct vers `strava.com/settings/apps`) et la demande de suppression avec confirmation écrite. C'est l'écran que Strava examinera en capture.
+- **`account/client.tsx`** : nouvelle carte « Aide et confidentialité » (contact support, politique de confidentialité, révocation de l'accès Strava) et lien « Gérer sur Strava » dans la carte Connexions.
+
+### Ajouté
+- **`lib/contact.ts`** (nouveau) : centralise l'adresse de support, l'URL de révocation Strava et le chemin de la politique de confidentialité.
+
+### Notes
+- Adresse de support : `tang.dietsch@gmail.com`. Adresse personnelle assumée en attendant un domaine — une boîte réellement relevée vaut mieux qu'un `support@bikeinsight.app` qui ne reçoit rien et qu'un reviewer peut tester. À repasser sur une adresse de domaine avant les fiches store.
+- ⚠️ **`/confidentialite` n'existe pas encore** : le lien pointe dans le vide. Page à créer avant la demande de capacité (§7.3).
+- 🔴 **Trouvaille : « Supprimer mon compte » ne supprime rien** — le bouton ouvre un `mailto`. Non conforme à l'exigence Apple de suppression in-app (ferme depuis 2022) **et** aux §2.5/§7.4 (suppression sous 30 jours + confirmation écrite). Piste documentée en commentaire dans le code : fonction Postgres `delete_own_account()` en `security definer`, qui évite d'introduire un `SUPABASE_SERVICE_ROLE_KEY`. Non implémentée.
+
+## [Non publié] — Minimisation des données Strava conservées (API Policy §6.2/6.4)
+
+*Suite de la passe de conformité. L'[API Policy](https://www.strava.com/legal/api_policy)
+limite la rétention aux données nécessaires à la finalité. Analyse complète dans
+`retention-donnees-strava.md` (dossier projet).*
+
+### Constat
+`activities.name`, `.moving_time_s` et `.elevation_m` étaient écrits par l'import Strava et lus
+par la seule fonction `getSyncData` — **orpheline, importée nulle part**. Du contenu d'athlète
+conservé indéfiniment sans jamais être affiché : le seul point de non-conformité indiscutable de
+l'audit. À l'inverse, le moteur d'usure ne lit **pas** cette table (il calcule
+`bikes.total_km - components.installed_km`), donc usure, statuts et coûts ne sont pas concernés.
+
+### Modifié
+- **`api/strava/import/route.ts`** : l'import ne conserve plus que `strava_id`, `bike_id`, `distance_km`, `started_at`. `strava_id` est gardé délibérément — il assure l'idempotence de l'upsert (sinon double comptage des km à chaque resync) et il est **nécessaire pour honorer le §6.3** : sans lui, impossible de retirer la contribution d'une sortie que l'athlète supprimerait sur Strava.
+- **`lib/data.ts`** : `getSyncData` supprimée (code mort, seul consommateur des colonnes purgées).
+
+### Ajouté
+- **`supabase/migrations/20260812000001_minimize_strava_activity_data.sql`** : purge des trois colonnes sur les lignes d'origine Strava + contrainte `activities_no_strava_content` empêchant toute réintroduction. `name` reste autorisé sur les **sorties manuelles** (`strava_id is null`) : donnée de l'utilisateur, affichée dans l'app, hors périmètre de la Policy.
+
+### Notes
+- ⚠️ **Migration destructive** : à appliquer manuellement sur Supabase après sauvegarde.
+- Question sur l'interprétation du §6.2 (limite de 7 jours) à poser par écrit à Strava dans la demande de capacité — formulation prête dans `retention-donnees-strava.md`. Plan de repli chiffré si Strava tranche strictement ; dans tous les cas le produit reste entier, seule la granularité d'historique serait affectée.
+
+## [Non publié] — Conformité Brand Guidelines Strava (avant demande de capacité)
+
+*Passe de conformité préalable à la demande d'augmentation de capacité auprès de Strava
+(l'app est en « Single Player Mode », capacité 1 athlète). Référence :
+<https://developers.strava.com/guidelines/>, révision du 29 septembre 2025.*
+
+### Ajouté
+- **`components/bi/strava-brand.tsx`** (nouveau) : `StravaConnectButton` (bouton officiel, hauteur 48px imposée par la section 1.1), `PoweredByStrava` (attribution, section 4) et `StravaAttributionFooter`. Les deux composants basculent sur un **repli texte conforme** tant que les assets officiels ne sont pas déposés — le repli du bouton est volontairement neutre (encre), reprendre l'orange de marque sans l'asset officiel étant précisément ce que les guidelines proscrivent.
+- **`public/strava/`** (nouveau) : les deux SVG officiels, déposés tels quels et **versionnés** (sans eux dans le build, la prod retomberait sur le repli texte) — `connect-with-strava-orange.svg` (237×48) et `powered-by-strava-horizontal-orange.svg` (365×37) — plus un README traçant leur origine exacte dans les archives Strava.
+- **`components/bi/app-shell.tsx`** : attribution « Powered by Strava » en fin de flux de contenu (et non en barre fixe, pour ne pas réduire la hauteur utile sur mobile).
+
+### Modifié
+- **`connect/strava/page.tsx`** : la pastille « STRAVA » maison (orange de marque hors guidelines) est remplacée par l'attribution officielle ; les deux boutons de connexion maison passent au bouton officiel.
+- **`components/bi/sync-button.tsx`** : le bouton « Connecter Strava » perd l'orange de marque et passe en neutre (encre). Il **ne déclenche pas OAuth** — il navigue vers `/connect/strava` — donc l'asset officiel n'y a pas sa place : il laisserait croire que le clic connecte, en plus d'être visuellement disproportionné (237×48) dans une barre d'actions. Le bouton officiel reste au vrai point d'entrée OAuth. Le bouton « Resynchroniser » conserve l'orange : c'est un accent de couleur sur une action Strava, pas une imitation du bouton officiel.
+- **`api/strava/auth/route.ts`** : scope réduit à `activity:read_all,profile:read_all`. **`activity:write` retiré** — permission élevée, et écrire marque + lien dans la description publique d'une sortie s'apparente à de la promotion via le contenu des utilisateurs. Une demande à périmètre restreint passe plus facilement.
+- **`lib/strava-comment.ts`** : coupe-circuit `ENABLED = false` (les appels d'écriture échoueraient en 401/403 sans le scope) et **retrait de l'URL de l'app** du message. C'est le lien qui faisait basculer le message d'information vers promotion ; le marqueur de marque reste, il sert à l'idempotence.
+- **`components/bi/notification-settings.tsx`** : réglage « Alerte dans la description Strava » retiré de l'interface (fonctionnalité désactivée). Il portait en outre un **logo Strava redessiné en SVG inline**, interdit par la section 2 (« never modify or alter »).
+
+### Notes
+- Section 3 (« View on Strava ») **non applicable** : elle est conditionnelle et l'app n'affiche aucune sortie individuelle, seulement des agrégats. La règle est documentée dans `strava-brand.tsx` si une liste apparaît un jour.
+- ⚠️ Le retrait de `activity:write` n'est pas rétroactif : les utilisateurs déjà connectés conservent leur scope jusqu'à révocation/reconnexion.
+- ⚠️ `npx tsc --noEmit` et `npm run lint` **non exécutés** (mount du sandbox trop lent : `du` sur `node_modules` expire). Diffs relus manuellement, équilibrage JSX et imports vérifiés — à relancer en local.
+
 ## [Non publié] — Historique : cohérence graphique
 
 ### Modifié

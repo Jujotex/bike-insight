@@ -1,6 +1,7 @@
 import { SideNav } from "./side-nav";
 import { BottomNav } from "./bottom-nav";
 import { Toaster } from "./toast";
+import { StravaAttributionFooter } from "./strava-brand";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -44,6 +45,10 @@ export function AppShell({ children, nav }: AppShellProps) {
       >
         <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {children}
+          {/* Attribution Strava (Brand Guidelines section 4) : obligatoire sur les écrans
+              qui affichent des données Strava. Placée en fin de flux de contenu plutôt
+              qu'en barre fixe, pour ne pas grignoter la hauteur utile sur mobile. */}
+          <StravaAttributionFooter />
         </main>
         <Toaster />
 

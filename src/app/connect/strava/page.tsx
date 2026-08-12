@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/bi/auth-shell";
 import { Mono } from "@/components/bi/ui";
+import { PoweredByStrava, StravaConnectButton } from "@/components/bi/strava-brand";
 import { supabase } from "@/lib/supabase";
 
 // ── Step 1: Intro ──────────────────────────────────────────────
@@ -17,9 +18,10 @@ function StepIntro() {
       headline={<>Sans Strava,<br />pas de calcul<br />d&apos;usure.</>}
       sub="Ton historique Strava est la matière première qui rend cette app possible. Chaque km roulé alimente automatiquement l'usure et le coût de tes composants."
     >
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 999, background: "var(--bi-strava)", color: "var(--bi-white)", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", alignSelf: "flex-start" }}>
-        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: 999, background: "var(--bi-white)" }} />
-        STRAVA
+      {/* Attribution officielle (section 4) en lieu et place de l'ancienne pastille
+          « STRAVA » maison, qui reprenait la couleur de marque hors guidelines. */}
+      <div style={{ alignSelf: "flex-start" }}>
+        <PoweredByStrava />
       </div>
 
       <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.8, marginTop: 14 }}>
@@ -29,33 +31,57 @@ function StepIntro() {
         Accès en lecture seule. Tu peux révoquer l&apos;autorisation à tout moment depuis tes réglages Strava.
       </div>
 
+      {/* Divulgations de consentement — API Policy Strava §2.1 et §7.2.
+          Avant toute autorisation, l'app doit indiquer : (i) les types de données
+          collectées, (ii) les méthodes de collecte, (iii) comment retirer le
+          consentement, (iv) comment demander la suppression. Le point (v) — la
+          confirmation que la suppression a bien eu lieu — est traité au moment de
+          la demande, dans la page Compte. Ne pas alléger ce bloc sans relire la Policy. */}
       <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 10 }}>
         {[
-          ["Activités passées", "Import en une fois"],
-          ["Vélos Strava", "Auto-détection"],
-          ["Nouvelles sorties", "Synchro temps réel"],
-          ["Données privées", "Jamais partagé"],
-        ].map(([k, v]) => (
-          <div key={k} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-card)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{k}</span>
+          {
+            k: "Ce qu'on récupère",
+            v: "Tes sorties vélo (date, distance, vélo utilisé) et la liste de tes vélos Strava.",
+          },
+          {
+            k: "Ce qu'on ne récupère pas",
+            v: "Ni tracés GPS, ni noms de sorties, ni fréquence cardiaque, ni données d'autres athlètes.",
+          },
+          {
+            k: "Comment",
+            v: "Via l'API officielle Strava, en lecture seule, uniquement après ton autorisation.",
+          },
+          {
+            k: "Ce qu'on en fait",
+            v: "Calculer l'usure de tes pièces et ton coût au kilomètre. Rien n'est partagé ni revendu.",
+          },
+        ].map(({ k, v }) => (
+          <div key={k} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-card)" }}>
+            <div style={{ width: 22, height: 22, borderRadius: 999, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7" /></svg>
             </div>
-            <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{v}</Mono>
+            <div style={{ minWidth: 0 }}>
+              <div className="bi-text-base" style={{ fontWeight: 600 }}>{k}</div>
+              <div className="bi-text-sm" style={{ color: "var(--bi-muted)", marginTop: 2, lineHeight: 1.5 }}>{v}</div>
+            </div>
           </div>
         ))}
+
+        {/* (iii) retrait du consentement · (iv) demande de suppression */}
+        <div className="bi-text-sm" style={{ color: "var(--bi-muted)", lineHeight: 1.6, padding: "0 4px" }}>
+          Tu peux retirer cette autorisation à tout moment depuis{" "}
+          <a href="https://www.strava.com/settings/apps" target="_blank" rel="noopener noreferrer" style={{ color: "var(--bi-ink)", fontWeight: 600 }}>
+            tes réglages Strava
+          </a>. Tes données importées sont alors supprimées. Tu peux aussi demander leur
+          suppression à tout moment depuis la page Compte, et nous te confirmons par écrit
+          qu&apos;elle a bien été effectuée.
+        </div>
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <a
-          href="/api/strava/auth"
-          style={{ background: "var(--bi-strava)", color: "var(--bi-white)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, textDecoration: "none" }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0114-3M20 14a8 8 0 01-14 3" /></svg>
-          Se connecter avec Strava
-        </a>
+      {/* Bouton officiel « Connect with Strava » (section 1.1) : hauteur 48px imposée,
+          asset non modifiable — donc pas de pleine largeur, on centre. */}
+      <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
+        <StravaConnectButton />
       </div>
     </AuthShell>
   );
@@ -168,9 +194,9 @@ function StravaConnectRouter() {
           <div style={{ fontSize: 14, color: "var(--bi-bad)", fontWeight: 600, marginBottom: 8 }}>Erreur de connexion</div>
           <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>{errorMessages[error] ?? "Une erreur est survenue."}</div>
         </div>
-        <a href="/api/strava/auth" style={{ marginTop: 20, display: "block", width: "100%", background: "var(--bi-strava)", color: "var(--bi-white)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", textAlign: "center", textDecoration: "none" }}>
-          Réessayer
-        </a>
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "center" }}>
+          <StravaConnectButton label="Réessayer la connexion Strava" />
+        </div>
       </AuthShell>
     );
   }

@@ -106,6 +106,29 @@ Chaque remplacement de composant via `ReplaceButton` insère automatiquement une
 
 La page détail vélo (`/bikes/[id]`) affiche un historique de ces entrées, filtré sur les composants du vélo courant.
 
+## Conformité Strava (Brand Guidelines + accord API)
+
+L'intégration Strava est soumise à l'[accord API](https://www.strava.com/legal/api) et aux
+[Brand Guidelines](https://developers.strava.com/guidelines/). Points structurants à ne pas
+défaire :
+
+- **Marque** : tout élément visuel Strava passe par `src/components/bi/strava-brand.tsx`
+  (`StravaConnectButton`, `PoweredByStrava`). Ne jamais redessiner un logo Strava en SVG
+  inline, ni réutiliser l'orange de marque pour un bouton maison qui imite le bouton officiel.
+  Les assets officiels vivent dans `public/strava/` (non versionnés — voir le README du dossier).
+- **Attribution** : « Powered by Strava » est affiché en fin de contenu via `AppShell`, sur
+  tous les écrans de l'app.
+- **Scopes** : `activity:read_all,profile:read_all` uniquement. `activity:write` a été retiré
+  avant la demande d'augmentation de capacité (cf. CHANGELOG). La fonctionnalité qui en
+  dépendait est désactivée par le drapeau `ENABLED` de `src/lib/strava-comment.ts`.
+- **Données** : les données Strava d'un utilisateur ne peuvent être affichées **qu'à cet
+  utilisateur** (garanti par la RLS). Interdiction d'agréger les données des utilisateurs pour
+  produire des moyennes communautaires — c'est pourquoi `src/lib/benchmarks.ts` repose sur des
+  fourchettes statiques. Interdiction d'entraîner un modèle IA sur ces données.
+- **Capacité** : l'app est en « Single Player Mode » (1 athlète) tant que Strava n'a pas accordé
+  d'augmentation. Les quotas par défaut sont de 100 req/15 min et 1 000 req/jour.
+- **Coût** : l'accès API Standard exige un abonnement Strava actif côté développeur.
+
 ## Middleware auth
 
 Fichier : `src/middleware.ts`

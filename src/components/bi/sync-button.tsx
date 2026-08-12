@@ -38,16 +38,21 @@ export function SyncButton({ stravaConnected }: Props) {
   }
 
   if (!stravaConnected) {
+    // Lien de navigation interne vers /connect/strava — il ne déclenche PAS OAuth,
+    // c'est la page de destination qui porte le bouton officiel « Connect with Strava ».
+    // Donc pas d'asset officiel ici (il laisserait croire que le clic connecte), et
+    // surtout pas d'orange de marque sur un bouton maison : rendu neutre, avec une
+    // simple mention factuelle de Strava en texte (autorisé par la section 4).
     return (
       <a href="/connect/strava" style={{ textDecoration: "none" }}>
-        <button style={{
-          padding: "10px 16px", background: "var(--bi-strava)", color: "var(--bi-white)", border: "none",
-          borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-          display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
-        }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-white)" strokeWidth="2" strokeLinecap="round">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+        <button
+          className="bi-text-base"
+          style={{
+            padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)",
+            border: "none", borderRadius: 10, fontWeight: 600, fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
+          }}
+        >
           Connecter Strava
         </button>
       </a>

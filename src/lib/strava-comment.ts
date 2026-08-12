@@ -3,6 +3,25 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // Ajoute une alerte d'usure critique à la description des sorties Strava.
 // Opt-in (réglage strava_wear_comment) + scope activity:write requis.
 // Idempotent : n'écrit pas deux fois sur la même sortie (marqueur).
+//
+// ⚠️ FONCTIONNALITÉ DÉSACTIVÉE — voir ENABLED ci-dessous.
+
+/**
+ * Coupe-circuit posé avant la demande d'augmentation de capacité Strava.
+ *
+ * Le scope `activity:write` n'est plus demandé à l'autorisation
+ * (`src/app/api/strava/auth/route.ts`) : les appels d'écriture échoueraient donc
+ * en 401/403. Ce drapeau évite de les tenter et de polluer les logs.
+ *
+ * Pour réactiver après obtention de la capacité :
+ *   1. remettre `activity:write` dans le scope de la route d'autorisation ;
+ *   2. passer ENABLED à true ;
+ *   3. faire re-consentir les utilisateurs (le scope n'est pas rétroactif) ;
+ *   4. ne PAS remettre l'URL de l'app dans le message (cf. buildPhrase).
+ */
+// Typé `boolean` (et non littéral `false`) pour que TypeScript ne marque pas
+// tout le corps de la fonction comme code inatteignable.
+const ENABLED: boolean = false
 
 const STRAVA_API = 'https://www.strava.com/api/v3'
 const MARKER = 'Bike Insight' // présence = déjà annotée, on n'y retouche pas
@@ -16,8 +35,13 @@ function shortType(name: string): string {
 }
 
 function buildPhrase(comps: { name: string; wear: number }[]): string {
-  // Une seule ligne discrète : la pièce la plus usée + lien app.
+  // Une seule ligne discrète : la pièce la plus usée.
   // (un bloc multiligne sur une sortie publique peut passer pour du spam)
+  //
+  // Le lien vers l'app a été retiré volontairement : c'est lui qui faisait basculer
+  // le message d'« information utile à l'athlète » vers « promotion du produit dans
+  // le contenu de l'utilisateur ». Le marqueur de marque reste, il est nécessaire à
+  // l'idempotence. Ne pas réintroduire d'URL.
   const worstByType = new Map<string, number>()
   for (const c of comps) {
     const type = shortType(c.name)
@@ -27,8 +51,6 @@ function buildPhrase(comps: { name: string; wear: number }[]): string {
 
   let line = `🚴 ${MARKER}`
   if (worst) line += ` · ${worst[0]} à remplacer (${Math.round(worst[1])}%)`
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (appUrl) line += ` → ${appUrl}`
   return line
 }
 
@@ -38,6 +60,9 @@ export async function commentWearOnActivities(
   accessToken: string,
   activities: SyncedActivity[]
 ): Promise<void> {
+  // 0. Coupe-circuit conformité (scope activity:write non demandé).
+  if (!ENABLED) return
+
   // 1. Réglage activé ?
   const { data: settings } = await supabase
     .from('notification_settings')

@@ -467,8 +467,15 @@ function LandingFooter() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: T.muted }}>
+      {/* Lien public vers la politique de confidentialité : exigé par l'API Policy
+          Strava §7.3 (lien « reasonably prominent ») et par les deux stores, qui
+          demandent une URL accessible sans compte. Le pied de page de la landing est
+          l'endroit qu'un reviewer regarde en premier. */}
+      <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap", fontSize: 11, color: T.muted }}>
         <Mono>© 2026 Bike Insight · v 0.5 beta</Mono>
+        <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+          Politique de confidentialité
+        </Link>
       </div>
     </div>
   );

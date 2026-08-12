@@ -189,27 +189,14 @@ export function NotificationSettings() {
             )}
           </div>
 
-          {/* Commentaire d'usure sur Strava */}
-          <div style={{ padding: "18px 24px", borderTop: "1px solid var(--bi-line)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ width: 8, height: 8, borderRadius: 999, background: "var(--bi-strava)", flexShrink: 0, marginTop: 4 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--bi-strava)" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                    Alerte dans la description Strava
-                  </span>
-                  <Toggle
-                    enabled={settings.strava_wear_comment}
-                    onChange={() => save({ ...settings, strava_wear_comment: !settings.strava_wear_comment })}
-                  />
-                </div>
-                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 3, lineHeight: 1.5 }}>
-                  Quand une pièce atteint l&apos;usure critique, ajoute une phrase d&apos;alerte à la description de tes nouvelles sorties Strava. Nécessite de reconnecter Strava (droit d&apos;écriture). Ta description existante est conservée.
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Réglage « Alerte dans la description Strava » retiré de l'interface.
+              La fonctionnalité est désactivée (cf. src/lib/strava-comment.ts) : le scope
+              activity:write n'est plus demandé avant la demande de capacité Strava.
+              Le bloc portait en outre un logo Strava redessiné en SVG inline, ce que la
+              section 2 des Brand Guidelines interdit (« never modify or alter »).
+              Si le réglage revient : reprendre le composant PoweredByStrava de
+              `strava-brand.tsx` au lieu d'un SVG inline.
+              Le champ `strava_wear_comment` reste en base et dans l'API : inoffensif. */}
 
           <div style={{ padding: "12px 24px 16px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)" }}>
             Ces seuils s&apos;appliquent aussi aux alertes d&apos;entretien (bientôt / à faire).

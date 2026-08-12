@@ -254,11 +254,16 @@ export default function SignupPage() {
           Se connecter
         </Link>
       </div>
+      {/* Ces mentions étaient de faux liens (<span> stylés) pointant vers des documents
+          inexistants : on faisait accepter des textes introuvables. La politique de
+          confidentialité est désormais un vrai lien (API Policy Strava §7.3 : lien
+          « reasonably prominent »). Les CGU restent à écrire — mention retirée en
+          attendant plutôt que de promettre un document qui n'existe pas. */}
       <div style={{ marginTop: 16, fontSize: 11, color: "var(--bi-muted)", textAlign: "center", lineHeight: 1.5 }}>
-        En continuant, tu acceptes nos{" "}
-        <span style={{ color: "var(--bi-ink)", textDecoration: "underline", cursor: "pointer" }}>Conditions</span>
-        {" "}et notre{" "}
-        <span style={{ color: "var(--bi-ink)", textDecoration: "underline", cursor: "pointer" }}>Politique de confidentialité</span>.
+        En continuant, tu acceptes notre{" "}
+        <Link href="/confidentialite" style={{ color: "var(--bi-ink)", textDecoration: "underline" }}>
+          politique de confidentialité
+        </Link>.
       </div>
     </AuthShell>
   );
