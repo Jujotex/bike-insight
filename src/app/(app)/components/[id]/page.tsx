@@ -70,6 +70,12 @@ export default async function ComponentDetailPage({
     .eq("id", comp.bike_id)
     .single();
 
+  // Horloge lue une seule fois pour toute la page : un composant serveur est
+  // rendu une fois par requête, et deux `Date.now()` séparés donneraient deux
+  // instants légèrement différents dans des calculs qui doivent s'accorder.
+  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  const nowMs = Date.now();
+
   const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
   const statusColor = STATUS_COLORS[comp.status as string] ?? "var(--bi-muted)";
   const statusLabel = STATUS_LABELS[comp.status as string] ?? String(comp.status);
@@ -103,16 +109,16 @@ export default async function ComponentDetailPage({
     // marche même sans date d'installation (pièces "d'origine" / "je ne sais pas").
     // À défaut, repli sur le rythme depuis l'installation.
     let kmPerDay = 0;
-    const sinceMs = Date.now() - 180 * 24 * 60 * 60 * 1000;
+    const sinceMs = nowMs - 180 * 24 * 60 * 60 * 1000;
     const recentRides = bikeRides.filter((a) => new Date(a.started_at).getTime() >= sinceMs);
     if (recentRides.length > 0) {
       const totalKm = recentRides.reduce((sum, a) => sum + (a.distance_km ?? 0), 0);
       const firstMs = new Date(recentRides[0].started_at).getTime();
-      const spanDays = Math.max(1, (Date.now() - firstMs) / (1000 * 60 * 60 * 24));
+      const spanDays = Math.max(1, (nowMs - firstMs) / (1000 * 60 * 60 * 24));
       kmPerDay = totalKm / spanDays;
     }
     if (kmPerDay <= 0 && kmUsed > 0 && comp.installed_at) {
-      const ageDays = (Date.now() - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
+      const ageDays = (nowMs - new Date(comp.installed_at as string).getTime()) / (1000 * 60 * 60 * 24);
       if (ageDays > 0) kmPerDay = kmUsed / ageDays;
     }
     if (kmPerDay > 0) {
@@ -148,7 +154,6 @@ export default async function ComponentDetailPage({
       ?? (rides.length > 0 ? new Date(rides[0].started_at as string).getTime() : null);
 
     if (chartStartMs) {
-      const nowMs = Date.now();
       const totalMs = Math.max(1, nowMs - chartStartMs);
       const NUM_POINTS = 20;
 
@@ -371,7 +376,7 @@ export default async function ComponentDetailPage({
             <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Usure dans le temps</div>
-                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation depuis l'installation</div>
+                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Modélisation depuis l&apos;installation</div>
               </div>
               <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>% usure</Mono>
             </div>

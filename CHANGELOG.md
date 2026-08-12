@@ -26,8 +26,14 @@ en 5 tailles, la ligne de liste en 4 versions. Aucun changement de logique méti
 - **`components/bi/bike-picker.tsx`** : reprend `chipStyle`. La bordure active passe de `1.5px` à `1px` (1.5 n'existait nulle part ailleurs et décalait le contenu d'un demi-pixel par rapport aux pilules inactives). `marginBottom` 20 → 14, aligné sur le rythme de page.
 - **`components/bi/activity-chart.tsx`** : utilise `Bars` et `Chip`. Ce composant n'est **importé nulle part** — il était mort, et la page Coût en recopiait le graphe (et le `#D9D8D2`) en inline. À rebrancher ou à supprimer.
 
+### Corrigé (lint — préexistant, révélé par le premier passage du CI)
+*Le workflow CI a été ajouté le 12/08/2026 : son premier run a fait remonter 12 erreurs ESLint qui dormaient sur `main`, dans trois fichiers sans rapport avec le design.*
+- **`bikes/page.tsx`, `components/[id]/page.tsx`, `components/[id]/compare/page.tsx`** : 7 erreurs `react-hooks/purity` sur des `Date.now()` appelés pendant le rendu. La règle vise les composants clients, que React Compiler peut re-rendre ; ici ce sont des composants serveur, rendus une fois par requête. Plutôt que sept dérogations éparpillées, l'horloge est **lue une seule fois en tête de composant** (`const nowMs = Date.now()`) avec une dérogation commentée — ce qui corrige au passage un vrai défaut : `components/[id]/page.tsx` appelait `Date.now()` à quatre endroits d'un même calcul de rythme, donc sur quatre instants légèrement différents.
+- 5 erreurs `react/no-unescaped-entities` : apostrophes échappées en `&apos;`.
+
 ### Notes
-- `npx tsc --noEmit` et `next build` passent. ESLint : aucune erreur sur les fichiers touchés (les 12 erreurs restantes sont préexistantes, dans `bikes/page.tsx`, `components/[id]/page.tsx` et `components/[id]/compare/page.tsx`).
+- `npm run typecheck`, `npm run lint` et `next build` passent. Il reste 11 warnings (variables inutilisées), non bloquants pour le CI.
+- ⚠️ `components/[id]/compare/page.tsx` utilise encore `toLocaleString("fr")` au lieu de `"fr-FR"` — laissé tel quel pour ne pas élargir ce commit, à basculer sur `fmtNum` de `lib/format.ts`.
 - ⚠️ **Reste à faire** : rétro-appliquer les primitives à `bikes/page.tsx` (bandeau de stats → `Metric`, état vide → `EmptyState`, 6 hex de couleurs de vélo en dur → tokens) et au dashboard.
 - ⚠️ Hex en dur restants hors tokens : `bikes/page.tsx:147` (palette des vélos), `connect/strava/page.tsx:149`, et les couleurs de marque Google sur login/signup (exception assumée par le design system).
 

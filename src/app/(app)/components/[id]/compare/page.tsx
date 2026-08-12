@@ -85,7 +85,12 @@ export default async function ComparePage({
   // Garde-fou anti-données-incomplètes : si cette distance paraît sous-comptée
   // (bien en dessous de ce que l'odomètre implique), on bascule sur total ÷ âge.
   const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
-  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  // Horloge lue une seule fois pour toute la page : un composant serveur est
+  // rendu une fois par requête, et deux `Date.now()` séparés donneraient deux
+  // instants légèrement différents dans des calculs qui doivent s'accorder.
+  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  const nowMs = Date.now();
+  const twelveMonthsAgo = new Date(nowMs - 365 * 24 * 60 * 60 * 1000).toISOString();
   const [{ data: recentActs }, { data: firstActs }] = await Promise.all([
     supabase
       .from("activities")
@@ -108,7 +113,7 @@ export default async function ComparePage({
   // → ne dépasse jamais le total). Sert de repli quand la distance 12 mois est
   // manifestement incomplète.
   const ageYears = firstRide
-    ? Math.max(1, (Date.now() - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000))
+    ? Math.max(1, (nowMs - new Date(firstRide).getTime()) / (365 * 24 * 60 * 60 * 1000))
     : null;
   const odoAvg = bikeTotalKm > 0 && ageYears ? Math.round(bikeTotalKm / ageYears) : null;
 
@@ -319,13 +324,13 @@ export default async function ComparePage({
             <BiLabel style={{ marginBottom: 10 }}>Pourquoi cette recommandation</BiLabel>
             <div style={{ fontSize: 13, lineHeight: 1.6 }}>
               {catalogEntry
-                ? (<><strong>{recommended.name}</strong> est la référence directe compatible avec ton groupe. C'est le meilleur rapport durée de vie / prix pour ton usage de {kmPerYear.toLocaleString("fr")} km/an.</>)
-                : (<><strong>L'option équivalente</strong> est la plus équilibrée. Elle correspond au niveau de ton composant actuel et son cycle d'usure est maîtrisé.</>)
+                ? (<><strong>{recommended.name}</strong> est la référence directe compatible avec ton groupe. C&apos;est le meilleur rapport durée de vie / prix pour ton usage de {kmPerYear.toLocaleString("fr")} km/an.</>)
+                : (<><strong>L&apos;option équivalente</strong> est la plus équilibrée. Elle correspond au niveau de ton composant actuel et son cycle d&apos;usure est maîtrisé.</>)
               }
             </div>
             {catalogEntry && (
               <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "var(--bi-bg)", fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-                <strong style={{ color: "var(--bi-ink)" }}>Si tu roules plus de 5 000 km/an,</strong> l'option premium devient plus rentable grâce à sa durée de vie accrue.
+                <strong style={{ color: "var(--bi-ink)" }}>Si tu roules plus de 5 000 km/an,</strong> l&apos;option premium devient plus rentable grâce à sa durée de vie accrue.
               </div>
             )}
           </BiCard>
