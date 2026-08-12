@@ -1,5 +1,15 @@
 # Changelog
 
+## [Non publié] — Intégration continue
+
+### Ajouté
+- **`.github/workflows/ci.yml`** (nouveau) : `tsc --noEmit` + `eslint` sur chaque pull request et chaque push sur `main`. Déclenché par l'incident du 12/08 — une erreur de type (classe CSS passée à `Mono`, qui n'accepte pas `className`) est passée jusqu'au build Vercel, donc après commit et push.
+- **`package.json`** : script `typecheck`.
+
+### Notes
+- Périmètre réduit à typecheck + lint, moins d'une minute d'exécution. Le `next build` complet reste couvert par les previews Vercel — inutile de le payer deux fois. Les tests unitaires du moteur d'usure viendront s'ajouter à ce workflow.
+- ⚠️ La version Node du workflow (22) doit rester alignée avec celle de Vercel (Project Settings → General → Node.js Version).
+
 ## [Non publié] — Politique de confidentialité (API Policy §7.3, §6.5, §7.7)
 
 ### Ajouté
