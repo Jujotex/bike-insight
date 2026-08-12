@@ -284,7 +284,7 @@ export function AccountClient({
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "14px 0", borderBottom: "1px solid var(--bi-line)", textDecoration: "none", color: "var(--bi-ink)" }}
         >
           <span style={{ fontWeight: 600 }}>Contacter le support</span>
-          <Mono className="bi-text-sm" style={{ color: "var(--bi-muted)" }}>{SUPPORT_EMAIL}</Mono>
+          <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{SUPPORT_EMAIL}</Mono>
         </a>
 
         <a
