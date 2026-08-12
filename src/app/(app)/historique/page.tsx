@@ -1,8 +1,8 @@
-import { BiCard, PageHead } from "@/components/bi/ui";
+import { EmptyState, PageHead } from "@/components/bi/ui";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
 import { BikePicker } from "@/components/bi/bike-picker";
-import { CostHistory, type HistoryItem } from "../cout/history-client";
+import { HistoryLog, type HistoryItem } from "./history-log";
 import { HistoryCharts } from "./history-charts";
 
 export default async function HistoriquePage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
@@ -76,24 +76,22 @@ export default async function HistoriquePage({ searchParams }: { searchParams: P
     });
 
   return (
-    <>
-      <div className="bi-page">
-        <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" />
-        <BikePicker bikes={bikeList} selected={selectedBikeId} basePath="/historique" />
+    <div className="bi-page">
+      <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" />
+      <BikePicker bikes={bikeList} selected={selectedBikeId} basePath="/historique" />
+      <div className="bi-stack">
         {historyItems.length === 0 ? (
-          <BiCard pad={40} style={{ textAlign: "center", marginTop: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Rien à afficher pour l&apos;instant</div>
-            <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>
-              Dès que tu remplaces une pièce ou que tu enregistres un entretien, l&apos;événement apparaît ici, daté et chiffré.
-            </div>
-          </BiCard>
+          <EmptyState
+            title={"Rien à afficher pour l'instant"}
+            text={"Dès que tu remplaces une pièce ou que tu enregistres un entretien, l'événement apparaît ici, daté et chiffré."}
+          />
         ) : (
           <>
             <HistoryCharts items={historyItems} />
-            <CostHistory items={historyItems} />
+            <HistoryLog items={historyItems} />
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

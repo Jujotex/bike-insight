@@ -1,5 +1,60 @@
 # Changelog
 
+## [Non publié] — Uniformisation du design (Coût & Historique)
+
+*Ces deux pages ré-implémentaient en inline ce qui existait déjà dans `components/bi/ui.tsx` :
+l'en-tête de carte existait en 3 variantes (dont deux sur la seule page Coût), le chiffre héros
+en 5 tailles, la ligne de liste en 4 versions. Aucun changement de logique métier.*
+
+### Ajouté
+- **`components/bi/ui.tsx`** — six primitives qui n'existaient pas et que chaque page réécrivait :
+  - `CardHead` : en-tête des cartes **conteneur** (liste, graphe). Titre 14px/600 + sous-titre 12px muted + slot `right`. Les cartes **métrique** (un chiffre et rien d'autre) gardent `BiLabel`. Ça remplace les `fontSize: 15` inline — 15 n'était pas dans l'échelle `bi-text-*`.
+  - `Metric` : chiffre + unité, **deux tailles seulement** (`lg` 28/500 pour le chiffre principal d'une carte, `sm` 20/600 pour un chiffre secondaire). L'unité est toujours détachée en 12px muted mono sur la baseline — c'était le rendu le plus soigné des trois qui coexistaient, il devient la règle.
+  - `ListRow` : ligne de liste, avec `accent` (barre latérale colorée) ou `leading` (pastille). Sous-titre toujours 12px, chevron toujours 14px.
+  - `Chip` / `chipStyle` : filtre cliquable, tailles `md` (sélecteur de page) et `sm` (filtre dans une carte).
+  - `EmptyState` : état vide, sur le modèle déjà utilisé par Coût et Historique.
+  - `Bars` : mini-histogramme (h90, gap 4, radius 2, accent au-dessus du seuil).
+- **`lib/format.ts`** : `fmtNum`, `fmtDate`, `fmtDelay`. Trois variantes du même `toLocaleString` traînaient dans les pages, dont un `"fr"` au lieu de `"fr-FR"` dans le journal d'historique.
+- **`lib/design/categories.ts`** + tokens `--bi-cat-*` : palette des catégories de pièces. `cockpit`, `eclairage` et `autre` étaient mappées **toutes les trois** sur `--bi-muted` — dans la barre segmentée « Où part ton argent », ces trois catégories fusionnaient en un seul bloc gris.
+- **`globals.css`** : `--bi-bar-idle` (remplace `#D9D8D2` écrit en dur à deux endroits), `.bi-stack` (rythme vertical unique de 14px), `.bi-rows` (filets entre lignes), `.bi-split-2` / `.bi-split-divider`, et le bloc `@media (max-width: 768px)` qui manquait pour ces deux pages.
+
+### Modifié
+- **`cout/page.tsx`** : 6 en-têtes, 4 chiffres héros et 3 listes passés par les primitives. Le graphe d'activité inline est remplacé par `Bars`. Les `marginBottom: 14` posés carte par carte laissent place à `.bi-stack`.
+- **`historique/history-charts.tsx`** : idem, plus les barres horizontales de « Subi ou choisi ? » qui utilisent maintenant `ProgressBar` (leur piste était `--bi-bg`, celle de `ProgressBar` `--bi-line`).
+- **`historique/history-log.tsx`** (ex-`cout/history-client.tsx`, déplacé) : le fichier vivait dans `cout/` alors que seul `historique/` l'importait. Renommé `HistoryLog`. Corrige au passage un **double filet de 2px sous l'en-tête du Journal** — toutes les lignes portaient un `borderTop`, y compris la première, qui suivait déjà un `borderBottom`.
+- **`components/bi/ui.tsx`** : `BiCard` a désormais `20px 22px` par défaut (la valeur du design system) au lieu de `18` — aucun appelant n'utilisait le défaut. `BiLabel` passe en `letter-spacing: 0.07em` pour s'aligner sur `.bi-label` ; il y avait 4 valeurs en circulation (0.03 / 0.04 / 0.06 / 0.07).
+- **`components/bi/bike-picker.tsx`** : reprend `chipStyle`. La bordure active passe de `1.5px` à `1px` (1.5 n'existait nulle part ailleurs et décalait le contenu d'un demi-pixel par rapport aux pilules inactives). `marginBottom` 20 → 14, aligné sur le rythme de page.
+- **`components/bi/activity-chart.tsx`** : utilise `Bars` et `Chip`. Ce composant n'est **importé nulle part** — il était mort, et la page Coût en recopiait le graphe (et le `#D9D8D2`) en inline. À rebrancher ou à supprimer.
+
+### Notes
+- `npx tsc --noEmit` et `next build` passent. ESLint : aucune erreur sur les fichiers touchés (les 12 erreurs restantes sont préexistantes, dans `bikes/page.tsx`, `components/[id]/page.tsx` et `components/[id]/compare/page.tsx`).
+- ⚠️ **Reste à faire** : rétro-appliquer les primitives à `bikes/page.tsx` (bandeau de stats → `Metric`, état vide → `EmptyState`, 6 hex de couleurs de vélo en dur → tokens) et au dashboard.
+- ⚠️ Hex en dur restants hors tokens : `bikes/page.tsx:147` (palette des vélos), `connect/strava/page.tsx:149`, et les couleurs de marque Google sur login/signup (exception assumée par le design system).
+
+## [Non publié] — Chiffrement des tokens Strava (accord API art. 6, API Policy §8.1)
+
+*`profiles.strava_access_token` et `strava_refresh_token` étaient stockés **en clair**. Un token
+Strava donne accès aux données personnelles d'un athlète — et il n'y a pas que les miennes en
+base : 4 athlètes sont connectés.*
+
+### Ajouté
+- **`lib/token-crypto.ts`** (nouveau) : AES-256-GCM via le module `crypto` de Node, **sans nouvelle dépendance**. Format `v1:<iv>:<tag>:<chiffré>` en base64, préfixe de version pour permettre une rotation d'algorithme.
+
+### Modifié
+- **`lib/strava.ts`** : déchiffrement en lecture, chiffrement à l'écriture lors du refresh.
+- **`api/strava/callback/route.ts`** : chiffrement à l'autorisation initiale.
+- **`api/account/delete/route.ts`** : déchiffrement pour la déautorisation, avec repli silencieux — un token illisible ne doit pas empêcher une suppression de compte.
+
+### Choix de conception
+- **Chiffrement applicatif plutôt que pgcrypto ou Supabase Vault.** Le modèle de menace est ce qui décide : la clé vit dans une variable d'environnement, donc **hors de la base**. Un dump qui fuite, une policy RLS trop large ou une lecture via le dashboard ne donnent plus rien. Avec pgcrypto la clé serait à côté des données ; avec Vault il aurait fallu passer par des fonctions `security definer` et réécrire les chemins de lecture.
+- **GCM et non CBC** : mode authentifié, une valeur altérée est détectée au lieu de produire une sortie silencieusement fausse.
+- **Migration auto-cicatrisante** : les valeurs en clair héritées sont tolérées en lecture et réécrites chiffrées au premier refresh de token (quelques heures). Aucune reconnexion imposée aux 4 utilisateurs connectés, aucune migration SQL.
+
+### Notes
+- ⚠️ **Variable `STRAVA_TOKEN_ENC_KEY` à définir avant déploiement** (Vercel + `.env.local`) : `openssl rand -base64 32`. Sans elle, toute écriture de token lève une erreur explicite — délibérément, pour ne jamais retomber en silence sur du stockage en clair.
+- ⚠️ **Sauvegarder la clé hors de Vercel** (gestionnaire de mots de passe). Sa perte rend les tokens irrécupérables ; les utilisateurs devraient reconnecter Strava — gênant, pas catastrophique.
+- Contrôle de fin de migration : `select count(*) from profiles where strava_access_token is not null and strava_access_token not like 'v1:%';` doit tomber à 0. Le repli sur le clair de `decryptToken` pourra alors être retiré.
+
 ## [Non publié] — Intégration continue
 
 ### Ajouté

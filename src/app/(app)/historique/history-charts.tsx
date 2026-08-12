@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BiCard, Mono } from "@/components/bi/ui";
-import type { HistoryItem } from "../cout/history-client";
+import { Bars, BiCard, CardHead, Metric, Mono, ProgressBar } from "@/components/bi/ui";
+import { fmtNum } from "@/lib/format";
+import type { HistoryItem } from "./history-log";
 
 export function HistoryCharts({ items }: { items: HistoryItem[] }) {
   const totalCost = items.reduce((s, i) => s + (i.cost ?? 0), 0);
@@ -22,7 +23,6 @@ export function HistoryCharts({ items }: { items: HistoryItem[] }) {
     const idx = idxByKey.get(`${Number(y)}-${Number(m) - 1}`);
     if (idx != null) buckets[idx].value += it.cost;
   }
-  const maxV = Math.max(...buckets.map((b) => b.value), 1);
   const lastNonZero = (() => { for (let i = buckets.length - 1; i >= 0; i--) if (buckets[i].value > 0) return i; return buckets.length - 1; })();
 
   // ── Subi ou choisi ? (par nature) ──
@@ -48,60 +48,54 @@ export function HistoryCharts({ items }: { items: HistoryItem[] }) {
   if (totalCost === 0) return null;
 
   return (
-    <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
+    <>
       {/* Dépenses par mois */}
-      <BiCard pad={20}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 600 }}>Dépenses par mois</div>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Sur les 12 derniers mois</div>
+      <BiCard pad={0}>
+        <CardHead
+          title="Dépenses par mois"
+          sub="Sur les 12 derniers mois"
+          right={
+            <>
+              <div style={{ fontSize: 12, color: "var(--bi-muted)", textTransform: "capitalize" }}>{buckets[active].label}</div>
+              <Metric value={fmtNum(Math.round(buckets[active].value))} unit="€" size="sm" align="right" />
+            </>
+          }
+        />
+        <div style={{ padding: "20px 22px" }}>
+          <Bars
+            values={buckets.map((b) => b.value)}
+            height={110}
+            gap={6}
+            hovered={hover}
+            onHover={setHover}
+          />
+          <div className="bi-chart-labels" style={{ display: "flex", gap: 6, marginTop: 8 }}>
+            {buckets.map((b, i) => (
+              <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, color: "var(--bi-muted)" }}>{b.label.charAt(0).toUpperCase()}</div>
+            ))}
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", textTransform: "capitalize" }}>{buckets[active].label}</div>
-            <Mono style={{ fontSize: 20, fontWeight: 500 }}>{Math.round(buckets[active].value)} €</Mono>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 110, marginTop: 16 }}>
-          {buckets.map((b, i) => (
-            <div
-              key={i}
-              onMouseEnter={() => setHover(i)}
-              onMouseLeave={() => setHover(null)}
-              style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "100%", cursor: "default" }}
-            >
-              <div style={{ width: "100%", borderRadius: "4px 4px 0 0", height: `${b.value > 0 ? Math.max(6, Math.round((b.value / maxV) * 100)) : 3}%`, background: b.value > 0 ? "var(--bi-accent)" : "var(--bi-line)", opacity: hover === i ? 0.7 : 1 }} />
-            </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-          {buckets.map((b, i) => (
-            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, color: "var(--bi-muted)" }}>{b.label.charAt(0).toUpperCase()}</div>
-          ))}
         </div>
       </BiCard>
 
       {/* Subi ou choisi ? */}
-      <BiCard pad={20}>
-        <div style={{ fontSize: 15, fontWeight: 600 }}>Subi ou choisi ?</div>
-        <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2, marginBottom: 16 }}>Répartition de tes dépenses par nature</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <BiCard pad={0}>
+        <CardHead title="Subi ou choisi ?" sub="Répartition de tes dépenses par nature" />
+        <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 12 }}>
           {natShown.map((n) => {
             const pct = Math.round((n.value / natTotal) * 100);
             return (
               <div key={n.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{n.label}</span>
-                  <Mono style={{ fontSize: 13, fontWeight: 600 }}>{Math.round(n.value)} € · {pct}%</Mono>
+                  <Mono style={{ fontSize: 13, fontWeight: 600 }}>{fmtNum(Math.round(n.value))} € · {pct}%</Mono>
                 </div>
                 <div style={{ fontSize: 11, color: "var(--bi-muted)", margin: "2px 0 6px" }}>{n.sub}</div>
-                <div style={{ height: 8, borderRadius: 999, background: "var(--bi-bg)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${pct}%`, background: n.color, borderRadius: 999 }} />
-                </div>
+                <ProgressBar value={pct / 100} color={n.color} height={8} />
               </div>
             );
           })}
         </div>
       </BiCard>
-    </div>
+    </>
   );
 }

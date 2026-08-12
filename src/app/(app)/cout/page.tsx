@@ -1,40 +1,19 @@
-import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
+import {
+  Bars,
+  BiCard,
+  BiLabel,
+  CardHead,
+  EmptyState,
+  ListRow,
+  Metric,
+  Mono,
+  PageHead,
+} from "@/components/bi/ui";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
-
-const LABELS: Record<string, string> = {
-  transmission: "Transmission",
-  freinage: "Freinage",
-  suspension: "Suspension",
-  roues: "Pneumatiques",
-  cockpit: "Cockpit",
-  eclairage: "Éclairage",
-  autre: "Autre",
-  entretien: "Entretien courant",
-};
-
-const COLORS: Record<string, string> = {
-  transmission: "var(--bi-accent)",
-  freinage: "var(--bi-ok)",
-  roues: "var(--bi-warn)",
-  suspension: "#8B7CF8",
-  cockpit: "var(--bi-muted)",
-  eclairage: "var(--bi-muted)",
-  autre: "var(--bi-muted)",
-  entretien: "var(--bi-ink)",
-};
-
-function fmt(n: number) {
-  return n.toLocaleString("fr-FR");
-}
-
-function delay(w: number): string {
-  if (w <= 0) return "à remplacer";
-  if (w < 5) return `dans ${w} sem.`;
-  return `dans ${Math.round(w / 4)} mois`;
-}
+import { categoryColor, categoryLabel } from "@/lib/design/categories";
+import { fmtDelay, fmtNum } from "@/lib/format";
 
 export default async function CostPage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
   const { bike } = await searchParams;
@@ -42,39 +21,34 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
   if (!data) redirect("/login");
 
   const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
-  const maxActivity = Math.max(...activity.chart, 1);
 
   return (
-    <>
-      <div className="bi-page">
-        <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+    <div className="bi-page">
+      <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
-        <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />
+      <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />
 
+      <div className="bi-stack">
         {!hasData ? (
-          <BiCard pad={40} style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Pas encore de dépense d&apos;entretien</div>
-            <div style={{ fontSize: 13, color: "var(--bi-muted)" }}>
-              Enregistre un remplacement de pièce ou un entretien, et tu verras ici ce que ton vélo te coûte au fil du temps.
-            </div>
-          </BiCard>
+          <EmptyState
+            title={"Pas encore de dépense d'entretien"}
+            text="Enregistre un remplacement de pièce ou un entretien, et tu verras ici ce que ton vélo te coûte au fil du temps."
+          />
         ) : (
           <>
             {/* Deux chiffres clés */}
-            <div className="bi-grid-2" style={{ marginBottom: 14 }}>
-              <BiCard pad={22}>
+            <div className="bi-grid-2">
+              <BiCard>
                 <BiLabel>Dépensé en entretien</BiLabel>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spendTotal)}</Mono>
-                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
+                <div style={{ marginTop: 10 }}>
+                  <Metric value={fmtNum(kpis.spendTotal)} unit="€" />
                 </div>
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>remplacements + entretiens</div>
               </BiCard>
-              <BiCard pad={22}>
+              <BiCard>
                 <BiLabel>Cette année</BiLabel>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                  <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(kpis.spend12m)}</Mono>
-                  <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
+                <div style={{ marginTop: 10 }}>
+                  <Metric value={fmtNum(kpis.spend12m)} unit="€" />
                 </div>
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
               </BiCard>
@@ -82,26 +56,23 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
             {/* Activité 3 mois + Où part ton argent — côte à côte */}
             {(breakdown.length > 0 || activity.total > 0) && (
-              <div className={activity.total > 0 && breakdown.length > 0 ? "bi-grid-2" : undefined} style={{ marginBottom: 14 }}>
+              <div className={activity.total > 0 && breakdown.length > 0 ? "bi-grid-2" : undefined}>
                 {/* Où part ton argent */}
                 {breakdown.length > 0 && (
                   <BiCard pad={0}>
-                    <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
-                      <div style={{ fontSize: 15, fontWeight: 600 }}>Où part ton argent</div>
-                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Répartition de tes dépenses d&apos;entretien</div>
-                    </div>
+                    <CardHead title="Où part ton argent" sub={"Répartition de tes dépenses d'entretien"} />
                     <div style={{ padding: "20px 22px" }}>
                       <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
                         {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
-                          <div key={key} style={{ width: `${pct}%`, background: COLORS[key] ?? "var(--bi-muted)" }} />
+                          <div key={key} style={{ width: `${pct}%`, background: categoryColor(key) }} />
                         ))}
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {breakdown.map(({ key, pct, items }) => (
                           <div key={key}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 999, background: COLORS[key] ?? "var(--bi-muted)", flexShrink: 0 }} />
-                              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{LABELS[key] ?? key}</span>
+                              <span style={{ width: 8, height: 8, borderRadius: 999, background: categoryColor(key), flexShrink: 0 }} />
+                              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{categoryLabel(key)}</span>
                               <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
                             </div>
                             {items.length > 0 && (
@@ -117,17 +88,14 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                 )}
                 {/* Activité · 3 mois */}
                 {activity.total > 0 && (
-                  <BiCard pad={22}>
+                  <BiCard>
                     <BiLabel>Activité · 3 mois</BiLabel>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                      <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{fmt(activity.total)}</Mono>
-                      <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+                    <div style={{ marginTop: 10 }}>
+                      <Metric value={fmtNum(activity.total)} unit="km" />
                     </div>
                     <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>sur les 3 derniers mois</div>
-                    <div style={{ marginTop: 14, height: 60, display: "flex", alignItems: "flex-end", gap: 3 }}>
-                      {activity.chart.map((h, i) => (
-                        <div key={i} style={{ flex: 1, height: `${Math.max(2, Math.round((h / maxActivity) * 100))}%`, background: h > maxActivity * 0.6 ? "var(--bi-accent)" : h > 0 ? "#D9D8D2" : "var(--bi-line)", borderRadius: 2, minHeight: 2 }} />
-                      ))}
+                    <div style={{ marginTop: 14 }}>
+                      <Bars values={activity.chart} height={60} gap={3} />
                     </div>
                   </BiCard>
                 )}
@@ -136,38 +104,36 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
             {/* Ce qui t'attend — projection */}
             {projection.upcoming.length > 0 && (
-              <BiCard pad={0} style={{ marginBottom: 14 }}>
-                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 600 }}>Ce qui t&apos;attend</div>
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Pièces à remplacer et entretiens à venir, d&apos;après ton rythme</div>
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                      <Mono style={{ fontSize: 22, fontWeight: 600, letterSpacing: -0.5 }}>{fmt(projection.total12m)}</Mono>
-                      <span style={{ fontSize: 11, color: "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--bi-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}>à prévoir · 12 mois</div>
-                  </div>
+              <BiCard pad={0} style={{ overflow: "hidden" }}>
+                <CardHead
+                  title={"Ce qui t'attend"}
+                  sub={"Pièces à remplacer et entretiens à venir, d'après ton rythme"}
+                  right={
+                    <>
+                      <Metric value={fmtNum(projection.total12m)} unit="€" size="sm" align="right" />
+                      <BiLabel style={{ marginTop: 2 }}>à prévoir · 12 mois</BiLabel>
+                    </>
+                  }
+                />
+                <div className="bi-rows">
+                  {projection.upcoming.map((u, i) => (
+                    <ListRow
+                      key={i}
+                      href={u.href}
+                      accent={categoryColor(u.key)}
+                      title={
+                        <>
+                          {u.name}
+                          {u.key === "entretien" && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", flexShrink: 0, marginLeft: 8 }}>Entretien</span>
+                          )}
+                        </>
+                      }
+                      sub={u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : fmtDelay(u.weeksUntil)}
+                      trailing={<Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>{fmtNum(u.cost)} €</Mono>}
+                    />
+                  ))}
                 </div>
-                {projection.upcoming.map((u, i) => (
-                  <Link key={i} href={u.href} className="bi-component-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 22px", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)", textDecoration: "none", color: "inherit" }}>
-                    <div style={{ width: 4, height: 26, background: COLORS[u.key] ?? "var(--bi-muted)", borderRadius: 2, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}>
-                        {u.name}
-                        {u.key === "entretien" && (
-                          <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", flexShrink: 0 }}>Entretien</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>
-                        {u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : delay(u.weeksUntil)}
-                      </div>
-                    </div>
-                    <Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>{fmt(u.cost)} €</Mono>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6"/></svg>
-                  </Link>
-                ))}
                 <div style={{ padding: "10px 22px 14px", fontSize: 11, color: "var(--bi-muted)", borderTop: "1px solid var(--bi-line)", lineHeight: 1.5 }}>
                   Estimation basée sur ton rythme récent, le prix de tes pièces et le coût atelier des entretiens.
                 </div>
@@ -176,7 +142,7 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
             {/* Bilan entretien chaîne — économisé vs gaspillé, en un seul bloc */}
             {(insights.onTimeChains > 0 || insights.lateChains > 0) && (
-              <BiCard pad={22} style={{ marginBottom: 14 }}>
+              <BiCard>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 14, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -201,19 +167,23 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                     <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Changer ta chaîne à temps protège ta transmission</div>
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "stretch" }}>
+                <div className="bi-split-2">
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+                    <BiLabel style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--bi-ok)" }} />Économisé
+                    </BiLabel>
+                    <div style={{ marginTop: 6 }}>
+                      <Metric value={fmtNum(insights.transmissionSavings)} unit="€" size="sm" color="var(--bi-ok)" />
                     </div>
-                    <Mono style={{ fontSize: 24, fontWeight: 600, letterSpacing: -0.5, color: "var(--bi-ok)", marginTop: 6, display: "block" }}>{fmt(insights.transmissionSavings)} €</Mono>
                   </div>
-                  <div style={{ width: 1, background: "var(--bi-line)", margin: "0 20px" }} />
+                  <div className="bi-split-divider" />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--bi-muted)", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+                    <BiLabel style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--bi-warn)" }} />Gaspillé (évitable)
+                    </BiLabel>
+                    <div style={{ marginTop: 6 }}>
+                      <Metric value={fmtNum(insights.wastedTransmission)} unit="€" size="sm" color="var(--bi-warn)" />
                     </div>
-                    <Mono style={{ fontSize: 24, fontWeight: 600, letterSpacing: -0.5, color: "var(--bi-warn)", marginTop: 6, display: "block" }}>{fmt(insights.wastedTransmission)} €</Mono>
                   </div>
                 </div>
               </BiCard>
@@ -221,33 +191,34 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
 
             {/* Dépense par vélo (si plusieurs) */}
             {byBike.length > 1 && (
-              <BiCard pad={0}>
-                <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid var(--bi-line)" }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>Dépense par vélo</div>
+              <BiCard pad={0} style={{ overflow: "hidden" }}>
+                <CardHead title="Dépense par vélo" />
+                <div className="bi-rows">
+                  {byBike.map((b) => (
+                    <ListRow
+                      key={b.id}
+                      href={`/bikes/${b.id}`}
+                      title={b.name}
+                      sub={`${fmtNum(b.totalKm)} km parcourus`}
+                      trailing={<Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
+                    />
+                  ))}
                 </div>
-                {byBike.map((b, i) => (
-                  <Link key={b.id} href={`/bikes/${b.id}`} className="bi-component-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 22px", textDecoration: "none", color: "inherit", borderTop: i === 0 ? "none" : "1px solid var(--bi-line)" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>{fmt(b.totalKm)} km parcourus</div>
-                    </div>
-                    <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmt(b.spend)} €</Mono>
-                  </Link>
-                ))}
               </BiCard>
             )}
-
           </>
         )}
 
-        <Link href={`/historique?bike=${selectedBikeId}`} className="bi-component-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 22px", marginTop: 14, background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 18, textDecoration: "none", color: "inherit" }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Historique</div>
-            <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>Tes remplacements et entretiens, datés et chiffrés</div>
+        <BiCard pad={0} style={{ overflow: "hidden" }}>
+          <div className="bi-rows">
+            <ListRow
+              href={`/historique?bike=${selectedBikeId}`}
+              title="Historique"
+              sub="Tes remplacements et entretiens, datés et chiffrés"
+            />
           </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bi-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6"/></svg>
-        </Link>
+        </BiCard>
       </div>
-    </>
+    </div>
   );
 }

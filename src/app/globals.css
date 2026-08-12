@@ -32,6 +32,19 @@
   /* Marque Strava */
   --bi-strava:      #FC4C02;
 
+  /* Barres de graphique — teinte « en dessous du seuil » */
+  --bi-bar-idle:    #D9D8D2;
+
+  /* Catégories de pièces — palette décorative assumée (graphiques de
+     répartition uniquement). Source unique : src/lib/design/categories.ts.
+     Ne jamais réécrire un de ces hex ailleurs dans le code. */
+  --bi-cat-transmission: #C7FF3F;
+  --bi-cat-freinage:     #0E8F5A;
+  --bi-cat-roues:        #D08415;
+  --bi-cat-suspension:   #8B5CF6;
+  --bi-cat-cockpit:      #06B6D4;
+  --bi-cat-eclairage:    #F43F5E;
+
   /* Typography */
   --bi-font-ui:     "Geist", -apple-system, system-ui, sans-serif;
   --bi-font-mono:   "JetBrains Mono", ui-monospace, monospace;
@@ -87,6 +100,20 @@ body {
 /* Largeur de contenu UNIQUE, centrée — même largeur sur toutes les pages
    (fini les maxWidth inline au hasard). Un seul endroit à changer. */
 .bi-page { padding: 24px 36px 40px; max-width: 1120px; margin: 0 auto; }
+
+/* Rythme vertical UNIQUE entre les blocs d'une page.
+   Remplace les `marginBottom: 14` posés carte par carte. */
+.bi-stack { display: grid; gap: 14px; }
+
+/* Liste de lignes dans une carte `pad={0}` : filet entre les lignes,
+   jamais au-dessus de la première (l'en-tête porte déjà son border-bottom). */
+.bi-rows > .bi-row { border-top: 1px solid var(--bi-line); }
+.bi-rows > .bi-row:first-child { border-top: none; }
+
+/* Deux métriques côte à côte séparées par un filet vertical.
+   Passe en colonne + filet horizontal sous 768px. */
+.bi-split-2 { display: flex; align-items: stretch; }
+.bi-split-divider { width: 1px; background: var(--bi-line); margin: 0 20px; flex-shrink: 0; }
 
 /* Grilles */
 .bi-grid-4   { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }
@@ -381,6 +408,18 @@ body { overflow-x: hidden; }
 @media (max-width: 768px) {
   .bi-inline-desktop { display: none; }
   .bi-inline-mobile  { display: inline; }
+}
+
+/* ── Pages Coût & Historique : passe responsive ─────────────── */
+@media (max-width: 768px) {
+  /* Deux métriques + filet vertical → empilées + filet horizontal
+     (même logique que .bi-readiness-divider). */
+  .bi-split-2 { flex-direction: column; }
+  .bi-split-divider { width: 100%; height: 1px; margin: 16px 0; }
+
+  /* Graphe 12 mois : 12 initiales de 10px deviennent illisibles.
+     On n'en garde qu'une sur trois, sans changer la grille des barres. */
+  .bi-chart-labels > *:not(:nth-child(3n + 1)) { visibility: hidden; }
 }
 
 /* ── Info-bulle « i » (survol desktop + tap mobile via focus) ── */

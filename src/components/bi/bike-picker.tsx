@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { chipStyle } from "@/components/bi/ui";
 
 export type BikePickerStatus = "ok" | "warn" | "bad";
 
@@ -17,25 +17,15 @@ const DOT_COLORS: Record<BikePickerStatus, string> = {
   bad: "var(--bi-bad)",
 };
 
-function pillStyle(active: boolean): CSSProperties {
-  return {
-    padding: "7px 16px",
-    borderRadius: 999,
-    border: active ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
-    background: active ? "var(--bi-ink)" : "var(--bi-card)",
-    color: active ? "var(--bi-bg)" : "var(--bi-ink)",
-    fontSize: 13,
-    fontWeight: 600,
-    fontFamily: "inherit",
-    textDecoration: "none",
-    whiteSpace: "nowrap",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    transition: "all 0.12s",
-  };
-}
+// Métriques et couleurs partagées avec les autres filtres cliquables
+// (`chipStyle` dans ui.tsx). Seul écart assumé : fond `--bi-card` à l'état
+// inactif, parce que le sélecteur est posé sur le fond de page, pas sur une carte.
+const pillStyle = (active: boolean) => ({
+  ...chipStyle(active, "md"),
+  background: active ? "var(--bi-ink)" : "var(--bi-card)",
+  color: active ? "var(--bi-bg)" : "var(--bi-ink)",
+  fontWeight: 600,
+});
 
 function Dot({ status, active }: { status: BikePickerStatus; active: boolean }) {
   return (
@@ -85,7 +75,7 @@ export function BikePicker({
   if (bikes.length <= 1) return null;
 
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
       {bikes.map((b) => {
         const active = b.id === selected;
         const content = (
