@@ -1,5 +1,43 @@
 # Changelog
 
+## [Non publié] — 🔴 Les sorties manuelles étaient effacées par la synchro Strava
+
+*Trouvé en préparant les webhooks. Migration `20260812000004_bikes_manual_km.sql`.*
+
+### Le problème
+`bikes.total_km` avait deux écrivains qui se contredisaient : `manual-ride-button.tsx`
+l'incrémentait à chaque saisie manuelle, et l'import Strava l'**écrasait** ensuite avec
+l'odomètre du gear (`round(g.distance / 1000)`), sans condition.
+
+Résultat : sur un vélo relié à Strava, **toute sortie saisie à la main disparaissait à la
+synchronisation suivante**. La ligne survivait dans `activities`, mais `total_km` — qui pilote
+tout le calcul d'usure — revenait à la valeur Strava. D'autant plus gênant que la saisie manuelle
+doit devenir un chemin de première classe, c'est ce qui permet à l'app de valoir quelque chose
+sans Strava.
+
+### Correctif
+- Nouvelle colonne `bikes.manual_km`, qui accumule les kilomètres inconnus de Strava.
+- L'import calcule désormais `total_km = odomètre du gear + manual_km`.
+- `manual-ride-button.tsx` incrémente les deux colonnes.
+- **Backfill** depuis `activities where strava_id is null` : les kilomètres déjà perdus sont
+  restaurés et réapparaîtront à la prochaine synchronisation.
+
+**Colonne dédiée plutôt que somme calculée depuis `activities`** : si la question de rétention
+(§6.2 de l'API Policy) imposait un jour de purger les anciennes activités, une somme calculée
+disparaîtrait avec elles. Une colonne survit à la purge.
+
+Les vélos sans `strava_gear_id` ne sont pas concernés — l'import ne les touche pas, `total_km`
+y reste la seule source de vérité.
+
+### Au passage — correction d'un diagnostic erroné
+Il avait été écrit plus tôt qu'une sortie supprimée sur Strava gonflait les kilomètres « pour
+toujours ». C'est faux : `total_km` étant repris de l'odomètre Strava à chaque synchronisation,
+et Strava recalculant la distance d'un gear après suppression, le compteur se répare seul. Ce
+qui reste réellement faux, c'est la **ligne orpheline dans `activities`** — elle fausse les
+graphiques 12 mois, la « vie restante » par pièce et les dénominateurs de coût au km. Les
+webhooks restent justifiés (§6.3, §7.4, synchro réellement automatique), mais pas par cet
+argument.
+
 ## [Non publié] — 🔴 Faille RLS : vues sans `security_invoker`
 
 *Trouvée pendant l'audit RLS. Correctif : migration `20260812000003_views_security_invoker.sql`,
