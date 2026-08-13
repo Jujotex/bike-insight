@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { decryptToken } from '@/lib/token-crypto'
 
 /**
  * Suppression définitive du compte de l'utilisateur courant.
@@ -36,7 +37,16 @@ export async function POST() {
     .eq('id', user.id)
     .single()
 
-  const stravaToken = profile?.strava_access_token as string | null | undefined
+  // Tolère les valeurs en clair héritées (cf. lib/token-crypto.ts). Un token illisible
+  // ne doit pas empêcher la suppression : on laisse passer et l'utilisateur pourra
+  // révoquer manuellement depuis ses réglages Strava.
+  let stravaToken: string | null = null
+  try {
+    stravaToken = decryptToken(profile?.strava_access_token as string | null)
+  } catch (err) {
+    console.error('[account/delete] token Strava illisible, deautorisation ignoree:', err)
+  }
+
   if (stravaToken) {
     try {
       const res = await fetch('https://www.strava.com/oauth/deauthorize', {

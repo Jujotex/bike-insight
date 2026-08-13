@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { encryptToken } from '@/lib/token-crypto'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -39,8 +40,10 @@ export async function GET(request: NextRequest) {
   const { error: updateError } = await supabase
     .from('profiles')
     .update({
-      strava_access_token: access_token,
-      strava_refresh_token: refresh_token,
+      // Chiffrés avant écriture (cf. lib/token-crypto.ts) : un dump de la base ou une
+      // policy RLS trop large ne doit pas exposer l'accès Strava d'un athlète.
+      strava_access_token: encryptToken(access_token),
+      strava_refresh_token: encryptToken(refresh_token),
       strava_token_expires_at: expires_at,
       strava_athlete_id: athlete.id,
     })
