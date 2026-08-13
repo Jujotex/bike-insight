@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from './supabase-server'
+import { decryptToken, encryptToken } from './token-crypto'
 
 export interface StravaTokens {
   access_token: string
@@ -18,12 +19,19 @@ export async function getValidStravaToken(userId: string): Promise<string | null
 
   if (!profile?.strava_access_token) return null
 
+  // Les tokens sont chiffrés en base (cf. token-crypto.ts). Les valeurs en clair
+  // héritées sont tolérées en lecture et réécrites chiffrées au premier refresh.
+  const accessToken = decryptToken(profile.strava_access_token)
+  const refreshToken = decryptToken(profile.strava_refresh_token)
+
   const nowInSeconds = Math.floor(Date.now() / 1000)
   const isExpired = profile.strava_token_expires_at
     ? nowInSeconds >= profile.strava_token_expires_at - 300 // 5 min de marge
     : true
 
-  if (!isExpired) return profile.strava_access_token
+  if (!isExpired) return accessToken
+
+  if (!refreshToken) return null
 
   // Refresh le token
   const res = await fetch('https://www.strava.com/oauth/token', {
@@ -32,7 +40,7 @@ export async function getValidStravaToken(userId: string): Promise<string | null
     body: JSON.stringify({
       client_id: process.env.STRAVA_CLIENT_ID,
       client_secret: process.env.STRAVA_CLIENT_SECRET,
-      refresh_token: profile.strava_refresh_token,
+      refresh_token: refreshToken,
       grant_type: 'refresh_token',
     }),
   })
@@ -44,8 +52,8 @@ export async function getValidStravaToken(userId: string): Promise<string | null
   await supabase
     .from('profiles')
     .update({
-      strava_access_token: tokens.access_token,
-      strava_refresh_token: tokens.refresh_token,
+      strava_access_token: encryptToken(tokens.access_token),
+      strava_refresh_token: encryptToken(tokens.refresh_token),
       strava_token_expires_at: tokens.expires_at,
     })
     .eq('id', userId)
