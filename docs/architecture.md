@@ -125,9 +125,13 @@ défaire :
   utilisateur** (garanti par la RLS). Interdiction d'agréger les données des utilisateurs pour
   produire des moyennes communautaires — c'est pourquoi `src/lib/benchmarks.ts` repose sur des
   fourchettes statiques. Interdiction d'entraîner un modèle IA sur ces données.
-- **Capacité** : l'app est en « Single Player Mode » (1 athlète) tant que Strava n'a pas accordé
-  d'augmentation. Les quotas par défaut sont de 100 req/15 min et 1 000 req/jour.
-- **Coût** : l'accès API Standard exige un abonnement Strava actif côté développeur.
+- **Capacité** (relevé le 12/08/2026 sur `strava.com/settings/api`, App ID 249748) : Standard
+  Tier, premier niveau — **10 athlètes autorisés**, 4 connectés. Quotas : **400 req/15 min et
+  4 000 req/jour** (usage réel : une dizaine de requêtes par jour). Le passage au niveau
+  supérieur (9 999 athlètes) se demande par email à `developers@strava.com` ; il n'existe pas de
+  bouton self-service pour la capacité athlètes.
+- **Coût** : l'accès API Standard exige un abonnement Strava actif côté développeur
+  (~12 $/mois) — une interruption de paiement coupe l'accès.
 
 ## Middleware auth
 
