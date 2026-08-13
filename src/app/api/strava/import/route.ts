@@ -110,13 +110,30 @@ export async function POST(request: Request) {
         }
       }
 
-      // Met à jour les km des vélos existants
-      for (const g of gears) {
-        const bikeId = bikeMap.get(g.id)
-        if (bikeId && !missing.some(m => m.id === g.id)) {
+      // Met à jour les km des vélos existants.
+      //
+      // total_km = odomètre Strava du gear + kilomètres saisis manuellement.
+      // Sans le second terme, chaque synchronisation effacerait les sorties
+      // manuelles du vélo (cf. migration 20260812000004) : la ligne resterait
+      // dans `activities` mais total_km, qui pilote l'usure, reviendrait à la
+      // valeur Strava.
+      const existing = gears.filter(g => bikeMap.has(g.id) && !missing.some(m => m.id === g.id))
+      if (existing.length > 0) {
+        const { data: manualRows } = await supabase
+          .from('bikes')
+          .select('id, manual_km')
+          .in('id', existing.map(g => bikeMap.get(g.id) as string))
+
+        const manualByBike = new Map(
+          (manualRows ?? []).map(b => [b.id as string, Number(b.manual_km ?? 0)])
+        )
+
+        for (const g of existing) {
+          const bikeId = bikeMap.get(g.id) as string
+          const stravaKm = Math.round(g.distance / 1000)
           await supabase
             .from('bikes')
-            .update({ total_km: Math.round(g.distance / 1000) })
+            .update({ total_km: stravaKm + (manualByBike.get(bikeId) ?? 0) })
             .eq('id', bikeId)
         }
       }
