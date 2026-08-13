@@ -5,6 +5,15 @@
 
 ---
 
+## [Unreleased] — Mot de passe oublié : le parcours existe enfin
+
+### Fixed
+- Le lien « Mot de passe oublié ? » de `/login` pointait vers `/forgot-password`, une route qui n'existait pas (404). Le parcours complet est ajouté.
+
+### Added
+- `src/app/forgot-password/page.tsx` (nouveau) : saisie de l'email et envoi du lien de réinitialisation (`resetPasswordForEmail`, `redirectTo` → `/reset-password`). Confirmation affichée même si l'email est inconnu (pas d'énumération de comptes).
+- `src/app/reset-password/page.tsx` (nouveau) : échange du `code` du lien contre une session (`exchangeCodeForSession`), puis nouveau mot de passe via `updateUser`. Mêmes règles de robustesse qu'à l'inscription (8 caractères, majuscule, chiffre, caractère spécial) + confirmation. Écran dédié si le lien est expiré ou invalide, avec renvoi vers `/forgot-password`.
+
 ## [Unreleased] — Historique : uniformisation avec la charte
 
 ### Changed

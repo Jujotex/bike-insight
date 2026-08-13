@@ -2,16 +2,30 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function GET() {
+  // Sans cette variable, le redirect_uri envoyé à Strava vaut littéralement
+  // « undefined/api/strava/callback » et Strava renvoie une erreur opaque.
+  // C'est le mode de panne le plus probable lors d'un changement de domaine :
+  // autant échouer explicitement. La variable doit aussi exister en local
+  // (`NEXT_PUBLIC_APP_URL=http://localhost:3000` dans .env.local).
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error('[strava/auth] NEXT_PUBLIC_APP_URL manquante — connexion Strava impossible')
+    return NextResponse.json(
+      { error: 'Configuration serveur incomplète (NEXT_PUBLIC_APP_URL).' },
+      { status: 500 }
+    )
+  }
+
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_APP_URL!))
+    return NextResponse.redirect(new URL('/login', appUrl))
   }
 
   const stravaAuthUrl = new URL('https://www.strava.com/oauth/authorize')
   stravaAuthUrl.searchParams.set('client_id', process.env.STRAVA_CLIENT_ID!)
-  stravaAuthUrl.searchParams.set('redirect_uri', `${process.env.NEXT_PUBLIC_APP_URL}/api/strava/callback`)
+  stravaAuthUrl.searchParams.set('redirect_uri', `${appUrl}/api/strava/callback`)
   stravaAuthUrl.searchParams.set('response_type', 'code')
   stravaAuthUrl.searchParams.set('approval_prompt', 'auto')
   // Périmètre volontairement réduit à la lecture.
