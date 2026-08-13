@@ -1,5 +1,38 @@
 # Changelog
 
+## [Non publié] — 🔴 Faille RLS : vues sans `security_invoker`
+
+*Trouvée pendant l'audit RLS. Correctif : migration `20260812000003_views_security_invoker.sql`,
+**à appliquer en priorité**.*
+
+### Le problème
+Les vues `component_stats` et `bike_stats` ont été créées sans `security_invoker`. Une vue
+PostgreSQL s'exécute par défaut avec les droits de son propriétaire — `postgres`, qui possède
+BYPASSRLS — donc **la RLS des tables sous-jacentes ne s'appliquait pas**. Tout utilisateur
+authentifié pouvait lire, avec la clé anon publique du bundle client, les vélos, composants,
+coûts et kilomètres de **tous** les autres utilisateurs :
+
+```js
+supabase.from('bike_stats').select('*')   // sans filtre user_id
+```
+
+Le cloisonnement ne reposait que sur les `.eq('user_id', …)` du code applicatif. C'est aussi une
+violation de l'accord API Strava (§2.3, §6.1 : données affichées au seul propriétaire) —
+`bike_stats` expose `total_km` et `strava_gear_id`.
+
+### Correctif
+`alter view … set (security_invoker = true)` sur les deux vues, plutôt qu'un
+`create or replace view` : leur définition a été modifiée par plusieurs migrations successives
+(`20260523000004`, `20260524000001`), réécrire le corps risquerait de revenir à une version
+antérieure. Commentaires SQL ajoutés sur les deux vues pour que l'option ne se reperde pas.
+
+Aucun impact fonctionnel : les requêtes légitimes filtrent déjà par utilisateur.
+
+### Reste de l'audit — conforme
+- Les 8 tables ont bien la RLS activée (`profiles`, `bikes`, `components`, `activities`, `maintenance_logs`, `notifications`, `notification_settings`, `maintenance_types`).
+- Toutes les policies filtrent sur `auth.uid()`. Celle nommée « Service can insert notifications » est correctement bornée (`with check (auth.uid() = user_id)`) malgré son nom trompeur.
+- `activity_bike_stats` (migration `20260725000001`) avait déjà `security_invoker = true` — seules les deux vues d'origine étaient concernées.
+
 ## [Non publié] — Uniformisation du design (Coût & Historique)
 
 *Ces deux pages ré-implémentaient en inline ce qui existait déjà dans `components/bi/ui.tsx` :
