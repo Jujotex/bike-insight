@@ -1,5 +1,22 @@
 # Changelog
 
+## [Non publié] — 🔴 Landing : le tableau comparatif positionnait Strava en concurrent
+
+*Audit déclenché par une question simple — pourquoi pas d'attribution « Powered by Strava » avant
+connexion. Le problème principal était ailleurs. Détail dans `audit-landing-conformite.md`.*
+
+**Cette page est l'URL du site déclarée sur l'app Strava : un reviewer l'ouvre avant les captures.**
+
+### Corrigé
+- **Tableau comparatif** : la colonne « Strava » affichait six croix sur sept lignes, sous le titre « Pourquoi pas Strava, ProBikeGarage ou un tableur ? — Ils tracent. On décide. ». Trois clauses en cause : l'accord API (« may not create applications that compete with or replicate Strava functionality »), le §5.2 (usage concurrentiel de l'API) et le §5.12 (contenu « detrimental, disparaging, or harmful to Strava »). Colonne retirée, titre reformulé ; la comparaison ne porte plus que sur ProBikeGarage et le tableur, ce qui correspond au positionnement retenu : **à côté de Strava, pas en face**. Commentaire en tête de `LandingComparison` pour empêcher la réintroduction.
+- **Ligne « Alerte d'usure écrite sur Strava »** : mettait en avant, comme différenciateur exclusif, une fonctionnalité que le §5.12 interdit et qui est désactivée depuis. Remplacée par « Tutoriel ou estimation atelier ».
+- **Attribution manquante** : `PoweredByStrava` ajouté au pied de page. La section 4 s'applique dès qu'on référence l'interopérabilité, ce que la landing fait une dizaine de fois.
+- **Faux logo Strava** : la tuile 40 px « St » en blanc sur l'orange de marque était un logo inventé (section 2). Remplacée par une tuile neutre portant le pictogramme Bike Insight.
+- **Statistiques sans source** : « 180 € évités en moyenne », « 2,1x de durée de vie », « 142 sorties Strava analysées en moyenne par cycliste ». La dernière supposait une moyenne calculée sur les données Strava des utilisateurs, interdite même anonymisée (§5.4) ; les autres tombaient sous l'article 11.1(d) (pratiques trompeuses). Reformulées en fourchettes assumées, reprises de `lib/benchmarks.ts` — la vitrine dit désormais la même chose que le produit.
+- **« Conçu pour cyclistes Strava »** → « Compatible avec Strava », formulation explicitement autorisée par la section 4.
+
+- **Pied de page** : les trois colonnes de liens (Produit / Ressources / Legal) sont supprimées — douze `<span>` non cliquables vers des pages inexistantes. Deux dépassaient le cosmétique : **« API »** laissait entendre que Bike Insight expose sa propre API alors que le **§5.16** interdit toute couche réexposant les données Strava à des tiers, et **« Tarifs »** contredisait le bandeau « Beta · accès libre ». Ne restent que les liens réels dans la barre du bas : politique de confidentialité et contact.
+
 ## [Non publié] — Webhooks Strava (API Policy §6.3 et §7.4)
 
 *Mise en service : voir `runbook-webhooks-strava.md` dans le dossier projet — trois variables

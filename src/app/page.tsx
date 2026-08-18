@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PoweredByStrava } from "@/components/bi/strava-brand";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 // Token helpers
 const T = {
@@ -145,7 +147,10 @@ function LandingHero() {
       <div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: `1px solid ${T.line}`, background: T.card }}>
           <Dot color={T.accent} size={6} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.5 }}>Conçu pour cyclistes Strava</span>
+          {/* « Compatible avec Strava » est une des deux formulations explicitement
+              autorisées par la section 4 des Brand Guidelines. « Conçu pour cyclistes
+              Strava » pouvait se lire comme une approbation de leur part. */}
+          <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.5 }}>Compatible avec Strava</span>
         </div>
 
         <div style={{ marginTop: 24, fontSize: "clamp(40px, 5vw, 76px)", fontWeight: 600, letterSpacing: -3, lineHeight: 0.96 }}>
@@ -191,11 +196,19 @@ function LandingMetrics() {
   return (
     <div className="bi-land-pad" style={{ padding: "32px 48px", borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.card }}>
       <div className="bi-land-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 48 }}>
+        {/* Chiffres reformulés en repères assumés, et non en résultats mesurés.
+            Les versions précédentes affirmaient « 180 € évités en moyenne »,
+            « 2,1x de durée de vie » et « 142 sorties analysées en moyenne par
+            cycliste ». Deux problèmes : l'article 11.1(d) de l'accord API interdit
+            les pratiques trompeuses, et la troisième supposait une moyenne calculée
+            sur les données Strava des utilisateurs — ce que le §5.4 de l'API Policy
+            interdit, même anonymisée. Même logique que `lib/benchmarks.ts` :
+            des fourchettes présentées comme des ordres de grandeur. */}
         {[
-          ["180 €", "évités en moyenne sur une chaîne remplacée trop tard"],
-          ["2,1x", "de durée de vie en plus quand on respecte le seuil critique"],
-          ["142", "sorties Strava analysées en moyenne par cycliste"],
-          ["< 1 min", "pour synchroniser ton historique complet"],
+          ["60-120 €", "le prix d'une cassette, quand une chaîne est remplacée trop tard"],
+          ["3-5x", "l'écart d'usure d'une chaîne entre conditions sèches et hivernales"],
+          ["0,03-0,08 €", "le coût d'entretien au kilomètre d'un routier régulier"],
+          ["Auto", "tes sorties alimentent le suivi, sans saisie"],
         ].map(([v, k]) => (
           <div key={String(v)}>
             <Mono style={{ fontSize: 36, fontWeight: 500, letterSpacing: -1.2, lineHeight: 1, display: "block" }}>{v}</Mono>
@@ -222,7 +235,12 @@ function LandingHow() {
             <div style={{ display: "flex", gap: 3 }}>
               {[0,1,2].map(i => <div key={i} style={{ width: 3, height: 3, borderRadius: 999, background: T.muted }} />)}
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: T.strava, color: T.white, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>St</div>
+            {/* Tuile neutre : l'ancienne version affichait « St » en blanc sur l'orange
+                de marque Strava — un logo inventé, interdit par la section 2 des Brand
+                Guidelines. Le vrai logo est réservé à l'attribution du pied de page. */}
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: T.ink, color: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
+            </div>
           </div>
           <div style={{ padding: 12, borderRadius: 10, background: T.bg, border: `1px solid ${T.line}`, fontSize: 12, lineHeight: 1.5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.ok, fontWeight: 600, fontSize: 11 }}>
@@ -358,37 +376,55 @@ function LandingInsights() {
 }
 
 // ── Comparison ─────────────────────────────────────────────────
+//
+// ⚠️ NE PAS RÉINTRODUIRE DE COLONNE « STRAVA » ICI.
+//
+// Ce tableau opposait auparavant Bike Insight à Strava, avec six croix sur sept
+// lignes et le titre « Ils tracent. On décide. ». Trois clauses l'interdisaient :
+//   • accord API — « You may not create applications that compete with or
+//     replicate Strava functionality » ;
+//   • API Policy §5.2 — usage de l'API « in any manner that is competitive to
+//     Strava or the Strava Platform » ;
+//   • API Policy §5.12 — contenu « perceived as detrimental, disparaging, or
+//     harmful to Strava ».
+//
+// Le positionnement du produit est « à côté de Strava, pas en face » : Strava
+// enregistre les sorties, Bike Insight gère le coût et l'entretien du matériel.
+// La comparaison pertinente est donc avec les outils de gestion de matériel, pas
+// avec la source des données.
+//
+// La ligne « Alerte d'usure écrite sur Strava » a également été retirée : elle
+// mettait en avant une fonctionnalité que le §5.12 interdit (« make comments »),
+// désactivée depuis (cf. lib/strava-comment.ts).
 function LandingComparison() {
   const rows = [
-    ["Sync auto Strava", "check", "partiel", "manuel", "cross"],
-    ["Suivi de la dépense d'entretien", "check", "cross", "basique", "manuel"],
-    ["Santé du vélo", "check", "cross", "cross", "cross"],
-    ["Alerte d'usure écrite sur Strava", "check", "cross", "cross", "cross"],
-    ["Projection des dépenses à venir", "check", "cross", "cross", "cross"],
-    ["Coût évité chiffré", "check", "cross", "cross", "cross"],
-    ["Comparateur de remplacement", "check", "cross", "cross", "cross"],
+    ["Suivi de la dépense d'entretien", "check", "basique", "manuel"],
+    ["Santé du vélo en un coup d'œil", "check", "cross", "cross"],
+    ["Projection des dépenses à venir", "check", "cross", "cross"],
+    ["Coût évité chiffré", "check", "cross", "cross"],
+    ["Comparateur de remplacement", "check", "cross", "cross"],
+    ["Tutoriel ou estimation atelier", "check", "cross", "cross"],
   ];
 
   return (
     <div className="bi-land-pad" style={{ padding: "60px 48px", background: T.card, borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}` }}>
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Pourquoi pas Strava, ProBikeGarage ou un tableur ?</div>
-          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Ils tracent. On décide.</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Gérer son matériel autrement</div>
+          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 10 }}>Suivre, c&apos;est bien. Décider, c&apos;est mieux.</div>
         </div>
 
         <div className="bi-land-table-wrap" style={{ background: T.bg, borderRadius: 18, border: `1px solid ${T.line}`, overflow: "hidden" }}>
-          <div className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 11, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
+          <div className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", padding: "16px 22px", gap: 14, fontSize: 11, color: T.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" as const, borderBottom: `1px solid ${T.line}` }}>
             <span></span>
             <span style={{ textAlign: "center", color: T.ink }}>Bike Insight</span>
-            <span style={{ textAlign: "center" }}>Strava</span>
             <span style={{ textAlign: "center" }}>ProBikeGarage</span>
             <span style={{ textAlign: "center" }}>Tableur</span>
           </div>
           {rows.map((row, i) => (
-            <div key={i} className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: i === rows.length - 1 ? "none" : `1px solid ${T.soft}` }}>
+            <div key={i} className="bi-land-table-row" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", padding: "14px 22px", gap: 14, alignItems: "center", borderBottom: i === rows.length - 1 ? "none" : `1px solid ${T.soft}` }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>{row[0]}</span>
-              {[1, 2, 3, 4].map(j => {
+              {[1, 2, 3].map(j => {
                 const v = row[j];
                 const isBI = j === 1;
                 return (
@@ -442,7 +478,7 @@ function LandingCTA() {
 function LandingFooter() {
   return (
     <div className="bi-land-pad" style={{ padding: "40px 48px 32px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
-      <div className="bi-land-footer" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 40 }}>
+      <div className="bi-land-footer" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 40 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 26, height: 26, borderRadius: 6, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -451,21 +487,24 @@ function LandingFooter() {
             <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
           </div>
           <div style={{ fontSize: 12, color: T.muted, marginTop: 12, lineHeight: 1.55, maxWidth: 280 }}>
-            L&apos;outil de gestion du matériel pour cyclistes Strava.
+            L&apos;outil de gestion du matériel pour cyclistes. Compatible avec Strava.
+          </div>
+          {/* Attribution obligatoire dès qu'on fait référence à l'interopérabilité
+              avec Strava (Brand Guidelines section 4). La landing cite Strava une
+              dizaine de fois : elle est donc concernée, tout autant que l'app. */}
+          <div style={{ marginTop: 16 }}>
+            <PoweredByStrava />
           </div>
         </div>
-        {[
-          ["Produit", ["Fonctionnalités", "Tarifs", "Roadmap", "Statut"]],
-          ["Ressources", ["Blog", "Guide entretien", "Méthodologie", "API"]],
-          ["Legal", ["Confidentialité", "Conditions", "Cookies", "Contact"]],
-        ].map(([h, items]) => (
-          <div key={h as string}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.8, textTransform: "uppercase" }}>{h as string}</div>
-            <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-              {(items as string[]).map(item => <span key={item} style={{ fontSize: 13, color: T.ink, cursor: "pointer" }}>{item}</span>)}
-            </div>
-          </div>
-        ))}
+        {/* Les trois colonnes de liens (Produit / Ressources / Legal) ont été retirées :
+            douze `<span>` non cliquables pointant vers des pages inexistantes — Blog,
+            Tarifs, Roadmap, Statut, Méthodologie, Cookies…
+            L'entrée « API » posait en plus un problème de fond : elle laissait entendre
+            que Bike Insight expose sa propre API, alors que le §5.16 de l'API Policy
+            Strava interdit toute couche d'abstraction réexposant leurs données à des
+            tiers. Et « Tarifs » contredisait le bandeau « Beta · accès libre ».
+            Les seuls liens réels vivent désormais dans la barre du bas. En rajouter
+            au fur et à mesure qu'ils existent, jamais avant. */}
       </div>
       {/* Lien public vers la politique de confidentialité : exigé par l'API Policy
           Strava §7.3 (lien « reasonably prominent ») et par les deux stores, qui
@@ -473,9 +512,14 @@ function LandingFooter() {
           l'endroit qu'un reviewer regarde en premier. */}
       <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap", fontSize: 11, color: T.muted }}>
         <Mono>© 2026 Bike Insight · v 0.5 beta</Mono>
-        <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
-          Politique de confidentialité
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+          <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+            Politique de confidentialité
+          </Link>
+          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+            Contact
+          </a>
+        </div>
       </div>
     </div>
   );
