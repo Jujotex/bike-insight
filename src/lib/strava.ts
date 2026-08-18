@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient } from './supabase-server'
 import { decryptToken, encryptToken } from './token-crypto'
 
@@ -7,9 +8,18 @@ export interface StravaTokens {
   expires_at: number
 }
 
-// Rafraîchit le token Strava si expiré, retourne un access_token valide
-export async function getValidStravaToken(userId: string): Promise<string | null> {
-  const supabase = await createSupabaseServerClient()
+/**
+ * Rafraîchit le token Strava si expiré, retourne un access_token valide.
+ *
+ * `client` permet d'injecter un client Supabase : les webhooks Strava n'ont pas de
+ * session utilisateur et doivent passer le client admin, sans quoi la RLS bloque la
+ * lecture de `profiles`. Par défaut, client serveur classique lié à la session.
+ */
+export async function getValidStravaToken(
+  userId: string,
+  client?: SupabaseClient
+): Promise<string | null> {
+  const supabase = client ?? (await createSupabaseServerClient())
 
   const { data: profile } = await supabase
     .from('profiles')
