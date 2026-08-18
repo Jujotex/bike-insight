@@ -1,5 +1,26 @@
 # Changelog
 
+## [Non publié] — Webhooks Strava (API Policy §6.3 et §7.4)
+
+*Mise en service : voir `runbook-webhooks-strava.md` dans le dossier projet — trois variables
+d'environnement puis une souscription à créer en ligne de commande.*
+
+### Ajouté
+- **`api/strava/webhook/[secret]/route.ts`** (nouveau) : handshake de validation en GET, traitement des événements en POST. Gère la **création** et la **modification** d'activité (dont le retypage en non-vélo, qui sort la sortie de nos données), la **suppression** (§6.3) et la **désautorisation** (§7.4).
+- **`lib/supabase-admin.ts`** (nouveau) : client à clé de service.
+- **`lib/strava.ts`** : `getValidStravaToken` accepte désormais un client Supabase injecté.
+
+### Choix de conception
+- **Clé de service assumée, cantonnée à cette route.** Elle avait été délibérément évitée pour la suppression de compte, où une session utilisateur permettait une fonction `security definer` bornée par `auth.uid()`. Un webhook arrive **sans session** : une fonction équivalente devrait être ouverte au rôle `anon`, et quiconque dispose de la clé anon publique pourrait purger le compte d'un tiers en devinant un identifiant d'athlète. Le module admin documente cette contrainte et se veut à appelant unique.
+- **Secret dans le chemin de l'URL.** Strava **ne signe pas** ses webhooks — le `verify_token` n'intervient qu'au handshake, jamais sur les POST. L'endpoint est donc intrinsèquement non authentifié : un secret de chemin est la meilleure protection disponible. Dans le chemin et non en query string, moins exposé aux troncatures et aux journaux.
+- **Toujours répondre 200**, même en cas d'erreur métier. Strava réessaie sur non-200 ; un bug de notre côté ne doit pas déclencher une tempête de réessais.
+- **Le polling manuel est conservé** comme filet : un webhook peut se perdre, Strava ne garantit pas la livraison. « Tout réimporter » reste indispensable pour reconstruire un historique.
+- **Désautorisation : on supprime les données Strava, pas le compte.** L'utilisateur a révoqué un accès, il n'a pas demandé la suppression de son compte. Vélos et composants sont conservés mais détachés de leur `strava_gear_id`, sinon une reconnexion créerait des doublons.
+
+### Notes
+- ⚠️ L'URL de callback contient le domaine : la bascule vers `bikeinsight.app` imposera de **supprimer et recréer** la souscription.
+- Coût en quota : 2 à 3 appels par événement. Négligeable face aux 400 requêtes / 15 min disponibles.
+
 ## [Non publié] — 🔴 Les sorties manuelles étaient effacées par la synchro Strava
 
 *Trouvé en préparant les webhooks. Migration `20260812000004_bikes_manual_km.sql`.*
