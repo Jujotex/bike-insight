@@ -12,17 +12,19 @@ import { SUPPORT_EMAIL, STRAVA_APPS_SETTINGS_URL } from "@/lib/contact";
  *   §2.1 — types de données, méthodes, retrait du consentement, suppression.
  *
  * ⚠️ Ce texte a été rédigé à partir du code et des obligations contractuelles,
- * il n'a pas été relu par un juriste. Les trois constantes ci-dessous doivent
- * être renseignées avant publication — elles sont fausses ou incomplètes en l'état.
+ * il n'a pas été relu par un juriste. À refaire relire avant de prendre des
+ * utilisateurs payants.
+ *
+ * Constantes vérifiées le 12/08/2026. La seule à remettre à jour est
+ * CONTROLLER_STATUS, le jour où une micro-entreprise existe.
  */
 
-// ⚠️ À RENSEIGNER — le RGPD (art. 13) impose d'identifier le responsable de traitement.
+// RGPD art. 13 : identification du responsable de traitement.
 const CONTROLLER_NAME = "Tanguy Dietsch";
-// ⚠️ À RENSEIGNER : statut (particulier / micro-entreprise) et, le cas échéant, n° SIRET.
+// ⚠️ À mettre à jour le jour où une micro-entreprise est créée (ajouter le n° SIRET).
 const CONTROLLER_STATUS = "éditeur individuel de l'application Bike Insight";
-// ⚠️ À VÉRIFIER dans le tableau de bord Supabase (Project Settings → General → Region).
-// Détermine s'il y a ou non un transfert hors UE à déclarer plus bas.
-const SUPABASE_REGION = "à confirmer";
+// Vérifié le 12/08/2026 dans Supabase (Project Settings → General → Region).
+const SUPABASE_REGION = "Union européenne (Francfort, eu-central-1)";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité — Bike Insight",
@@ -200,8 +202,10 @@ export default function ConfidentialitePage() {
           </li>
         </ul>
         <p style={muted}>
-          Lorsqu&apos;un transfert de données hors de l&apos;Union européenne a lieu, il est encadré
-          par les clauses contractuelles types de la Commission européenne.
+          Tes données sont stockées dans l&apos;Union européenne. Supabase et Vercel étant des
+          sociétés de droit américain, un accès depuis les États-Unis reste possible dans le cadre
+          de leurs opérations de support ; ces transferts éventuels sont encadrés par les clauses
+          contractuelles types de la Commission européenne.
         </p>
 
         <h2 style={h2}>5. Combien de temps</h2>
