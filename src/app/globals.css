@@ -358,10 +358,10 @@ body { overflow-x: hidden; }
   .bi-land-hero  { grid-template-columns: 1fr !important; gap: 36px !important; padding-top: 36px !important; padding-bottom: 36px !important; }
   .bi-land-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
   .bi-land-3     { grid-template-columns: 1fr !important; }
-  .bi-land-footer { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
-  /* Tableau comparatif : scroll horizontal contenu */
-  .bi-land-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .bi-land-table-row  { min-width: 560px; }
+  /* .bi-land-footer et .bi-land-table-* retirées le 12/08/2026 : le pied de page
+     n'a plus qu'un bloc centré (les trois colonnes de faux liens ont sauté) et la
+     section comparative a été supprimée. Sans ce nettoyage, la règle 1fr 1fr aurait
+     laissé une colonne vide sur mobile. */
 }
 
 /* ── Carte Entretien : alignée sur le tableau des pièces ────── */

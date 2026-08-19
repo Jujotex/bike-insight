@@ -453,48 +453,44 @@ function LandingCTA() {
 function LandingFooter() {
   return (
     <div className="bi-land-pad" style={{ padding: "40px 48px 32px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
-      <div className="bi-land-footer" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 40 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 6, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
+      {/* Bloc centré : les trois colonnes de liens (Produit / Ressources / Legal) ont
+          été retirées — douze `<span>` non cliquables pointant vers des pages
+          inexistantes (Blog, Tarifs, Roadmap, Statut, Méthodologie, Cookies…).
+          L'entrée « API » posait en plus un problème de fond : elle laissait entendre
+          que Bike Insight expose sa propre API, alors que le §5.16 de l'API Policy
+          Strava interdit toute couche d'abstraction réexposant leurs données à des
+          tiers. Et « Tarifs » contredisait le bandeau « Beta · accès libre ».
+          Les seuls liens réels vivent dans la barre du bas. En rajouter au fur et à
+          mesure qu'ils existent, jamais avant. */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 26, height: 26, borderRadius: 6, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
           </div>
-          <div style={{ fontSize: 12, color: T.muted, marginTop: 12, lineHeight: 1.55, maxWidth: 280 }}>
-            L&apos;outil de gestion du matériel pour cyclistes. Compatible avec Strava.
-          </div>
-          {/* Attribution obligatoire dès qu'on fait référence à l'interopérabilité
-              avec Strava (Brand Guidelines section 4). La landing cite Strava une
-              dizaine de fois : elle est donc concernée, tout autant que l'app. */}
-          <div style={{ marginTop: 16 }}>
-            <PoweredByStrava />
-          </div>
+          <span style={{ fontSize: 14, fontWeight: 600 }}>Bike Insight</span>
         </div>
-        {/* Les trois colonnes de liens (Produit / Ressources / Legal) ont été retirées :
-            douze `<span>` non cliquables pointant vers des pages inexistantes — Blog,
-            Tarifs, Roadmap, Statut, Méthodologie, Cookies…
-            L'entrée « API » posait en plus un problème de fond : elle laissait entendre
-            que Bike Insight expose sa propre API, alors que le §5.16 de l'API Policy
-            Strava interdit toute couche d'abstraction réexposant leurs données à des
-            tiers. Et « Tarifs » contredisait le bandeau « Beta · accès libre ».
-            Les seuls liens réels vivent désormais dans la barre du bas. En rajouter
-            au fur et à mesure qu'ils existent, jamais avant. */}
+        <div style={{ fontSize: 12, color: T.muted, marginTop: 12, lineHeight: 1.55, maxWidth: 320 }}>
+          L&apos;outil de gestion du matériel pour cyclistes. Compatible avec Strava.
+        </div>
+        {/* Attribution obligatoire dès qu'on fait référence à l'interopérabilité
+            avec Strava (Brand Guidelines section 4). La landing cite Strava une
+            dizaine de fois : elle est donc concernée, tout autant que l'app. */}
+        <div style={{ marginTop: 16 }}>
+          <PoweredByStrava />
+        </div>
       </div>
       {/* Lien public vers la politique de confidentialité : exigé par l'API Policy
           Strava §7.3 (lien « reasonably prominent ») et par les deux stores, qui
           demandent une URL accessible sans compte. Le pied de page de la landing est
           l'endroit qu'un reviewer regarde en premier. */}
-      <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap", fontSize: 11, color: T.muted }}>
+      <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "center", alignItems: "center", gap: 18, flexWrap: "wrap", fontSize: 11, color: T.muted }}>
         <Mono>© 2026 Bike Insight · v 0.5 beta</Mono>
-        <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-          <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
-            Politique de confidentialité
-          </Link>
-          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
-            Contact
-          </a>
-        </div>
+        <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+          Politique de confidentialité
+        </Link>
+        <a href={`mailto:${SUPPORT_EMAIL}`} style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+          Contact
+        </a>
       </div>
     </div>
   );
