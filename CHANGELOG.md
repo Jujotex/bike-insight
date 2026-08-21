@@ -1,5 +1,94 @@
 # Changelog
 
+## [Non publié] — Vélocistes : l'annuaire tombait dès qu'Overpass toussait
+
+*Signalé depuis la page tuto « Remplacer la chaîne » : « L'annuaire des magasins ne répond pas. »
+Le géocodage marchait (l'adresse était bien résolue), seule la recherche des magasins échouait.*
+
+### Le diagnostic
+Mesuré depuis une IP résidentielle, en moins d'une minute, la **même** requête Overpass a renvoyé
+successivement `200`, `429`, `504` et `502`. Les instances publiques gratuites sont simplement
+instables — ce n'était ni la requête (syntaxe `out center tags 60;` valide, les paramètres du
+`out` s'écrivent dans n'importe quel ordre), ni le `User-Agent` accentué (testé : `200`), ni un
+filtrage d'IP de datacenter (la panne se produit en local).
+
+### Corrigé
+- **Budget de calcul incohérent.** La requête annonçait `[timeout:25]` à Overpass pendant qu'on
+  abandonnait à 15s : un miroir en file d'attente était coupé **avant** d'avoir pu répondre, y
+  compris pour dire pourquoi. Le budget annoncé (`OVERPASS_TIMEOUT_S = 12`) est désormais toujours
+  sous notre abandon (15s), donc l'erreur du serveur nous parvient.
+- **Miroirs en séquence → en parallèle.** Trois miroirs lents cumulaient leurs délais : jusqu'à 45s
+  avant même le message d'erreur, et le troisième n'était essayé qu'après l'échec du premier. Ils
+  sont maintenant interrogés ensemble (`Promise.any`), le premier qui répond gagne. Comme les
+  pannes sont indépendantes d'un miroir à l'autre, c'est le correctif principal.
+- **Deux tentatives, deux budgets, et un plafond tenu.** Sonde courte (requête `[timeout:4]`,
+  abandon 5s) puis seconde tentative plus patiente (`[timeout:6]`, abandon 8s) après 1s de pause —
+  une réponse Overpass saine arrive en 1 à 4s. Pas de retry sur un `429` : le quota ne se libère
+  pas en une seconde et insister l'enfonce. Le pire cas passe de **31s à 14s** (mesuré), y compris
+  quand un miroir *pend* au lieu d'échouer.
+- **Miroir mort retiré.** `overpass.kumi.systems` ne figurait plus dans la liste des instances
+  publiques du wiki OSM, répondait `502`, puis a cessé de répondre. Un miroir qui pend coûte plus
+  cher qu'un miroir qui échoue : `Promise.any` n'abandonne qu'une fois **toutes** les promesses
+  réglées, donc le plus lent fixe le prix de chaque échec — celui-ci imposait à lui seul 15s
+  d'attente avant une seconde tentative qui aboutissait ensuite en 4s.
+- **Hôte manquant sur les erreurs réseau.** Un « This operation was aborted » anonyme au milieu des
+  causes ne disait pas quel miroir avait pendu. Toutes les causes sont désormais préfixées.
+- **Cache des résultats par zone** (24h, 200 zones, mémoire du process). Clé arrondie à 2 décimales
+  (~1,1 km). Ce sont les **éléments OSM bruts** qui sont mémorisés, pas les `Velociste` : les
+  distances sont recalculées depuis le point exact de l'utilisateur, sinon on afficherait la
+  distance du voisin. Le meilleur moyen de survivre à un service instable reste de moins l'appeler.
+- **Message d'erreur trompeur sur quota.** « Réessaie dans un instant » conseillait exactement ce
+  qui aggrave un `429`. Un quota épuisé affiche désormais « Trop de recherches d'affilée sur
+  l'annuaire OpenStreetMap. Attends une minute et réessaie. »
+- **Panne indiagnosticable depuis la page.** L'API renvoie un champ `detail` (hôte + code HTTP de
+  **chaque** miroir, plus seulement le dernier), que le composant écrit dans la console. Avant, la
+  cause n'existait que dans les logs serveur.
+
+### Modifié
+- `User-Agent` repassé en ASCII pur, avec l'adresse de contact demandée par la politique d'usage
+  OSM (reprise de `lib/contact.ts`). L'accent n'était pas la cause de la panne — mais un octet
+  non-ASCII dans un en-tête reste à la merci du premier WAF venu.
+
+### Reste ouvert
+- Il ne reste que **deux** miroirs. N'en ajouter qu'un mondial, sans clé, et documenté sur le wiki
+  OSM. VK Maps (`maps.mail.ru`) remplit ces critères mais reçoit la position approximative de
+  l'utilisateur — écarté pour cette raison.
+
+## [Non publié] — Landing : « Voir une démo » menait au formulaire de connexion
+
+*Le bouton secondaire du héros pointait vers `/dashboard`, qui `redirect("/login")` dès qu'il n'y
+a pas de session — c'est-à-dire pour exactement la personne à qui le bouton s'adresse. La promesse
+était cassée à 100 % des clics.*
+
+### Ajouté
+- **`app/demo/page.tsx`** (nouveau) : route publique qui rend le **vrai** `DashboardClient` sur un
+  jeu de données fictives, sans session ni appel Supabase. Vit hors du groupe `(app)` — pas de
+  layout authentifié —, la nav latérale reçoit ses props en dur.
+- **`lib/demo-data.ts`** (nouveau) : le jeu de données. Typé `Omit<DashboardClientProps, "todayCap">`,
+  importé depuis le dashboard lui-même : **si les props du dashboard changent, le typecheck casse
+  ici**. C'est ce qui empêche la démo de diverger silencieusement du produit — le défaut classique
+  d'une maquette figée.
+- **`app/demo/demo-guard.tsx`** (nouveau) : le dashboard réel est truffé de liens vers des pages
+  protégées, qui renverraient le visiteur vers `/login` — le problème qu'on vient de corriger. Le
+  clic est intercepté au niveau du conteneur (`onClick` + `closest("a")`) et remplacé par un toast
+  « Démo en lecture seule ». Choix assumé de ne **pas** ajouter un mode `demo` dans
+  `DashboardClient` : trente liens à conditionner pour une page vitrine.
+
+### Choix de conception
+- **Données calées sur l'aperçu du héros.** Canyon Aeroad, chaîne Ultegra à 94 %, pneus GP5000 à
+  71 %, 4 500 km, 142 sorties : le visiteur retrouve à l'écran ce que la landing lui a montré
+  juste au-dessus. Le score 62/100 n'est pas écrit en dur, il tombe du calcul réel du dashboard
+  (0,65 × 52 pièces + 0,35 × 80 entretien) — même formule que pour un vrai compte.
+- **Bandeau « DÉMO · vélo et chiffres fictifs » en tête de page.** Nécessaire : `AppShell` affiche
+  l'attribution « Powered by Strava » en pied de contenu, et rien ne doit laisser croire que ces
+  chiffres proviennent d'un compte Strava réel. La mention est explicite et au-dessus de la ligne
+  de flottaison.
+- **Deux vélos** dans le sélecteur, dont un tout au vert : montrer l'app avec un seul vélo en
+  alerte donnerait l'impression que le dashboard ne sait afficher que des problèmes.
+
+### Modifié
+- **`app/page.tsx`** : le bouton « Voir une démo » pointe sur `/demo`.
+
 ## [Non publié] — Landing : passe responsive mobile (chevauchements et débordement)
 
 *Vérifié au rendu réel (Chromium, 320 / 360 / 390 / 430 / 768 px), pas seulement à la lecture du

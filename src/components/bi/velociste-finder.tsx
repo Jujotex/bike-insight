@@ -29,6 +29,10 @@ export function VelocisteFinder() {
       const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) {
+        // La cause technique (miroirs OSM saturés, adresse non géocodée…) part
+        // en console : diagnosticable depuis la page en panne, sans accès aux
+        // logs serveur, et sans polluer le message vu par le cycliste.
+        if (data?.detail) console.warn("[velocistes]", data.detail);
         setError(data?.error ?? "Recherche indisponible.");
         setShops(null);
       } else {
