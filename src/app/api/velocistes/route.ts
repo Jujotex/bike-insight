@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { geocodeAddress, findVelocistes, type GeoPoint } from "@/lib/velocistes";
+import { geocodeAddress, findVelocistes, RATE_LIMITED_PREFIX, type GeoPoint } from "@/lib/velocistes";
 
 // Recherche de vélocistes proches. Deux modes :
 //   ?q=adresse            → géocodage puis recherche
@@ -50,8 +50,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ origin, shops });
   } catch (err) {
     console.error("[api/velocistes] recherche magasins échouée", origin, err);
+    const rateLimited = err instanceof Error && err.message.startsWith(RATE_LIMITED_PREFIX);
     return NextResponse.json(
-      { error: "L'annuaire des magasins ne répond pas. Réessaie dans un instant." },
+      {
+        error: rateLimited
+          ? "Trop de recherches d'affilée sur l'annuaire OpenStreetMap. Attends une minute et réessaie."
+          : "L'annuaire des magasins ne répond pas. Réessaie dans un instant.",
+        // `detail` porte les causes réelles (hôte + code HTTP de chaque miroir).
+        // L'utilisateur ne le voit pas ; la console du navigateur l'affiche.
+        // Sans ça, la panne se diagnostiquait uniquement dans les logs serveur,
+        // inaccessibles depuis la page où elle se produit.
+        detail: err instanceof Error ? err.message : String(err),
+      },
       { status: 502 }
     );
   }

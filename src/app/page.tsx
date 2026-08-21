@@ -182,7 +182,10 @@ function LandingHero() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </button>
           </Link>
-          <Link href="/dashboard">
+          {/* Pointait vers /dashboard, qui redirige vers /login sans session : le
+              bouton promettait une démo et livrait un formulaire de connexion.
+              /demo rend le vrai dashboard sur des données fictives, sans compte. */}
+          <Link href="/demo">
             <button style={{ padding: "15px 20px", background: "transparent", color: T.ink, border: `1px solid ${T.line}`, borderRadius: 14, fontSize: 14, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
               Voir une démo
