@@ -362,6 +362,55 @@ body { overflow-x: hidden; }
      n'a plus qu'un bloc centré (les trois colonnes de faux liens ont sauté) et la
      section comparative a été supprimée. Sans ce nettoyage, la règle 1fr 1fr aurait
      laissé une colonne vide sur mobile. */
+
+  /* Barre de nav : le contenu mesurait ~400px pour 350px utiles — le bouton
+     « Commencer » sortait de l'écran (13px de scroll horizontal) et les deux
+     libellés passaient à la ligne. On coupe le badge BETA, on serre les
+     paddings et on interdit le retour à la ligne. */
+  .bi-land-nav-beta  { display: none !important; }
+  .bi-land-nav span,
+  .bi-land-nav a     { white-space: nowrap; }
+  .bi-land-nav-login { padding-left: 4px !important; padding-right: 4px !important; }
+  .bi-land-nav-cta   { padding-left: 13px !important; padding-right: 13px !important; margin-left: 0 !important; }
+  .bi-land-nav       { gap: 10px; }
+
+  /* Titre héros : à 40px, letter-spacing -3px et line-height 0.96 collaient les
+     lignes entre elles. Le surlignement jaune est passé en `em` côté JSX pour
+     rester un soulignement au lieu de barrer le texte. */
+  .bi-land-hero-title { letter-spacing: -1.5px !important; line-height: 1.04 !important; }
+
+  /* Boutons du héros : côte à côte, les deux libellés passaient sur deux
+     lignes. Empilés et pleine largeur. */
+  .bi-land-hero-cta        { flex-direction: column !important; align-items: stretch !important; }
+  .bi-land-hero-cta button { width: 100%; justify-content: center; }
+  .bi-land-hero-cta > a    { display: block; }
+
+  /* En-têtes de section : titre 40px et paragraphe latéral se partageaient la
+     largeur en deux colonnes — le texte des deux se touchait. Empilés. */
+  .bi-land-head       { flex-direction: column !important; align-items: flex-start !important; gap: 16px; }
+  .bi-land-head-side  { max-width: none !important; }
+  .bi-land-h2         { font-size: 28px !important; letter-spacing: -1px !important; line-height: 1.28 !important; max-width: none !important; }
+  /* Le surlignement peut courir sur plusieurs lignes : sans `clone`, seule la
+     première reçoit le radius et les blocs se chevauchent verticalement. */
+  .bi-land-h2 span    { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+  /* Chiffres clés : « 0,03-0,08 € » à 36px débordait de sa demi-colonne. */
+  .bi-land-stat-v { font-size: 24px !important; }
+}
+
+/* Petits écrans (≤ 400px, iPhone SE / mini) : la barre de nav reste le point
+   le plus contraint de la page. On resserre encore plutôt que de sacrifier
+   l'entrée « Connexion ». */
+@media (max-width: 400px) {
+  .bi-land-nav        { padding-left: 14px !important; padding-right: 14px !important; gap: 6px; }
+  .bi-land-nav-cta    { padding-left: 11px !important; padding-right: 11px !important; }
+  .bi-land-nav-login  { padding-left: 0 !important; padding-right: 0 !important; }
+}
+
+/* En dessous de 345px (iPhone SE 1re gén., écran de couverture pliable), le
+   mot-logo ne rentre plus : la tuile suffit à identifier la marque. */
+@media (max-width: 344px) {
+  .bi-land-nav-name { display: none !important; }
 }
 
 /* ── Carte Entretien : alignée sur le tableau des pièces ────── */
