@@ -11,6 +11,23 @@ function fmtDistance(km: number): string {
   return km < 10 ? km.toFixed(1).replace(".", ",") : String(Math.round(km));
 }
 
+// Recherche « magasin de vélo » sur Google Maps, centrée sur ce qu'on connaît
+// du point de départ : les coordonnées si la géolocalisation a été utilisée,
+// l'adresse saisie sinon. Même fournisseur de cartes que les liens d'itinéraire
+// des fiches magasin, pour ne pas envoyer l'utilisateur sur deux services.
+function mapFallbackUrl(lastUrl: string, typed: string): string {
+  const params = new URLSearchParams(lastUrl.split("?")[1] ?? "");
+  const lat = params.get("lat");
+  const lon = params.get("lon");
+  if (lat && lon) {
+    return `https://www.google.com/maps/search/magasin+de+v%C3%A9lo/@${lat},${lon},13z`;
+  }
+  const where = params.get("q") ?? typed.trim();
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `magasin de vélo ${where}`.trim()
+  )}`;
+}
+
 export function VelocisteFinder() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +38,14 @@ export function VelocisteFinder() {
   const [showSuggest, setShowSuggest] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Dernière recherche lancée — sert à construire la sortie de secours vers une
+  // carte externe quand l'annuaire tombe. On repart de l'URL appelée plutôt que
+  // du champ texte : « Utiliser ma position » laisse le champ vide et ne
+  // fournit que des coordonnées.
+  const [lastUrl, setLastUrl] = useState("");
+
   async function run(url: string) {
+    setLastUrl(url);
     setLoading(true);
     setError("");
     setShowSuggest(false);
@@ -186,8 +210,35 @@ export function VelocisteFinder() {
         <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 12 }}>Recherche en cours…</div>
       )}
 
+      {/* L'annuaire repose sur des serveurs OpenStreetMap publics et gratuits,
+          qui tombent régulièrement. Aucun réglage de délai n'y changera rien :
+          quand ils sont indisponibles, le cycliste doit quand même repartir
+          avec son vélociste. D'où cette sortie de secours vers une carte
+          externe, qui elle répond toujours. */}
       {error && !loading && (
-        <div style={{ fontSize: 12, color: "var(--bi-bad)", marginTop: 12 }}>{error}</div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12, color: "var(--bi-bad)" }}>{error}</div>
+          <a
+            href={mapFallbackUrl(lastUrl, query)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              marginTop: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--bi-ink)",
+              textDecoration: "underline",
+            }}
+          >
+            Chercher un vélociste sur une carte
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M7 17L17 7M9 7h8v8" />
+            </svg>
+          </a>
+        </div>
       )}
 
       {!loading && !error && shops !== null && shops.length === 0 && (

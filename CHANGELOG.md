@@ -21,11 +21,9 @@ filtrage d'IP de datacenter (la panne se produit en local).
   avant même le message d'erreur, et le troisième n'était essayé qu'après l'échec du premier. Ils
   sont maintenant interrogés ensemble (`Promise.any`), le premier qui répond gagne. Comme les
   pannes sont indépendantes d'un miroir à l'autre, c'est le correctif principal.
-- **Deux tentatives, deux budgets, et un plafond tenu.** Sonde courte (requête `[timeout:4]`,
-  abandon 5s) puis seconde tentative plus patiente (`[timeout:6]`, abandon 8s) après 1s de pause —
-  une réponse Overpass saine arrive en 1 à 4s. Pas de retry sur un `429` : le quota ne se libère
-  pas en une seconde et insister l'enfonce. Le pire cas passe de **31s à 14s** (mesuré), y compris
-  quand un miroir *pend* au lieu d'échouer.
+- **Un plafond tenu de bout en bout.** Pas de retry sur un `429` : le quota ne se libère pas en une
+  seconde et insister l'enfonce. Le pire cas passe de **31s à 9s** (mesuré), y compris quand un
+  miroir *pend* au lieu d'échouer. Voir le complément plus bas pour le détail des budgets.
 - **Miroir mort retiré.** `overpass.kumi.systems` ne figurait plus dans la liste des instances
   publiques du wiki OSM, répondait `502`, puis a cessé de répondre. Un miroir qui pend coûte plus
   cher qu'un miroir qui échoue : `Promise.any` n'abandonne qu'une fois **toutes** les promesses
@@ -48,6 +46,26 @@ filtrage d'IP de datacenter (la panne se produit en local).
 - `User-Agent` repassé en ASCII pur, avec l'adresse de contact demandée par la politique d'usage
   OSM (reprise de `lib/contact.ts`). L'accent n'était pas la cause de la panne — mais un octet
   non-ASCII dans un en-tête reste à la merci du premier WAF venu.
+
+### Complément — budget revu et sortie de secours
+
+*Le découpage en deux sondes courtes (5s puis 8s) était un mauvais arbitrage, révélé par une
+recherche à Paris : `around:15000` y couvre bien plus d'objets qu'à Annecy et Overpass met
+légitimement plus de 5s. On coupait une requête qui allait aboutir, deux fois de suite, pour finir
+en erreur au bout de 14s.*
+
+- **Un budget total, et un second essai seulement s'il reste de la place.** La première tentative
+  dispose de 9s (requête `[timeout:7]`). On ne retente **que** si elle a échoué vite (< 5s) : un
+  502/504 revient en une seconde et laisse tout le budget, alors qu'un échec lent l'a consommé —
+  insister n'aurait fait qu'allonger l'attente avant la même erreur. Mesuré : requête lente mais
+  valide (7s) → succès, là où l'ancienne version échouait ; échec rapide puis succès → 1,5s ;
+  miroir qui pend → échec à 9s (contre 14s, et 31s avant ça).
+- **Sortie de secours vers une carte externe.** Aucun réglage de délai ne rend disponible un
+  service qui ne l'est pas : quand l'annuaire tombe, le message d'erreur propose désormais un lien
+  « Chercher un vélociste sur une carte » (Google Maps, même fournisseur que les liens
+  d'itinéraire des fiches). Centré sur les coordonnées si la géolocalisation a servi, sur l'adresse
+  saisie sinon — le lien est construit depuis l'URL appelée, car « Utiliser ma position » laisse le
+  champ texte vide.
 
 ### Reste ouvert
 - Il ne reste que **deux** miroirs. N'en ajouter qu'un mondial, sans clé, et documenté sur le wiki
