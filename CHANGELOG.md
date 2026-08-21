@@ -1,5 +1,39 @@
 # Changelog
 
+## [Non publié] — Landing : passe responsive mobile (chevauchements et débordement)
+
+*Vérifié au rendu réel (Chromium, 320 / 360 / 390 / 430 / 768 px), pas seulement à la lecture du
+code. Avant correction, `document.scrollWidth` valait 404px pour 390px de viewport : la page
+scrollait horizontalement sur tous les téléphones.*
+
+### Corrigé
+- **Barre de nav : le bouton « Commencer » sortait de l'écran.** Le contenu mesurait ~400px pour
+  350px utiles. « Bike Insight » et « Se connecter » passaient chacun sur deux lignes et le CTA
+  débordait de 13px. Sous 768px : badge BETA masqué, `white-space: nowrap` sur les libellés,
+  paddings resserrés. Sous 400px : paddings de la barre réduits et libellé « Se connecter » →
+  « Connexion » (via les classes `bi-inline-desktop` / `bi-inline-mobile` déjà en place). Sous
+  345px : le mot-logo disparaît, la tuile suffit.
+- **Titre héros : le surlignement barrait le texte.** Le trait jaune sous « plus cher » était
+  positionné en pixels (`bottom: 6`, `height: 14`), calibré pour les 76px du desktop. À 40px sur
+  mobile il traversait les glyphes comme un barré. Passé en `em` (`0.08em` / `0.18em`) : rendu
+  desktop strictement identique, soulignement correct à toutes les tailles.
+- **Titre héros : lignes collées.** `line-height: 0.96` et `letter-spacing: -3px` sont calibrés
+  pour 76px ; à 40px les jambages touchaient la ligne suivante. Relâchés en mobile (1.04 / -1.5px).
+- **En-têtes « Comment ça marche » et « Ce que tu vas apprendre » : les deux textes se
+  touchaient.** Le titre 40px et le paragraphe latéral se partageaient la largeur en deux colonnes
+  sans règle mobile — « dashboards. » venait coller « Trois exemples de… ». Empilés sous 768px,
+  titre à 28px. Ajout de `box-decoration-break: clone` sur le surlignement multi-lignes, sinon les
+  blocs jaunes se chevauchent verticalement.
+- **Chiffres clés : « 0,03-0,08 € » débordait de sa demi-colonne** en 36px et passait à la ligne.
+  Réduit à 24px sous 768px.
+- **Boutons du héros** empilés en pleine largeur sous 768px, au lieu de deux libellés cassés sur
+  deux lignes chacun.
+
+### Notes
+- Après correction, `scrollWidth === clientWidth` à 320, 360, 390, 430 et 768px.
+- Le rendu desktop est inchangé : toutes les règles vivent dans les media queries existantes,
+  sauf le surlignement du héros dont les valeurs `em` reproduisent exactement les anciennes.
+
 ## [Non publié] — 🔴 Landing : le tableau comparatif positionnait Strava en concurrent
 
 *Audit déclenché par une question simple — pourquoi pas d'attribution « Powered by Strava » avant

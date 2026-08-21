@@ -24,25 +24,28 @@ function Dot({ color, size = 7 }: { color: string; size?: number }) {
   return <span style={{ display: "inline-block", width: size, height: size, borderRadius: 999, background: color, flexShrink: 0 }} />;
 }
 
-function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <span style={{ fontFamily: "var(--bi-font-mono)", ...style }}>{children}</span>;
+function Mono({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
+  return <span className={className} style={{ fontFamily: "var(--bi-font-mono)", ...style }}>{children}</span>;
 }
 
 // ── Nav ────────────────────────────────────────────────────────
 function LandingNav() {
   return (
-    <div className="bi-land-pad" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${T.line}` }}>
+    <div className="bi-land-pad bi-land-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${T.line}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accentInk} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18l4-8 4 6 4-10 4 8"/></svg>
         </div>
-        <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Bike Insight</span>
-        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontWeight: 600, letterSpacing: 0.5, marginLeft: 6 }}>BETA</span>
+        <span className="bi-land-nav-name" style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.3 }}>Bike Insight</span>
+        <span className="bi-land-nav-beta" style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontWeight: 600, letterSpacing: 0.5, marginLeft: 6 }}>BETA</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Link href="/login" style={{ fontSize: 13, color: T.ink, padding: "8px 14px", fontWeight: 500, textDecoration: "none" }}>Se connecter</Link>
+        <Link href="/login" className="bi-land-nav-login" style={{ fontSize: 13, color: T.ink, padding: "8px 14px", fontWeight: 500, textDecoration: "none" }}>
+          <span className="bi-inline-desktop">Se connecter</span>
+          <span className="bi-inline-mobile">Connexion</span>
+        </Link>
         <Link href="/signup">
-          <button style={{ padding: "10px 16px", background: T.ink, color: T.bg, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", marginLeft: 4 }}>
+          <button className="bi-land-nav-cta" style={{ padding: "10px 16px", background: T.ink, color: T.bg, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", marginLeft: 4 }}>
             Commencer
           </button>
         </Link>
@@ -153,12 +156,15 @@ function LandingHero() {
           <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 0.5 }}>Compatible avec Strava</span>
         </div>
 
-        <div style={{ marginTop: 24, fontSize: "clamp(40px, 5vw, 76px)", fontWeight: 600, letterSpacing: -3, lineHeight: 0.96 }}>
+        <div className="bi-land-hero-title" style={{ marginTop: 24, fontSize: "clamp(40px, 5vw, 76px)", fontWeight: 600, letterSpacing: -3, lineHeight: 0.96 }}>
           Ton matériel<br />
           te coûte{" "}
           <span style={{ position: "relative", display: "inline-block" }}>
             <span style={{ position: "relative", zIndex: 2 }}>plus cher</span>
-            <span style={{ position: "absolute", left: -2, right: -4, bottom: 6, height: 14, background: T.accent, zIndex: 1, borderRadius: 2 }} />
+            {/* Décalage et épaisseur en `em` : en px (bottom 6 / height 14) le trait
+                était calibré pour 76px et barrait le texte à 40px sur mobile.
+                Les valeurs em reproduisent exactement le rendu desktop. */}
+            <span style={{ position: "absolute", left: "-0.03em", right: "-0.05em", bottom: "0.08em", height: "0.18em", background: T.accent, zIndex: 1, borderRadius: 2 }} />
           </span>
           <br />
           que tu ne le crois.
@@ -169,7 +175,7 @@ function LandingHero() {
           <Mono style={{ color: T.ink, fontWeight: 600 }}>coût réel</Mono> de chaque composant. Tu sais quand remplacer, combien ça va te coûter, et combien tu peux éviter de gaspiller.
         </div>
 
-        <div style={{ marginTop: 36, display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="bi-land-hero-cta" style={{ marginTop: 36, display: "flex", alignItems: "center", gap: 12 }}>
           <Link href="/signup">
             <button style={{ padding: "15px 22px", background: T.ink, color: T.bg, border: "none", borderRadius: 14, fontSize: 14, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               Connecter mon Strava
@@ -218,7 +224,7 @@ function LandingMetrics() {
           ["0,03-0,08 €", "le coût d'entretien au kilomètre où tu te situes"],
         ].map(([v, k]) => (
           <div key={String(v)}>
-            <Mono style={{ fontSize: 36, fontWeight: 500, letterSpacing: -1.2, lineHeight: 1, display: "block" }}>{v}</Mono>
+            <Mono className="bi-land-stat-v" style={{ fontSize: 36, fontWeight: 500, letterSpacing: -1.2, lineHeight: 1, display: "block" }}>{v}</Mono>
             <div style={{ fontSize: 12, color: T.muted, marginTop: 8, lineHeight: 1.45 }}>{k}</div>
           </div>
         ))}
@@ -320,15 +326,15 @@ function LandingHow() {
 
   return (
     <div className="bi-land-pad" style={{ padding: "80px 48px 64px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48 }}>
+      <div className="bi-land-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Comment ça marche</div>
-          <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 600 }}>
+          <div className="bi-land-h2" style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 600 }}>
             Trois étapes, et{" "}
             <span style={{ background: T.accent, padding: "0 6px", borderRadius: 6 }}>ton matériel se pilote tout seul</span>.
           </div>
         </div>
-        <div style={{ fontSize: 13, color: T.muted, maxWidth: 280, lineHeight: 1.55 }}>
+        <div className="bi-land-head-side" style={{ fontSize: 13, color: T.muted, maxWidth: 280, lineHeight: 1.55 }}>
           Pas de check-list manuelle. Pas de tableur. Tes sorties Strava font le travail.
         </div>
       </div>
@@ -355,14 +361,14 @@ function LandingHow() {
 function LandingInsights() {
   return (
     <div className="bi-land-pad" style={{ padding: "40px 48px 80px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
+      <div className="bi-land-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: 1, textTransform: "uppercase" }}>Ce que tu vas apprendre</div>
-          <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 560 }}>
+          <div className="bi-land-h2" style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1.4, lineHeight: 1.05, marginTop: 8, maxWidth: 560 }}>
             Des décisions, pas des dashboards.
           </div>
         </div>
-        <div style={{ fontSize: 13, color: T.muted, maxWidth: 320, lineHeight: 1.55 }}>
+        <div className="bi-land-head-side" style={{ fontSize: 13, color: T.muted, maxWidth: 320, lineHeight: 1.55 }}>
           Trois exemples de ce que l&apos;app t&apos;affiche, à partir de tes kilomètres et de tes
           prix d&apos;achat.
         </div>
