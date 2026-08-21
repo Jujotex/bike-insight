@@ -41,20 +41,26 @@ const PHOTON_URL = "https://photon.komoot.io/api/";
 // À remplacer par l'URL du site le jour où le domaine tourne, comme prévu dans
 // `lib/contact.ts`.
 const USER_AGENT = `BikeInsight/1.0 (bike maintenance assistant; ${SUPPORT_EMAIL})`;
-// Deux tentatives, avec deux budgets. Le premier est une sonde courte : une
-// réponse Overpass saine arrive en 1 à 4s, inutile d'attendre davantage avant
-// de retenter ailleurs. La seconde est plus patiente.
+// Un budget TOTAL, et un deuxième essai seulement s'il reste de la place.
 //
-// Dans chaque paire, le budget annoncé à Overpass reste SOUS notre abandon
-// réseau : le serveur doit avoir le temps de dire « je renonce » avant qu'on
-// coupe, sinon la cause est illisible. Et le total (5 + 1 + 8) tient la
-// promesse qui compte : **jamais plus de ~15s de roue qui tourne**, même si un
-// miroir pend au lieu d'échouer. L'ancienne version pouvait atteindre 31s.
-const OVERPASS_ATTEMPTS = [
-  { queryTimeoutS: 4, abortMs: 5000 },
-  { queryTimeoutS: 6, abortMs: 8000 },
-];
-const RETRY_PAUSE_MS = 1000;
+// La version précédente découpait en deux sondes courtes (5s puis 8s). Mauvais
+// arbitrage : à Paris, `around:15000` couvre bien plus d'objets qu'à Annecy et
+// Overpass met légitimement plus de 5s — on coupait une requête qui allait
+// aboutir, deux fois de suite, pour finir en erreur au bout de 14s.
+//
+// Règle inverse : on laisse à la première tentative un vrai délai, et on ne
+// retente QUE si elle a échoué vite (un 502/504 revient en une seconde, il
+// reste alors tout le budget). Un échec lent consomme le budget : insister
+// n'aurait fait qu'allonger l'attente avant la même erreur.
+//
+// Le budget annoncé à Overpass reste sous notre abandon réseau : le serveur
+// doit avoir le temps de dire « je renonce » avant qu'on coupe, sinon la cause
+// est illisible.
+const OVERPASS_BUDGET_MS = 14000; // plafond tenu de bout en bout
+const OVERPASS_FIRST_ABORT_MS = 9000;
+const OVERPASS_QUERY_TIMEOUT_S = 7; // < 9s d'abandon
+const FAST_FAILURE_MS = 5000; // en deçà, il reste assez de budget pour retenter
+const RETRY_PAUSE_MS = 500;
 /** Marqueur d'erreur « quota Overpass épuisé », lu par la route API. */
 export const RATE_LIMITED_PREFIX = "overpass-rate-limited:";
 
@@ -275,29 +281,27 @@ export async function findVelocistes(
     return toVelocistes(hit.elements, lat, lon, max);
   }
 
-  // Sonde courte, puis seconde tentative plus patiente. Les 502/504 observés
-  // sont transitoires et indépendants d'un miroir à l'autre : réessayer rattrape
-  // une bonne partie des échecs, et ne coûte du temps que dans le cas où on
-  // allait de toute façon afficher une erreur. On n'insiste pas sur un 429 : le
-  // quota ne se libère pas en une seconde, et réessayer l'enfonce.
-  const buildQuery = (timeoutS: number) =>
-    `[out:json][timeout:${timeoutS}];` +
+  const query =
+    `[out:json][timeout:${OVERPASS_QUERY_TIMEOUT_S}];` +
     `(nwr["shop"="bicycle"](around:${radiusM},${lat},${lon}););` +
     `out center tags 60;`;
 
-  let json: { elements?: OverpassElement[] } | null = null;
-  let lastError: unknown = null;
-  for (const [i, attempt] of OVERPASS_ATTEMPTS.entries()) {
-    if (i > 0) await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS));
-    try {
-      json = await raceOverpassMirrors(buildQuery(attempt.queryTimeoutS), attempt.abortMs);
-      break;
-    } catch (err) {
-      lastError = err;
-      if (err instanceof Error && err.message.startsWith(RATE_LIMITED_PREFIX)) throw err;
-    }
+  const started = Date.now();
+  let json: { elements?: OverpassElement[] };
+  try {
+    json = await raceOverpassMirrors(query, OVERPASS_FIRST_ABORT_MS);
+  } catch (first) {
+    const elapsed = Date.now() - started;
+    // Un 429 ne se retente pas : le quota ne se libère pas en une seconde et
+    // insister l'enfonce. Un échec LENT non plus : il a mangé le budget, un
+    // second essai ne ferait qu'allonger l'attente avant la même erreur.
+    const rateLimited = first instanceof Error && first.message.startsWith(RATE_LIMITED_PREFIX);
+    if (rateLimited || elapsed > FAST_FAILURE_MS) throw first;
+
+    await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS));
+    const remaining = OVERPASS_BUDGET_MS - (Date.now() - started);
+    json = await raceOverpassMirrors(query, remaining);
   }
-  if (!json) throw lastError;
 
   const elements = json.elements ?? [];
 
