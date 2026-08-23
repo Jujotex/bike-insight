@@ -14,6 +14,40 @@ import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
 import { categoryColor, categoryLabel } from "@/lib/design/categories";
 import { fmtDelay, fmtNum } from "@/lib/format";
+import {
+  KM_PER_YEAR,
+  MAINTENANCE_COST_PER_KM,
+  benchmarkVerdict,
+  formatRange,
+  verdictColor,
+  verdictLabel,
+  type BenchmarkRange,
+} from "@/lib/benchmarks";
+
+/** Une ligne « ta valeur face à la fourchette de référence ». */
+function BenchmarkRow({
+  value,
+  range,
+  format,
+}: {
+  value: number | null;
+  range: BenchmarkRange;
+  format: (v: number) => string;
+}) {
+  const verdict = benchmarkVerdict(value, range);
+  return (
+    <div style={{ padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-bg)" }}>
+      <div style={{ fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.4 }}>{range.label}</div>
+      <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <Mono style={{ fontSize: 20, fontWeight: 600 }}>{value !== null ? format(value) : "—"}</Mono>
+        <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>/ {formatRange(range)}</Mono>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: verdictColor(verdict), marginTop: 6 }}>
+        {verdictLabel(verdict)}
+      </div>
+    </div>
+  );
+}
 
 export default async function CostPage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
   const { bike } = await searchParams;
@@ -53,6 +87,26 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
                 <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
               </BiCard>
             </div>
+
+            {/* Où tu te situes — repères statiques (lib/benchmarks.ts).
+                `getCostData` calculait déjà `costPerKm` et `km12m` depuis juillet, mais
+                rien ne les affichait : le calcul tournait dans le vide. Les fourchettes
+                sont volontairement statiques — le §5.4 de l'API Policy Strava interdit
+                d'agréger les données des athlètes pour en tirer des moyennes. */}
+            {kpis.costPerKm !== null && (
+              <BiCard>
+                <BiLabel>Où tu te situes</BiLabel>
+                <div className="bi-grid-2" style={{ marginTop: 14 }}>
+                  <BenchmarkRow value={kpis.costPerKm} range={MAINTENANCE_COST_PER_KM} format={(v) => `${v.toFixed(3).replace(".", ",")} €/km`} />
+                  <BenchmarkRow value={kpis.km12m} range={KM_PER_YEAR} format={(v) => `${fmtNum(Math.round(v))} km/an`} />
+                </div>
+                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 14, lineHeight: 1.5 }}>
+                  Fourchettes indicatives pour un cycliste route régulier. Être en dehors
+                  n&apos;est ni bon ni mauvais : un coût faible peut vouloir dire un entretien
+                  repoussé, un coût élevé du matériel haut de gamme.
+                </div>
+              </BiCard>
+            )}
 
             {/* Activité 3 mois + Où part ton argent — côte à côte */}
             {(breakdown.length > 0 || activity.total > 0) && (
