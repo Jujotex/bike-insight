@@ -1,5 +1,28 @@
 # Changelog
 
+## [Non publié] — Repères « Où tu te situes » : la tâche 4.1 n'avait jamais atterri
+
+*Découvert en préparant les tests unitaires : `src/lib/benchmarks.ts` n'existait pas, alors que la
+tâche 4.1 du backlog de juillet était cochée « faite le 2026-07-16 » avec une note détaillée.*
+
+### Le constat
+La moitié de la tâche était bien présente : `getCostData` calcule `costPerKm` et `km12m`
+(`data.ts:471-472`) et les expose dans ses `kpis`. Mais **rien ne les affichait**, et le fichier de
+repères n'existait pas — le calcul tournait dans le vide depuis un mois. À noter : la tâche 4.2 de
+la même session avait bien atterri, c'est donc une perte isolée et non une session entière.
+
+Conséquence collatérale : la ligne « 0,03-0,08 € — le coût d'entretien au kilomètre où tu te
+situes », ajoutée la veille sur la landing, annonçait une fonctionnalité absente.
+
+### Ajouté
+- **`lib/benchmarks.ts`** : fourchettes `MAINTENANCE_COST_PER_KM` (0,03-0,08 €/km) et `KM_PER_YEAR` (3 000-8 000 km/an), plus `benchmarkVerdict()`, `verdictLabel()`, `verdictColor()`, `formatRange()`.
+- **`/cout`** : carte « Où tu te situes », branchée sur les `kpis` déjà calculés — aucune requête supplémentaire.
+
+### Choix de conception
+- **Fourchettes statiques, jamais des moyennes observées.** Ce n'est pas une limite technique : le §5.4 de l'API Policy Strava interdit d'agréger les données des athlètes, même anonymisées, à des fins d'analyse. Le commentaire en tête du fichier le rappelle, pour éviter qu'on « améliore » ça un jour.
+- **`unknown` distinct de `below`.** Un compte neuf n'a ni dépense ni kilomètres : le confondre avec « en dessous de la fourchette » serait un jugement infondé.
+- **Couleur neutre hors fourchette.** Être en dehors n'est ni bien ni mal — un coût faible peut signifier un entretien repoussé, un coût élevé du matériel haut de gamme. Seul `within` est coloré.
+
 ## [Non publié] — Vélocistes : l'annuaire tombait dès qu'Overpass toussait
 
 *Signalé depuis la page tuto « Remplacer la chaîne » : « L'annuaire des magasins ne répond pas. »
