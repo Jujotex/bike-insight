@@ -5,10 +5,9 @@ name: CI
 # est passée jusqu'au build Vercel, donc après le commit et le push. `tsc` l'aurait
 # attrapée sur la PR.
 #
-# Périmètre volontairement réduit à tsc + lint : c'est rapide (moins d'une minute) et
-# ça couvre la classe d'erreurs rencontrée. Le `next build` complet reste fait par
-# Vercel sur chaque preview — inutile de le payer deux fois. Les tests unitaires
-# viendront s'ajouter ici quand ils existeront.
+# Périmètre : typecheck, lint et tests unitaires de la logique métier pure. Le
+# `next build` complet reste fait par Vercel sur chaque preview — inutile de le
+# payer deux fois. L'ensemble tourne en moins d'une minute.
 
 on:
   pull_request:
@@ -41,3 +40,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Tests unitaires
+        run: npm test
