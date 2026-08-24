@@ -13,6 +13,7 @@ import {
   formatRepairTime,
 } from "@/lib/repair-guides";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
+import { routes } from "@/lib/routes";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -298,7 +299,7 @@ export function DashboardClient({
                 </div>
               </div>
               {selectedBikeId && (
-                <Link href={`/bikes/${selectedBikeId}`} style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
+                <Link href={routes.bike(selectedBikeId)} style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
                   Voir tout
                 </Link>
               )}
@@ -322,7 +323,7 @@ export function DashboardClient({
                 const pill = m.state === "due" ? "À FAIRE" : m.state === "soon" ? "BIENTÔT" : "À JOUR";
                 const pillBg = m.state === "due" ? "var(--bi-bad-soft)" : m.state === "soon" ? "var(--bi-warn-soft)" : "var(--bi-ok-soft)";
                 return (
-                  <Link key={m.typeId} href={`/reglages/entretiens/${m.typeId}?bike=${selectedBikeId}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                  <Link key={m.typeId} href={routes.maintenanceType(m.typeId, selectedBikeId)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                     <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -359,7 +360,7 @@ export function DashboardClient({
                               <span style={{ fontSize: 11, color: "var(--bi-muted)" }}>Atelier : <Mono>{mt.laborMin}–{mt.laborMax} €</Mono></span>
                             )}
                             <button
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/reglages/entretiens/${m.typeId}/tuto?bike=${selectedBikeId}`); }}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(routes.maintenanceTuto(m.typeId, selectedBikeId)); }}
                               style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", border: "none", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", padding: "4px 11px" }}
                             >
                               Voir le tuto
@@ -399,7 +400,7 @@ export function DashboardClient({
               </div>
             </div>
             {filteredAttention.length > 0 && selectedBikeId && (
-              <Link href={`/bikes/${selectedBikeId}`} style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
+              <Link href={routes.bike(selectedBikeId)} style={{ fontSize: 12, color: "var(--bi-muted)", textDecoration: "none", flexShrink: 0 }}>
                 Voir tout
               </Link>
             )}
@@ -422,7 +423,7 @@ export function DashboardClient({
               // Rien à traiter : on affiche quand même chaque pièce avec son usure
               // et ses km restants — le dashboard reste informatif dans tous les cas.
               filteredOk.map((c) => (
-                <Link key={c.id} href={`/components/${c.id}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                   <div style={{ width: 4, height: 40, background: "var(--bi-ok)", borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 14, fontWeight: 600 }}>{CATEGORY_LABELS[c.category] ?? c.name}</span>
@@ -449,7 +450,7 @@ export function DashboardClient({
                 : c.weeksUntil !== null ? `Dans ${formatWeeks(c.weeksUntil)}`
                 : `~${c.kmRemaining.toLocaleString("fr")} km`;
               return (
-                <Link key={c.id} href={`/components/${c.id}`} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
                   <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -496,7 +497,7 @@ export function DashboardClient({
                             Atelier : <Mono>{g.laborMin}–{g.laborMax} €</Mono>
                           </span>
                           <button
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/components/${c.id}/tuto`); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(routes.componentTuto(c.id)); }}
                             style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", border: "none", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", padding: "4px 11px" }}
                           >
                             Voir le tuto
@@ -512,7 +513,7 @@ export function DashboardClient({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        router.push(isBad ? `/components/${c.id}/compare` : `/components/${c.id}`);
+                        router.push(isBad ? routes.componentCompare(c.id) : routes.component(c.id));
                       }}
                       style={{
                         padding: "10px 16px",

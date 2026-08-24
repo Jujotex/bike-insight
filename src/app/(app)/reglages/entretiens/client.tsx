@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BiCard, Mono } from "@/components/bi/ui";
+import { routes } from "@/lib/routes";
 
 // Badge compact (visible seulement sur mobile, quand les colonnes se replient)
 const mtBadge: React.CSSProperties = {
@@ -115,7 +116,7 @@ export function MaintenanceSettingsClient({
             {bikeTypes.map((t) => (
               <Link
                 key={t.id}
-                href={`/reglages/entretiens/${t.slug}?bike=${bikeId}`}
+                href={routes.maintenanceType(t.slug, bikeId)}
                 className="bi-component-row bi-mt-row"
                 style={{ padding: "14px 22px", alignItems: "center", borderBottom: "1px solid var(--bi-line)", cursor: "pointer", textDecoration: "none", color: "inherit" }}
               >

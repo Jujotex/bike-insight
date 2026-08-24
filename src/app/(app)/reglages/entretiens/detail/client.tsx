@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { routes } from "@/lib/routes";
 import { BiCard, BiLabel, Mono } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 import Link from "next/link";
@@ -198,7 +199,7 @@ export function MaintenanceEditClient({
 
     {tuto && (
       <BiCard pad={0} style={{ marginTop: 14, overflow: "hidden" }}>
-        <Link href={`/reglages/entretiens/${type?.slug}/tuto?bike=${bikeId}`} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+        <Link href={routes.maintenanceTuto(type?.slug ?? "", bikeId)} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
           {/* En-tête lime */}
           <div style={{ padding: "18px 22px", background: urgent ? "var(--bi-accent)" : "var(--bi-accent-soft)", borderBottom: urgent ? "none" : "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

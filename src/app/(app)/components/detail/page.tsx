@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { ArchiveButton } from "@/components/bi/archive-button";
@@ -10,6 +10,7 @@ import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { loadComponentDetailData } from "./component-detail-data";
 import { findRepairGuide, DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
 
@@ -44,10 +45,11 @@ const REASON_LABELS: Record<string, string> = {
   "anticipe": "Anticipe",
 };
 
-export default function ComponentDetailPage() {
+/** Fiche pièce. Identifiant via `?id=` — voir `lib/routes.ts`. */
+function ComponentDetailContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
     const {
@@ -221,14 +223,14 @@ export default function ComponentDetailPage() {
           sub={(CATEGORY_LABELS[comp.category as string] ?? String(comp.category)) + " · installé le " + installedDate}
           actions={
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Link href={"/components/" + id + "/edit"}>
+              <Link href={routes.componentEdit(id)}>
                 <button style={{ padding: "10px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   Modifier
                 </button>
               </Link>
               {(comp.status as string) !== "archived" && (
-                <Link href={"/components/" + id + "/compare"}>
+                <Link href={routes.componentCompare(id)}>
                   <button style={{ padding: "10px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                     Voir les options
                   </button>
@@ -343,7 +345,7 @@ export default function ComponentDetailPage() {
 
         {(comp.status as string) !== "archived" && (
           <BiCard pad={0} style={{ marginBottom: 14, overflow: "hidden" }}>
-            <Link href={"/components/" + id + "/tuto"} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
+            <Link href={routes.componentTuto(id)} style={{ display: "block", textDecoration: "none", color: "var(--bi-ink)" }}>
               {/* En-tête : plein accent + bouton sombre si action requise,
                   discret (accent doux + lien) si la pièce est en bon état. */}
               <div style={{ padding: "18px 22px", background: nextStepUrgent ? "var(--bi-accent)" : "var(--bi-accent-soft)", borderBottom: nextStepUrgent ? "none" : "1px solid var(--bi-line)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -489,5 +491,13 @@ export default function ComponentDetailPage() {
 
       </div>
     </>
+  );
+}
+
+export default function ComponentDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <ComponentDetailContent />
+    </Suspense>
   );
 }

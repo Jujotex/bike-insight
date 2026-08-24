@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { routes } from "@/lib/routes";
 import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono, Dot } from "@/components/bi/ui";
 import { getCatalogForTemplate, checkBrandCompatibility, componentFamily, type CatalogEntry } from "@/lib/components-catalog";
@@ -127,7 +128,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     showToast("Pièce ajoutée — usure suivie automatiquement");
-    router.push("/bikes/" + bikeId);
+    router.push(routes.bike(bikeId));
     router.refresh();
   }
 

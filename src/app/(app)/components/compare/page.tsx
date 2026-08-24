@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { ReplaceButton } from "@/components/bi/replace-button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { loadCompareData } from "./compare-data";
 import { findCatalogEntry, getCatalogForTemplate, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
 import { BIKE_TEMPLATES } from "@/lib/bike-templates";
@@ -33,10 +34,11 @@ function buildGenericOptions(price: number | null, kmMax: number) {
   ];
 }
 
-export default function ComparePage() {
+/** Comparateur de remplacement. Identifiant via `?id=` — voir `lib/routes.ts`. */
+function CompareContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
     const {
@@ -160,7 +162,7 @@ export default function ComparePage() {
           title={"Remplacer : " + (comp.name as string)}
           sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}
           actions={
-            <Link href={"/components/" + id}>
+            <Link href={routes.component(id)}>
               <button style={{ padding: "10px 16px", background: "transparent", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-muted)" }}>
                 ← Retour
               </button>
@@ -351,7 +353,7 @@ export default function ComparePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {([
                 { n: "1", label: "Commande la pièce (chez ton vélociste ou en ligne)" },
-                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: `/components/${id}/tuto`, linkLabel: "voir le tuto" },
+                { n: "2", label: "Fais-la poser ou installe-la toi-même", href: routes.componentTuto(id), linkLabel: "voir le tuto" },
                 { n: "3", label: "Marque-la comme installée dans Bike Insight" },
                 { n: "4", label: "Le suivi d'usure reprend automatiquement" },
               ] as { n: string; label: string; href?: string; linkLabel?: string }[]).map(({ n, label, href, linkLabel }) => {
@@ -395,5 +397,13 @@ export default function ComparePage() {
 
       </div>
     </>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={null}>
+      <CompareContent />
+    </Suspense>
   );
 }

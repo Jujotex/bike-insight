@@ -13,6 +13,7 @@ import {
   type MaintenanceLast,
 } from "@/lib/maintenance-catalog";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
+import { routes } from "@/lib/routes";
 
 // Même langage visuel que le tableau des pièces :
 // barre latérale colorée, barre de progression vers l'échéance + %,
@@ -135,7 +136,7 @@ export function MaintenanceCard({
             <div className="bi-maint-row">
               {/* Entretien — cliquable pour modifier ce type */}
               <Link
-                href={`/reglages/entretiens/${t.id}?bike=${bikeId}`}
+                href={routes.maintenanceType(t.id, bikeId)}
                 title="Modifier cet entretien"
                 style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textDecoration: "none", color: "inherit" }}
               >
@@ -227,7 +228,7 @@ export function MaintenanceCard({
                   Enregistré au kilométrage actuel du vélo (<Mono style={{ fontSize: 11 }}>{bikeKm.toLocaleString("fr")} km</Mono>).
                 </div>
                 {(() => { const tuto = findMaintenanceTuto(t.id); return tuto ? (
-                  <Link href={`/reglages/entretiens/${t.id}/tuto?bike=${bikeId}`} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", borderRadius: 999, padding: "4px 11px", textDecoration: "none" }}>
+                  <Link href={routes.maintenanceTuto(t.id, bikeId)} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--bi-accent-ink)", background: "var(--bi-accent)", borderRadius: 999, padding: "4px 11px", textDecoration: "none" }}>
                     Voir le tuto ({tuto.tutorialSource})
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
                   </Link>

@@ -9,6 +9,7 @@ import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { AddBikeButton } from "@/components/bi/add-bike-button";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { loadBikesData } from "./bikes-data";
 import Link from "next/link";
 
@@ -131,7 +132,7 @@ export default function BikesPage() {
               const bikeColor = BIKE_COLORS[bikeIdx % BIKE_COLORS.length];
 
               return (
-                <Link key={b.id} href={`/bikes/${b.id}`} style={{ textDecoration: "none" }}>
+                <Link key={b.id} href={routes.bike(b.id)} style={{ textDecoration: "none" }}>
                   <BiCard
                     pad={0}
                     style={{
@@ -241,7 +242,7 @@ export default function BikesPage() {
                       {/* Badge non configuré */}
                       {!isConfigured && (
                         <Link
-                          href={`/onboarding?bike_id=${b.id}`}
+                          href={routes.onboarding(b.id)}
                           style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>

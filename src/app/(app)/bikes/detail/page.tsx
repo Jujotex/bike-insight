@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, ProgressBar, EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import Link from "next/link";
@@ -33,10 +33,16 @@ function fmt(n: number) {
   return n.toLocaleString("fr-FR");
 }
 
-export default function BikeDetailPage() {
+/**
+ * Fiche vélo. L'identifiant passe par `?id=` et non par un segment dynamique :
+ * Next ne peut pas pré-générer `/bikes/[id]` sans connaître les identifiants au
+ * build, ce qui interdisait l'export statique dont dépend l'app Capacitor.
+ * Construction des liens : `lib/routes.ts`.
+ */
+function BikeDetailContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
     const {
@@ -222,5 +228,13 @@ export default function BikeDetailPage() {
 
       </div>
     </>
+  );
+}
+
+export default function BikeDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <BikeDetailContent />
+    </Suspense>
   );
 }

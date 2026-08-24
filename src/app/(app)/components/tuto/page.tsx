@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, Mono, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { VelocisteFinder } from "@/components/bi/velociste-finder";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import {
   findRepairGuide,
   DIFFICULTY_LABELS,
@@ -28,10 +29,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
-export default function TutoPage() {
+/** Tuto de réparation d'une pièce. Identifiant via `?id=` — voir `lib/routes.ts`. */
+function TutoContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
     const {
@@ -104,11 +106,11 @@ export default function TutoPage() {
           <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>
             <Link href="/bikes" style={{ color: "var(--bi-muted)", textDecoration: "none" }}>Composants</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
-            <Link href={"/components/" + id} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{comp.name as string}</Link>
+            <Link href={routes.component(id)} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{comp.name as string}</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
             <span style={{ color: "var(--bi-ink)" }}>Tuto</span>
           </div>
-          <BackButton fallback={"/components/" + id} />
+          <BackButton fallback={routes.component(id)} />
         </div>
 
         {/* ── Héros : encre + accent lime ─────────────────────────── */}
@@ -232,5 +234,13 @@ export default function TutoPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function TutoPage() {
+  return (
+    <Suspense fallback={null}>
+      <TutoContent />
+    </Suspense>
   );
 }

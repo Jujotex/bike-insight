@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { routes } from "@/lib/routes";
 import { createBrowserClient } from "@supabase/ssr";
 
 interface DeleteButtonProps {
@@ -35,7 +36,7 @@ export function DeleteButton({ componentId, componentName, bikeId }: DeleteButto
       return;
     }
 
-    router.push(`/bikes/${bikeId}`);
+    router.push(routes.bike(bikeId));
     router.refresh();
   }
 

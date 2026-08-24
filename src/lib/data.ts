@@ -15,6 +15,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
+import { routes } from './routes'
 import {
   costPerKm,
   estimatedReplacementDate,
@@ -555,7 +556,7 @@ export async function getCostData(
         name: c.name as string,
         cost: Math.round((c.purchase_price as number) ?? 0),
         weeksUntil,
-        href: `/components/${c.id as string}`,
+        href: routes.component(c.id as string),
       }
     })
     .filter((u): u is UpcomingItem => u.weeksUntil !== null)
@@ -593,7 +594,7 @@ export async function getCostData(
         name: def.label,
         cost,
         weeksUntil: Math.min(...candidates),
-        href: `/bikes/${bid}`,
+        href: routes.bike(bid),
       })
     }
   }

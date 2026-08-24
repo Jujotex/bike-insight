@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { EditComponentForm } from "@/components/bi/edit-component-form";
@@ -14,10 +14,11 @@ import { useAsyncData } from "@/lib/use-async-data";
  * Les deux requêtes restent séquentielles : le nom du vélo dépend du `bike_id`
  * de la pièce, on ne peut pas les paralléliser.
  */
-export default function EditComponentPage() {
+/** Modification d'une pièce. Identifiant via `?id=` — voir `lib/routes.ts`. */
+function EditComponentContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
     const {
@@ -93,5 +94,13 @@ export default function EditComponentPage() {
       />
       <EditComponentForm component={component} />
     </div>
+  );
+}
+
+export default function EditComponentPage() {
+  return (
+    <Suspense fallback={null}>
+      <EditComponentContent />
+    </Suspense>
   );
 }

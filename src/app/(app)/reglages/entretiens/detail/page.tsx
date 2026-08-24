@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
@@ -18,9 +18,10 @@ import { MaintenanceEditClient, type EditType } from "./client";
  */
 function MaintenanceTypeContent() {
   const router = useRouter();
-  const routeParams = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
-  const slug = routeParams.slug;
+  // `slug` passe par un paramètre d'URL et non par un segment dynamique
+  // (voir `lib/routes.ts`). « new » reste la valeur qui déclenche le mode création.
+  const slug = searchParams.get("slug") ?? "new";
   const bike = searchParams.get("bike");
 
   const load = useCallback(async () => {

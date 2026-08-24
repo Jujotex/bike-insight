@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, Mono, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { VelocisteFinder } from "@/components/bi/velociste-finder";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
 
@@ -22,12 +23,12 @@ import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime
  */
 function MaintenanceTutoContent() {
   const router = useRouter();
-  const routeParams = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
-  const slug = routeParams.slug;
+  // `slug` par paramètre d'URL, pas par segment dynamique — voir `lib/routes.ts`.
+  const slug = searchParams.get("slug") ?? "";
   const bike = searchParams.get("bike");
 
-  const backHref = `/reglages/entretiens/${slug}${bike ? `?bike=${bike}` : ""}`;
+  const backHref = routes.maintenanceType(slug, bike ?? undefined);
 
   const load = useCallback(async () => {
     const {

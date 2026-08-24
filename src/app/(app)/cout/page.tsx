@@ -16,6 +16,7 @@ import {
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
 import { categoryColor, categoryLabel } from "@/lib/design/categories";
@@ -302,7 +303,7 @@ function CostContent() {
                   {byBike.map((b) => (
                     <ListRow
                       key={b.id}
-                      href={`/bikes/${b.id}`}
+                      href={routes.bike(b.id)}
                       title={b.name}
                       sub={`${fmtNum(b.totalKm)} km parcourus`}
                       trailing={<Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
@@ -317,7 +318,7 @@ function CostContent() {
         <BiCard pad={0} style={{ overflow: "hidden" }}>
           <div className="bi-rows">
             <ListRow
-              href={`/historique?bike=${selectedBikeId}`}
+              href={routes.history(selectedBikeId)}
               title="Historique"
               sub="Tes remplacements et entretiens, datés et chiffrés"
             />

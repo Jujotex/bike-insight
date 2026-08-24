@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { routes } from "@/lib/routes";
 import { showToast } from "@/components/bi/toast";
 import { BiCard, BiLabel, Mono } from "@/components/bi/ui";
 
@@ -76,7 +77,7 @@ export function EditComponentForm({ component }: { component: EditableComponent 
 
     await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
     showToast("Modifications enregistrées");
-    router.push(`/components/${component.id}`);
+    router.push(routes.component(component.id));
     router.refresh();
   }
 
