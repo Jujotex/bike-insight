@@ -1,93 +1,73 @@
-import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
+"use client";
+
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import { SyncButton } from "@/components/bi/sync-button";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { AddBikeButton } from "@/components/bi/add-bike-button";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
-import { redirect } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
+import { loadBikesData } from "./bikes-data";
 import Link from "next/link";
 
-export default async function BikesPage() {
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
+export default function BikesPage() {
+  const router = useRouter();
 
-  const [{ data: bikes }, { data: activityStats }, { data: profile }, { data: configuredBikes }, { data: maintLogs }] = await Promise.all([
-    supabase
-      .from("bike_stats")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("total_km", { ascending: false }),
-    // Sorties à vie + dernière sortie + sorties 12 mois, agrégées en base.
-    supabase
-      .from("activity_bike_stats")
-      .select("bike_id, rides_total, last_ride_at, rides_365d")
-      .eq("user_id", user.id),
-    supabase
-      .from("profiles")
-      .select("strava_athlete_id")
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("components")
-      .select("bike_id, status")
-      .eq("user_id", user.id)
-      .eq("is_active", true),
-    // Dépense d'entretien réelle (remplacements + entretiens) — tous vélos
-    supabase
-      .from("maintenance_logs")
-      .select("cost")
-      .eq("user_id", user.id)
-      .not("cost", "is", null),
-  ]);
-
-  const configuredBikeIds = new Set((configuredBikes ?? []).map(c => c.bike_id as string));
-
-  // Compteurs bad/warn par vélo, calculés depuis les composants actifs.
-  // (bike_stats n'expose pas ces colonnes — ne jamais lire b.bad_count.)
-  const statusCounts = new Map<string, { bad: number; warn: number }>();
-  for (const c of configuredBikes ?? []) {
-    const bid = c.bike_id as string;
-    const cur = statusCounts.get(bid) ?? { bad: 0, warn: 0 };
-    if (c.status === "bad") cur.bad += 1;
-    else if (c.status === "warn") cur.warn += 1;
-    statusCounts.set(bid, cur);
-  }
-
-  const stravaConnected = !!profile?.strava_athlete_id;
-  const bikeList = bikes ?? [];
-
-  // Sorties à vie + dernière sortie par vélo (cohérent avec les km à vie).
-  // Le KPI « 12 m » du bandeau agrège rides_365d de tous les vélos.
-  const bikeStats = new Map<string, { rides: number; lastDate: string | null }>();
-  let rides12m = 0;
-  for (const s of activityStats ?? []) {
-    rides12m += (s.rides_365d as number) ?? 0;
-    const bid = s.bike_id as string | null;
-    if (!bid) continue;
-    bikeStats.set(bid, {
-      rides: (s.rides_total as number) ?? 0,
-      lastDate: (s.last_ride_at as string | null) ?? null,
-    });
-  }
-
-  // Vélo le plus récemment utilisé = "actif"
-  let activeBikeId: string | null = null;
-  let latestDate: string | null = null;
-  for (const [bid, s] of bikeStats.entries()) {
-    if (s.lastDate && (!latestDate || s.lastDate > latestDate)) {
-      latestDate = s.lastDate;
-      activeBikeId = bid;
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
     }
+    return loadBikesData(supabase, user.id);
+  }, [router]);
+
+  const { data, loading, error } = useAsyncData(load, []);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Mes vélos" sub="Chargement…" />
+        <SkelCard h={96} style={{ marginBottom: 22 }} />
+        <div className="bi-grid-bikes">
+          <SkelCard h={320} />
+          <SkelCard h={320} />
+        </div>
+      </div>
+    );
   }
 
-  const totalKm = bikeList.reduce((s, b) => s + (b.total_km ?? 0), 0);
-  const totalRides = rides12m;
-  const totalCost = Math.round((maintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0));
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Mes vélos" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Les données n'ont pas pu être récupérées. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
 
-  // Horloge lue une seule fois pour toute la page : un composant serveur est
-  // rendu une fois par requête.
-  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  if (!data) return null; // redirection vers /login en cours
+
+  const {
+    bikeList,
+    bikeStats,
+    statusCounts,
+    configuredBikeIds,
+    activeBikeId,
+    stravaConnected,
+    totalKm,
+    totalRides,
+    totalCost,
+    bikesMini,
+  } = data;
+
   const nowMs = Date.now();
 
   function formatLastRide(iso: string | null): string {
@@ -101,11 +81,9 @@ export default async function BikesPage() {
     return d.toLocaleDateString("fr-FR", { month: "long" });
   }
 
-  const bikesMini = bikeList.map(b => ({ id: b.id as string, name: b.name as string }));
-
   return (
     <>
-      <div className="bi-page">
+      <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
         <PageHead
           title="Mes vélos"
           sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} · ${totalKm.toLocaleString("fr-FR")} km cumulés`}

@@ -1,70 +1,123 @@
-import { BiCard, BiLabel, Mono, PageHead } from "@/components/bi/ui";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { EmptyState, PageHead } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
 import { AccountClient } from "./client";
 
-export default async function AccountPage() {
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
+/**
+ * Page Compte — convertie en composant client (phase 2.1, lot 3).
+ *
+ * Les quatre requêtes étaient **séquentielles** dans la version serveur, alors
+ * qu'aucune ne dépend des autres : quatre allers-retours en file au lieu d'un.
+ * Elles partent désormais en parallèle.
+ */
+export default function AccountPage() {
+  const router = useRouter();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("strava_athlete_id, strava_access_token")
-    .eq("id", user.id)
-    .single();
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
 
-  const { data: bikes } = await supabase
-    .from("bikes")
-    .select("id, name")
-    .eq("user_id", user.id)
-    .eq("is_active", true);
+    const [{ data: profile }, { data: bikes }, { data: components }, { count: notifCount }] =
+      await Promise.all([
+        supabase
+          .from("profiles")
+          .select("strava_athlete_id, strava_access_token")
+          .eq("id", user.id)
+          .single(),
+        supabase.from("bikes").select("id, name").eq("user_id", user.id).eq("is_active", true),
+        supabase.from("components").select("id").eq("user_id", user.id).eq("is_active", true),
+        supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("read", false),
+      ]);
 
-  const { data: components } = await supabase
-    .from("components")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("is_active", true);
+    const fullName = (user.user_metadata?.full_name as string | undefined) ?? "";
+    const email = user.email ?? "";
 
-  const { count: notifCount } = await supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("read", false);
+    return {
+      userId: user.id,
+      firstName:
+        (user.user_metadata?.first_name as string | undefined) ?? fullName.split(" ")[0] ?? "",
+      lastName:
+        (user.user_metadata?.last_name as string | undefined) ??
+        fullName.split(" ").slice(1).join(" ") ??
+        "",
+      email,
+      initials:
+        fullName
+          .split(/[\s.]+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((w: string) => w[0].toUpperCase())
+          .join("") ||
+        email[0]?.toUpperCase() ||
+        "?",
+      stravaConnected: !!profile?.strava_athlete_id,
+      bikes: (bikes ?? []).map((b) => ({ id: b.id as string, name: b.name as string })),
+      bikeCount: bikes?.length ?? 0,
+      componentCount: components?.length ?? 0,
+      unreadNotifCount: notifCount ?? 0,
+      memberSince: new Date(user.created_at).toLocaleDateString("fr-FR", {
+        month: "long",
+        year: "numeric",
+      }),
+    };
+  }, [router]);
 
-  const fullName = (user.user_metadata?.full_name as string | undefined) ?? "";
-  const firstName = (user.user_metadata?.first_name as string | undefined) ?? fullName.split(" ")[0] ?? "";
-  const lastName = (user.user_metadata?.last_name as string | undefined) ?? fullName.split(" ").slice(1).join(" ") ?? "";
-  const email = user.email ?? "";
-  const initials = fullName
-    .split(/[\s.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w: string) => w[0].toUpperCase())
-    .join("") || email[0]?.toUpperCase() || "?";
+  const { data, loading, error } = useAsyncData(load, []);
 
-  const stravaConnected = !!profile?.strava_athlete_id;
-  const memberSince = new Date(user.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-
-  return (
-    <>
+  if (loading && !data) {
+    return (
       <div className="bi-page">
-        <PageHead title="Mon compte" sub={`Membre depuis ${memberSince}`} />
+        <PageHead title="Mon compte" sub="" />
+        <SkelCard h={180} style={{ marginBottom: 14 }} />
+        <SkelCard h={260} />
+      </div>
+    );
+  }
 
-        <AccountClient
-          userId={user.id}
-          firstName={firstName}
-          lastName={lastName}
-          email={email}
-          initials={initials}
-          stravaConnected={stravaConnected}
-          bikes={(bikes ?? []).map(b => ({ id: b.id as string, name: b.name as string }))}
-          bikeCount={bikes?.length ?? 0}
-          componentCount={components?.length ?? 0}
-          unreadNotifCount={notifCount ?? 0}
-          memberSince={memberSince}
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Mon compte" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Ton compte n'a pas pu être récupéré. Vérifie ta connexion et réessaie."
         />
       </div>
-    </>
+    );
+  }
+
+  if (!data) return null; // redirection vers /login en cours
+
+  return (
+    <div className="bi-page">
+      <PageHead title="Mon compte" sub={`Membre depuis ${data.memberSince}`} />
+      <AccountClient
+        userId={data.userId}
+        firstName={data.firstName}
+        lastName={data.lastName}
+        email={data.email}
+        initials={data.initials}
+        stravaConnected={data.stravaConnected}
+        bikes={data.bikes}
+        bikeCount={data.bikeCount}
+        componentCount={data.componentCount}
+        unreadNotifCount={data.unreadNotifCount}
+        memberSince={data.memberSince}
+      />
+    </div>
   );
 }

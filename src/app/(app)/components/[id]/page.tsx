@@ -1,11 +1,17 @@
-import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
+"use client";
+
+import { useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import { ArchiveButton } from "@/components/bi/archive-button";
 import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
+import { loadComponentDetailData } from "./component-detail-data";
 import { findRepairGuide, DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
-import { redirect } from "next/navigation";
 
 const STATUS_COLORS: Record<string, string> = {
   ok: "var(--bi-ok)",
@@ -38,42 +44,58 @@ const REASON_LABELS: Record<string, string> = {
   "anticipe": "Anticipe",
 };
 
-export default async function ComponentDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
+export default function ComponentDetailPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  const [{ data: comp }, { data: logs }] = await Promise.all([
-    supabase
-      .from("component_stats")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single(),
-    supabase
-      .from("maintenance_logs")
-      .select("action, performed_at, km_at_action, cost, reason")
-      .eq("component_id", id)
-      .order("performed_at", { ascending: true }),
-  ]);
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
+    const result = await loadComponentDetailData(supabase, user.id, id);
+    if (!result) {
+      router.replace("/bikes");
+      return null;
+    }
+    return result;
+  }, [id, router]);
 
-  if (!comp) redirect("/bikes");
+  const { data, loading, error } = useAsyncData(load, [id]);
 
-  const { data: bike } = await supabase
-    .from("bikes")
-    .select("name, total_km")
-    .eq("id", comp.bike_id)
-    .single();
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Chargement…" sub="" />
+        <SkelCard h={140} style={{ marginBottom: 14 }} />
+        <SkelCard h={260} />
+      </div>
+    );
+  }
 
-  // Horloge lue une seule fois pour toute la page : un composant serveur est
-  // rendu une fois par requête, et deux `Date.now()` séparés donneraient deux
-  // instants légèrement différents dans des calculs qui doivent s'accorder.
-  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Pièce" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="La pièce n'a pas pu être récupérée. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection en cours
+
+  const { comp, logs, bike, bikeRides } = data;
+
+  // Horloge lue une seule fois pour tout le rendu : deux `Date.now()` séparés
+  // donneraient deux instants légèrement différents dans des calculs qui doivent
+  // s'accorder (vie restante et points du graphe).
   const nowMs = Date.now();
 
   const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
@@ -86,17 +108,8 @@ export default async function ComponentDetailPage({
     ? new Date(comp.installed_at as string).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : "-";
 
-  // Activités du vélo — une seule requête, réutilisée pour le rythme (vie restante) et le graphe.
-  let bikeRides: { started_at: string; distance_km: number | null }[] = [];
-  if (kmMax > 0 && comp.bike_id) {
-    let ridesQuery = supabase
-      .from("activities")
-      .select("started_at, distance_km")
-      .eq("bike_id", comp.bike_id as string);
-    if (comp.installed_at) ridesQuery = ridesQuery.gte("started_at", comp.installed_at as string);
-    const { data: ra } = await ridesQuery.order("started_at", { ascending: true });
-    bikeRides = (ra ?? []) as { started_at: string; distance_km: number | null }[];
-  }
+  // `bikeRides` vient de la fonction de chargement : les sorties du vélo depuis
+  // l'installation, réutilisées pour le rythme (vie restante) et pour le graphe.
 
   // Vie restante : estimation du temps avant la limite d'usure, extrapolée
   // depuis le rythme moyen (km/jour) constaté depuis l'installation.

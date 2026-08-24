@@ -1,11 +1,15 @@
-import { BiCard, BiLabel, Mono, ProgressBar } from "@/components/bi/ui";
+"use client";
+
+import { useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { BiCard, BiLabel, Mono, ProgressBar, EmptyState, PageHead } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getBikeData } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
+import { loadBikeDetailData } from "./bike-detail-data";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { MaintenanceCard } from "@/components/bi/maintenance-card";
-import { fetchBikeMaintenanceDefs } from "@/lib/maintenance-types";
-import type { MaintenanceLast } from "@/lib/maintenance-catalog";
 import { getComponentType } from "@/lib/components-catalog";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -29,69 +33,66 @@ function fmt(n: number) {
   return n.toLocaleString("fr-FR");
 }
 
-export default async function BikeDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const data = await getBikeData(id);
-  if (!data) redirect("/dashboard");
+export default function BikeDetailPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  const { bike, components, activities } = data;
-
-  // Fetch en parallèle : historique composants, dépenses, entretiens vélo, méta vélo
-  const { createSupabaseServerClient } = await import("@/lib/supabase-server");
-  const supabase = await createSupabaseServerClient();
-
-  const [
-    { data: bikeMaintLogs },
-    { data: bikeReplacements },
-    maintenanceDefs,
-  ] = await Promise.all([
-    supabase
-      .from("maintenance_logs")
-      .select("id, action, cost, notes, maintenance_type, performed_at, km_at_action")
-      .eq("bike_id", id)
-      .not("maintenance_type", "is", null)
-      .order("performed_at", { ascending: false }),
-    // Remplacements de pièces de ce vélo (via le composant) — pour la dépense d'entretien
-    supabase
-      .from("maintenance_logs")
-      .select("cost, components!inner(bike_id)")
-      .eq("action", "Remplacement")
-      .eq("components.bike_id", id),
-    fetchBikeMaintenanceDefs(supabase, id),
-  ]);
-
-  // Dépense d'entretien du vélo = entretiens + remplacements réellement payés
-  const maintenanceSpend = Math.round(
-    (bikeMaintLogs ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0) +
-    (bikeReplacements ?? []).reduce((s, l) => s + ((l.cost as number) ?? 0), 0)
-  );
-
-  const lastByType: Record<string, MaintenanceLast> = {};
-  for (const l of bikeMaintLogs ?? []) {
-    const t = l.maintenance_type as string;
-    if (!(t in lastByType)) {
-      lastByType[t] = {
-        performed_at: l.performed_at as string,
-        km_at_action: (l.km_at_action as number | null) ?? null,
-      };
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
     }
+    const result = await loadBikeDetailData(supabase, user.id, id);
+    if (!result) {
+      // Vélo introuvable ou n'appartenant pas à l'utilisateur.
+      router.replace("/bikes");
+      return null;
+    }
+    return result;
+  }, [id, router]);
+
+  const { data, loading, error } = useAsyncData(load, [id]);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Chargement…" sub="" />
+        <SkelCard h={120} style={{ marginBottom: 14 }} />
+        <SkelCard h={280} />
+      </div>
+    );
   }
 
-  // Stats 12 mois
-  const now = new Date();
-  const twelveMonthsAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Vélo" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Les données n'ont pas pu être récupérées. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
 
-  const activities12m = activities.filter(
-    (a) => new Date(a.started_at) >= twelveMonthsAgo
-  );
-  const totalRides12m = activities12m.length;
-  const totalKm12m = activities12m.reduce((s, a) => s + (a.distance_km ?? 0), 0);
-  const avgKmPerRide =
-    totalRides12m > 0 ? Math.round(totalKm12m / totalRides12m * 10) / 10 : 0;
+  if (!data) return null; // redirection en cours
+
+  const {
+    bike,
+    components,
+    activities,
+    bikeMaintLogs,
+    maintenanceDefs,
+    maintenanceSpend,
+    lastByType,
+    totalRides12m,
+    totalKm12m,
+    avgKmPerRide,
+  } = data;
 
   return (
     <>

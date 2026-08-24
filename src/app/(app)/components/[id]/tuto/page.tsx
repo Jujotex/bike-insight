@@ -1,8 +1,14 @@
-import { Mono } from "@/components/bi/ui";
+"use client";
+
+import { useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { EmptyState, Mono, PageHead } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import { VelocisteFinder } from "@/components/bi/velociste-finder";
 import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
 import {
   findRepairGuide,
   DIFFICULTY_LABELS,
@@ -11,7 +17,6 @@ import {
   DIFFICULTY_COLOR,
   formatRepairTime,
 } from "@/lib/repair-guides";
-import { redirect } from "next/navigation";
 
 const CATEGORY_LABELS: Record<string, string> = {
   transmission: "Transmission",
@@ -23,30 +28,68 @@ const CATEGORY_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
-export default async function TutoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
+export default function TutoPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  const { data: comp } = await supabase
-    .from("component_stats")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
 
-  if (!comp) redirect("/bikes");
+    const { data: comp } = await supabase
+      .from("component_stats")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
 
-  const { data: bike } = await supabase
-    .from("bikes")
-    .select("name")
-    .eq("id", comp.bike_id)
-    .single();
+    if (!comp) {
+      router.replace("/bikes");
+      return null;
+    }
+
+    const { data: bike } = await supabase
+      .from("bikes")
+      .select("name")
+      .eq("id", comp.bike_id)
+      .single();
+
+    return { comp, bike };
+  }, [id, router]);
+
+  const { data, loading, error } = useAsyncData(load, [id]);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Tuto" sub="" />
+        <SkelCard h={160} style={{ marginBottom: 14 }} />
+        <SkelCard h={320} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Tuto" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Le guide n'a pas pu être récupéré. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection en cours
+
+  const { comp, bike } = data;
 
   const guide = findRepairGuide(comp.name as string, comp.category as string);
   const categoryLabel = CATEGORY_LABELS[comp.category as string] ?? String(comp.category);

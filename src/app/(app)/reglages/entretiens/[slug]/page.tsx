@@ -1,95 +1,161 @@
-import { PageHead } from "@/components/bi/ui";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
+"use client";
+
+import { Suspense, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { EmptyState, PageHead } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceStatus } from "@/lib/maintenance-catalog";
-import { redirect } from "next/navigation";
 import { MaintenanceEditClient, type EditType } from "./client";
 
-export default async function MaintenanceTypePage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ bike?: string }>;
-}) {
-  const { slug } = await params;
-  const { bike } = await searchParams;
+/**
+ * Fiche d'un type d'entretien — converti en composant client (phase 2.1, lot 3).
+ *
+ * Page à deux modes : création (`slug === "new"`) ou édition. La chaîne de
+ * redirections d'origine est conservée à l'identique — vers la liste si le type
+ * n'existe pas, vers la liste si aucun vélo n'est sélectionnable.
+ */
+function MaintenanceTypeContent() {
+  const router = useRouter();
+  const routeParams = useParams<{ slug: string }>();
+  const searchParams = useSearchParams();
+  const slug = routeParams.slug;
+  const bike = searchParams.get("bike");
 
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
-
-  const isNew = slug === "new";
-
-  const { data: bikes } = await supabase
-    .from("bikes")
-    .select("id, name, total_km")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("total_km", { ascending: false });
-  const bikeList = (bikes ?? []).map((b) => ({ id: b.id as string, name: b.name as string }));
-
-  let bikeId = bike && bikeList.some((b) => b.id === bike) ? bike : bikeList[0]?.id ?? "";
-  let type: EditType = null;
-
-  if (!isNew) {
-    let q = supabase
-      .from("maintenance_types")
-      .select("id, bike_id, slug, label, sub, interval_km, interval_months, default_cost")
-      .eq("user_id", user.id)
-      .eq("slug", slug);
-    if (bike) q = q.eq("bike_id", bike);
-    const { data } = await q.limit(1).maybeSingle();
-    if (!data) redirect(`/reglages/entretiens${bike ? `?bike=${bike}` : ""}`);
-    type = data as EditType;
-    bikeId = (data as { bike_id: string }).bike_id;
-  }
-
-  if (!bikeId) redirect("/reglages/entretiens");
-  const bikeName = bikeList.find((b) => b.id === bikeId)?.name ?? "";
-
-  // État de l'entretien (comme les pièces : couleur vive si action requise, sinon discrète)
-  const bikeKm = ((bikes ?? []).find((b) => b.id === bikeId)?.total_km as number | null) ?? 0;
-  let urgent = false;
-  let status: MaintenanceStatus | null = null;
-  let lastPerformedAt: string | null = null;
-  if (!isNew && type) {
-    const { data: lastLog } = await supabase
-      .from("maintenance_logs")
-      .select("performed_at, km_at_action")
-      .eq("bike_id", bikeId)
-      .eq("maintenance_type", slug)
-      .order("performed_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (lastLog) {
-      lastPerformedAt = lastLog.performed_at as string;
-      status = computeMaintenanceStatus(
-        { id: slug, label: type.label, sub: type.sub ?? "", intervalKm: type.interval_km ?? undefined, intervalMonths: type.interval_months ?? undefined },
-        { performed_at: lastPerformedAt, km_at_action: (lastLog.km_at_action as number | null) ?? null },
-        bikeKm,
-      );
-      urgent = status.state === "due" || status.state === "soon";
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
     }
+
+    const isNew = slug === "new";
+
+    const { data: bikes } = await supabase
+      .from("bikes")
+      .select("id, name, total_km")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("total_km", { ascending: false });
+    const bikeList = (bikes ?? []).map((b) => ({ id: b.id as string, name: b.name as string }));
+
+    let bikeId = bike && bikeList.some((b) => b.id === bike) ? bike : bikeList[0]?.id ?? "";
+    let type: EditType = null;
+
+    if (!isNew) {
+      let q = supabase
+        .from("maintenance_types")
+        .select("id, bike_id, slug, label, sub, interval_km, interval_months, default_cost")
+        .eq("user_id", user.id)
+        .eq("slug", slug);
+      if (bike) q = q.eq("bike_id", bike);
+      const { data } = await q.limit(1).maybeSingle();
+      if (!data) {
+        router.replace(`/reglages/entretiens${bike ? `?bike=${bike}` : ""}`);
+        return null;
+      }
+      type = data as EditType;
+      bikeId = (data as { bike_id: string }).bike_id;
+    }
+
+    if (!bikeId) {
+      router.replace("/reglages/entretiens");
+      return null;
+    }
+
+    const bikeName = bikeList.find((b) => b.id === bikeId)?.name ?? "";
+    const bikeKm = ((bikes ?? []).find((b) => b.id === bikeId)?.total_km as number | null) ?? 0;
+
+    // État de l'entretien : couleur vive si une action est requise, discrète sinon.
+    let urgent = false;
+    let status: MaintenanceStatus | null = null;
+
+    if (!isNew && type) {
+      const { data: lastLog } = await supabase
+        .from("maintenance_logs")
+        .select("performed_at, km_at_action")
+        .eq("bike_id", bikeId)
+        .eq("maintenance_type", slug)
+        .order("performed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastLog) {
+        status = computeMaintenanceStatus(
+          {
+            id: slug,
+            label: type.label,
+            sub: type.sub ?? "",
+            intervalKm: type.interval_km ?? undefined,
+            intervalMonths: type.interval_months ?? undefined,
+          },
+          {
+            performed_at: lastLog.performed_at as string,
+            km_at_action: (lastLog.km_at_action as number | null) ?? null,
+          },
+          bikeKm,
+        );
+        urgent = status.state === "due" || status.state === "soon";
+      }
+    }
+
+    return { userId: user.id, isNew, type, bikeId, bikeName, urgent, status };
+  }, [slug, bike, router]);
+
+  const { data, loading, error } = useAsyncData(load, [slug, bike]);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Entretien" sub="" breadcrumb={["Réglages", "Entretiens"]} />
+        <SkelCard h={140} style={{ marginBottom: 14 }} />
+        <SkelCard h={320} />
+      </div>
+    );
   }
+
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Entretien" sub="" breadcrumb={["Réglages", "Entretiens"]} />
+        <EmptyState
+          title="Chargement impossible"
+          text="Cet entretien n'a pas pu être récupéré. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection en cours
+
+  const { userId, isNew, type, bikeId, bikeName, urgent, status } = data;
 
   return (
-    <>
-      <div className="bi-page">
-        <PageHead
-          title={isNew ? "Nouvel entretien" : (type?.label ?? "Entretien")}
-          sub={bikeName ? `Vélo : ${bikeName}` : undefined}
-          breadcrumb={["Réglages", "Entretiens", isNew ? "Nouveau" : (type?.label ?? "")]}
+    <div className="bi-page">
+      <PageHead
+        title={isNew ? "Nouvel entretien" : type?.label ?? "Entretien"}
+        sub={bikeName ? `Vélo : ${bikeName}` : undefined}
+        breadcrumb={["Réglages", "Entretiens", isNew ? "Nouveau" : type?.label ?? ""]}
+      />
+      {!isNew && type && (
+        <MaintenanceProgress
+          status={status}
+          intervalKm={type.interval_km ?? null}
+          intervalMonths={type.interval_months ?? null}
         />
-        {!isNew && type && (
-          <MaintenanceProgress
-            status={status}
-            intervalKm={type.interval_km ?? null}
-            intervalMonths={type.interval_months ?? null}
-          />
-        )}
-        <MaintenanceEditClient userId={user.id} bikeId={bikeId} type={type} urgent={urgent} />
-      </div>
-    </>
+      )}
+      <MaintenanceEditClient userId={userId} bikeId={bikeId} type={type} urgent={urgent} />
+    </div>
+  );
+}
+
+export default function MaintenanceTypePage() {
+  return (
+    <Suspense fallback={null}>
+      <MaintenanceTypeContent />
+    </Suspense>
   );
 }
 

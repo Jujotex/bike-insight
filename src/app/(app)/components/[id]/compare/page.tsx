@@ -1,8 +1,14 @@
-import { BiCard, BiLabel, Mono, Dot, PageHead } from "@/components/bi/ui";
+"use client";
+
+import { useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import { ReplaceButton } from "@/components/bi/replace-button";
 import Link from "next/link";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
-import { redirect } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
+import { loadCompareData } from "./compare-data";
 import { findCatalogEntry, getCatalogForTemplate, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
 import { BIKE_TEMPLATES } from "@/lib/bike-templates";
 
@@ -27,30 +33,54 @@ function buildGenericOptions(price: number | null, kmMax: number) {
   ];
 }
 
-export default async function ComparePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
+export default function ComparePage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
 
-  const { data: comp } = await supabase
-    .from("component_stats")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
+    const result = await loadCompareData(supabase, user.id, id);
+    if (!result) {
+      router.replace("/bikes");
+      return null;
+    }
+    return result;
+  }, [id, router]);
 
-  if (!comp) redirect("/bikes");
+  const { data, loading, error } = useAsyncData(load, [id]);
 
-  const { data: bike } = await supabase
-    .from("bikes")
-    .select("name, total_km, groupset_template_id")
-    .eq("id", comp.bike_id)
-    .single();
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Comparer" sub="" />
+        <SkelCard h={120} style={{ marginBottom: 14 }} />
+        <SkelCard h={300} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Comparer" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Les données n'ont pas pu être récupérées. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection en cours
+
+  const { comp, bike, km365, firstRide } = data;
 
   const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
   const kmUsed = Math.round((comp.km_used as number) ?? 0);
@@ -85,29 +115,10 @@ export default async function ComparePage({
   // Garde-fou anti-données-incomplètes : si cette distance paraît sous-comptée
   // (bien en dessous de ce que l'odomètre implique), on bascule sur total ÷ âge.
   const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
-  // Horloge lue une seule fois pour toute la page : un composant serveur est
-  // rendu une fois par requête, et deux `Date.now()` séparés donneraient deux
-  // instants légèrement différents dans des calculs qui doivent s'accorder.
-  // eslint-disable-next-line react-hooks/purity -- composant serveur, pas de re-rendu
+  // Horloge lue une seule fois pour tout le rendu : deux `Date.now()` séparés
+  // donneraient deux instants légèrement différents dans des calculs qui doivent
+  // s'accorder. `km365` et `firstRide` viennent de la fonction de chargement.
   const nowMs = Date.now();
-  const twelveMonthsAgo = new Date(nowMs - 365 * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: recentActs }, { data: firstActs }] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("distance_km")
-      .eq("user_id", user.id)
-      .eq("bike_id", comp.bike_id)
-      .gte("started_at", twelveMonthsAgo),
-    supabase
-      .from("activities")
-      .select("started_at")
-      .eq("user_id", user.id)
-      .eq("bike_id", comp.bike_id)
-      .order("started_at", { ascending: true })
-      .limit(1),
-  ]);
-  const km365 = Math.round((recentActs ?? []).reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0));
-  const firstRide = firstActs?.[0]?.started_at as string | undefined;
 
   // Moyenne impliquée par l'odomètre : total ÷ âge du vélo (âge planché à 1 an
   // → ne dépasse jamais le total). Sert de repli quand la distance 12 mois est

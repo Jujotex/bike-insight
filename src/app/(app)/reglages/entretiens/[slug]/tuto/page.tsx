@@ -1,48 +1,97 @@
-import { Mono } from "@/components/bi/ui";
+"use client";
+
+import { Suspense, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { EmptyState, Mono, PageHead } from "@/components/bi/ui";
+import { SkelCard } from "@/components/bi/skeleton";
 import { VelocisteFinder } from "@/components/bi/velociste-finder";
 import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
-import { createSupabaseServerClient, getCachedUser } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
-import { redirect } from "next/navigation";
 
-export default async function MaintenanceTutoPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ bike?: string }>;
-}) {
-  const { slug } = await params;
-  const { bike } = await searchParams;
-
-  const supabase = await createSupabaseServerClient();
-  const user = await getCachedUser();
-  if (!user) redirect("/login");
-
-  const tuto = findMaintenanceTuto(slug);
-
-  let q = supabase
-    .from("maintenance_types")
-    .select("bike_id, slug, label, default_cost")
-    .eq("user_id", user.id)
-    .eq("slug", slug);
-  if (bike) q = q.eq("bike_id", bike);
-  const { data: type } = await q.limit(1).maybeSingle();
+/**
+ * Tuto d'un entretien — converti en composant client (phase 2.1, lot 3).
+ *
+ * Le tuto lui-même est statique (`lib/maintenance-tutos.ts`) ; seuls le libellé
+ * personnalisé de l'entretien, son coût atelier et le nom du vélo viennent de la
+ * base. Sans tuto dédié — cas d'un entretien créé sur mesure — on renvoie sur la
+ * fiche de l'entretien.
+ */
+function MaintenanceTutoContent() {
+  const router = useRouter();
+  const routeParams = useParams<{ slug: string }>();
+  const searchParams = useSearchParams();
+  const slug = routeParams.slug;
+  const bike = searchParams.get("bike");
 
   const backHref = `/reglages/entretiens/${slug}${bike ? `?bike=${bike}` : ""}`;
-  // Pas de tuto dédié (entretien personnalisé) → on renvoie sur la fiche de l'entretien.
-  if (!tuto) redirect(backHref);
 
-  const bikeId = (type as { bike_id?: string } | null)?.bike_id ?? bike ?? "";
-  const label = (type as { label?: string } | null)?.label ?? "Entretien";
-  const defaultCost = (type as { default_cost?: number | null } | null)?.default_cost ?? null;
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
 
-  const { data: bikeRow } = bikeId
-    ? await supabase.from("bikes").select("name").eq("id", bikeId).single()
-    : { data: null };
-  const bikeName = (bikeRow as { name?: string } | null)?.name ?? "Ton vélo";
+    const tuto = findMaintenanceTuto(slug);
+    if (!tuto) {
+      router.replace(backHref);
+      return null;
+    }
+
+    let q = supabase
+      .from("maintenance_types")
+      .select("bike_id, slug, label, default_cost")
+      .eq("user_id", user.id)
+      .eq("slug", slug);
+    if (bike) q = q.eq("bike_id", bike);
+    const { data: type } = await q.limit(1).maybeSingle();
+
+    const bikeId = (type as { bike_id?: string } | null)?.bike_id ?? bike ?? "";
+    const { data: bikeRow } = bikeId
+      ? await supabase.from("bikes").select("name").eq("id", bikeId).single()
+      : { data: null };
+
+    return {
+      tuto,
+      label: (type as { label?: string } | null)?.label ?? "Entretien",
+      defaultCost: (type as { default_cost?: number | null } | null)?.default_cost ?? null,
+      bikeName: (bikeRow as { name?: string } | null)?.name ?? "Ton vélo",
+    };
+  }, [slug, bike, backHref, router]);
+
+  const { data, loading, error } = useAsyncData(load, [slug, bike]);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Tuto" sub="" />
+        <SkelCard h={160} style={{ marginBottom: 14 }} />
+        <SkelCard h={300} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Tuto" sub="" />
+        <EmptyState
+          title="Chargement impossible"
+          text="Le guide n'a pas pu être récupéré. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection en cours
+
+  const { tuto, label, defaultCost, bikeName } = data;
 
   const diffColor = DIFFICULTY_COLOR[tuto.difficulty];
   const diffLevel = DIFFICULTY_LEVEL[tuto.difficulty];
@@ -162,5 +211,13 @@ export default async function MaintenanceTutoPage({
         </div>
       </div>
     </>
+  );
+}
+
+export default function MaintenanceTutoPage() {
+  return (
+    <Suspense fallback={null}>
+      <MaintenanceTutoContent />
+    </Suspense>
   );
 }

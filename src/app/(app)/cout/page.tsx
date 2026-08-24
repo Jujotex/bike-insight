@@ -1,3 +1,7 @@
+"use client";
+
+import { Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Bars,
   BiCard,
@@ -9,7 +13,9 @@ import {
   Mono,
   PageHead,
 } from "@/components/bi/ui";
-import { redirect } from "next/navigation";
+import { SkelCard } from "@/components/bi/skeleton";
+import { supabase } from "@/lib/supabase";
+import { useAsyncData } from "@/lib/use-async-data";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
 import { categoryColor, categoryLabel } from "@/lib/design/categories";
@@ -49,15 +55,60 @@ function BenchmarkRow({
   );
 }
 
-export default async function CostPage({ searchParams }: { searchParams: Promise<{ bike?: string }> }) {
-  const { bike } = await searchParams;
-  const data = await getCostData(bike || null);
-  if (!data) redirect("/login");
+/**
+ * Page Coût — dernier écran converti (phase 2.1, lot 4).
+ *
+ * `<Suspense>` requis : la page lit `?bike=`. Le paramètre est dans les
+ * dépendances du chargement, car changer de vélo change réellement les données —
+ * contrairement aux réglages d'entretien où il ne fixait qu'une sélection initiale.
+ */
+function CostContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const bike = searchParams.get("bike");
+
+  const load = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace("/login");
+      return null;
+    }
+    return getCostData(supabase, user.id, bike || null);
+  }, [bike, router]);
+
+  const { data, loading, error } = useAsyncData(load, [bike]);
+
+  if (loading && !data) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+        <SkelCard h={64} style={{ marginBottom: 14 }} />
+        <SkelCard h={140} style={{ marginBottom: 14 }} />
+        <SkelCard h={260} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bi-page">
+        <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+        <EmptyState
+          title="Chargement impossible"
+          text="Tes dépenses n'ont pas pu être récupérées. Vérifie ta connexion et réessaie."
+        />
+      </div>
+    );
+  }
+
+  if (!data) return null; // redirection vers /login en cours
 
   const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
 
   return (
-    <div className="bi-page">
+    <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
       <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
       <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />
@@ -274,5 +325,13 @@ export default async function CostPage({ searchParams }: { searchParams: Promise
         </BiCard>
       </div>
     </div>
+  );
+}
+
+export default function CostPage() {
+  return (
+    <Suspense fallback={null}>
+      <CostContent />
+    </Suspense>
   );
 }

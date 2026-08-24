@@ -1,4 +1,18 @@
-import { createSupabaseServerClient, getCachedUser } from './supabase-server'
+/**
+ * Données du dashboard et de la page Coût.
+ *
+ * **Client injecté** depuis le 24/08/2026 (phase 2.1, lot 4) : ce fichier
+ * n'importe plus `supabase-server`, il reçoit son client en paramètre. C'est ce qui
+ * le rend appelable depuis un composant client — sans quoi `next/headers`, importé
+ * en cascade, casserait le build.
+ *
+ * ⏳ **Découpage restant.** La décision prise le 24/08 est « un fichier de données
+ * par page ». Ces deux fonctions devraient donc vivre dans `dashboard/` et `cout/`.
+ * Le déplacement n'a pas été fait dans le même mouvement pour ne pas retranscrire
+ * 640 lignes à la main — maintenant que le client est injecté, c'est un simple
+ * déplacement de texte, sans risque, à faire quand l'occasion se présente.
+ */
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 import {
@@ -12,10 +26,8 @@ import {
 
 // ── Dashboard data ─────────────────────────────────────────────
 
-export async function getDashboardData() {
-  const supabase = await createSupabaseServerClient()
-  const user = await getCachedUser()
-  if (!user) return null
+export async function getDashboardData(supabase: SupabaseClient, userId: string) {
+  const user = { id: userId }
 
   const now = new Date()
 
@@ -251,10 +263,12 @@ export async function getDashboardData() {
 // Les prix catalogue des pièces d'origine ne sont pas comptés comme dépense
 // (le prix cassette sert juste de référence à l'économie transmission).
 
-export async function getCostData(bikeId?: string | null) {
-  const supabase = await createSupabaseServerClient()
-  const user = await getCachedUser()
-  if (!user) return null
+export async function getCostData(
+  supabase: SupabaseClient,
+  userId: string,
+  bikeId?: string | null
+) {
+  const user = { id: userId }
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10)
@@ -646,38 +660,7 @@ export async function getCostData(bikeId?: string | null) {
 
 // ── Bike detail data ───────────────────────────────────────────
 
-export async function getBikeData(bikeId: string) {
-  const supabase = await createSupabaseServerClient()
-  const user = await getCachedUser()
-  if (!user) return null
-
-  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
-
-  // Trois requêtes indépendantes → en parallèle
-  const [{ data: bike }, { data: components }, { data: activities }] = await Promise.all([
-    supabase
-      .from('bike_stats')
-      .select('*')
-      .eq('id', bikeId)
-      .eq('user_id', user.id)
-      .single(),
-    supabase
-      .from('component_stats')
-      .select('*')
-      .eq('bike_id', bikeId)
-      .eq('is_active', true)
-      .order('wear_pct', { ascending: false }),
-    // Toutes les sorties des 12 derniers mois de CE vélo (pas de limit :
-    // un limit tronquerait les stats « 12 mois » des cyclistes réguliers).
-    supabase
-      .from('activities')
-      .select('started_at, distance_km')
-      .eq('bike_id', bikeId)
-      .gte('started_at', twelveMonthsAgo)
-      .order('started_at', { ascending: false }),
-  ])
-
-  if (!bike) return null
-
-  return { bike, components: components ?? [], activities: activities ?? [] }
-}
+// `getBikeData` supprimée (24/08/2026) : remplacée par `loadBikeDetailData`, posée
+// à côté de la page qui l'utilise. Elle ne regroupait qu'une partie des requêtes
+// de la fiche vélo — la page en lançait une seconde série elle-même, après un
+// `await import()` de `supabase-server` en plein rendu.
