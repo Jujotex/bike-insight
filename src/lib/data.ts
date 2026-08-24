@@ -1,6 +1,14 @@
 import { createSupabaseServerClient, getCachedUser } from './supabase-server'
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
+import {
+  costPerKm,
+  estimatedReplacementDate,
+  kmPerWeek,
+  readinessScore,
+  urgencyOf,
+  weeksUntilWorn,
+} from './wear-math'
 
 // ── Dashboard data ─────────────────────────────────────────────
 
@@ -50,8 +58,7 @@ export async function getDashboardData() {
     const km365 = (s.km_365d as number) ?? 0
     km12mByBike[bid] = Math.round(km365)
     rides12mByBike[bid] = (s.rides_365d as number) ?? 0
-    // 90j ≈ 13 semaines ; repli sur 12 mois (52 sem.) si période creuse.
-    kmPerWeekByBike.set(bid, km90 > 0 ? km90 / 13 : km365 / 52)
+    kmPerWeekByBike.set(bid, kmPerWeek(km90, km365))
   }
 
   const bikeName = new Map((bikes ?? []).map(b => [b.id as string, b.name as string]))
@@ -75,13 +82,9 @@ export async function getDashboardData() {
       const bikeId = c.bike_id as string
       const kmRemaining = c.km_remaining as number
       const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
-      const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRemaining / weeklyKm)) : null
-      const estimatedDate = weeksUntil !== null
-        ? new Date(now.getTime() + weeksUntil * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-        : null
-      const urgency: Prediction['urgency'] =
-        (c.status === 'bad') ? 'now' :
-        (weeksUntil !== null && weeksUntil <= 8) ? 'soon' : 'later'
+      const weeksUntil = weeksUntilWorn(kmRemaining, weeklyKm)
+      const estimatedDate = estimatedReplacementDate(now, weeksUntil)
+      const urgency = urgencyOf(c.status as string, weeksUntil)
 
       return {
         componentId: c.id as string,
@@ -108,16 +111,14 @@ export async function getDashboardData() {
   type ReadinessScore = { value: number; components: number }
   const readinessByBike: Record<string, ReadinessScore> = {}
   for (const bike of (bikes ?? [])) {
-    const _bid = bike.id as string
-    const _comps = allActive.filter(c => c.bike_id === _bid)
-    const _bad = _comps.some(c => c.status === 'bad')
-    const _warn = _comps.some(c => c.status === 'warn')
-    const _avgW = _comps.length > 0
-      ? _comps.reduce((s, c) => s + ((c.wear_pct as number) ?? 0), 0) / _comps.length : 0
-    const _cScore = _bad
-      ? Math.max(30, Math.round(100 - _avgW * 1.3))
-      : _warn ? Math.max(60, Math.round(100 - _avgW * 0.9)) : Math.max(75, Math.round(100 - _avgW * 0.5))
-    readinessByBike[_bid] = { value: _cScore, components: _comps.length }
+    const bid = bike.id as string
+    const comps = allActive.filter(c => c.bike_id === bid)
+    readinessByBike[bid] = {
+      value: readinessScore(
+        comps.map(c => ({ status: c.status as string, wearPct: c.wear_pct as number | null }))
+      ),
+      components: comps.length,
+    }
   }
 
   // ── Items pièces (mêmes champs quel que soit le statut) ──────
@@ -125,7 +126,7 @@ export async function getDashboardData() {
     const bikeId = c.bike_id as string
     const weeklyKm = kmPerWeekByBike.get(bikeId) ?? 0
     const kmRem = (c.km_remaining as number) ?? 0
-    const weeksUntil = weeklyKm > 0 ? Math.max(0, Math.round(kmRem / weeklyKm)) : null
+    const weeksUntil = weeksUntilWorn(kmRem, weeklyKm)
     return {
       id: c.id as string,
       name: c.name as string,
@@ -469,7 +470,7 @@ export async function getCostData(bikeId?: string | null) {
   // ── Repères « où tu te situes » ───────────────────────────────
   // km sur 12 mois (= km/an) et coût d'entretien par km sur la même fenêtre.
   const km12mTotal = acts.reduce((s, a) => s + ((a.distance_km as number) ?? 0), 0)
-  const costPerKm = km12mTotal > 0 ? spend12m / km12mTotal : null
+  const costPerKmValue = costPerKm(spend12m, km12mTotal)
 
   const byBike = bikeList
     .map(b => {
@@ -517,10 +518,12 @@ export async function getCostData(bikeId?: string | null) {
     km12[bid] = (km12[bid] ?? 0) + d
     if ((a.started_at as string) >= ninetyCut) km90[bid] = (km90[bid] ?? 0) + d
   }
-  const kmPerWeek: Record<string, number> = {}
+  // Même règle que le dashboard : 90 jours en priorité, repli sur 12 mois.
+  // Elle était réécrite ici à l'identique — désormais une seule source.
+  const kmPerWeekByBike: Record<string, number> = {}
   for (const b of bikeList) {
     const bid = b.id as string
-    kmPerWeek[bid] = (km90[bid] ?? 0) > 0 ? km90[bid] / 13 : (km12[bid] ?? 0) / 52
+    kmPerWeekByBike[bid] = kmPerWeek(km90[bid] ?? 0, km12[bid] ?? 0)
   }
 
   // Élément de projection unifié : pièce à remplacer OU entretien à venir, avec lien.
@@ -530,9 +533,9 @@ export async function getCostData(bikeId?: string | null) {
   const componentUpcoming: UpcomingItem[] = comps
     .filter(c => (c.km_remaining as number | null) !== null && (c.purchase_price as number | null) !== null)
     .map(c => {
-      const weekly = kmPerWeek[c.bike_id as string] ?? 0
+      const weekly = kmPerWeekByBike[c.bike_id as string] ?? 0
       const kmRem = Math.max(0, (c.km_remaining as number) ?? 0)
-      const weeksUntil = weekly > 0 ? Math.max(0, Math.round(kmRem / weekly)) : null
+      const weeksUntil = weeksUntilWorn(kmRem, weekly)
       return {
         key: (c.category as string) ?? 'autre',
         name: c.name as string,
@@ -560,7 +563,7 @@ export async function getCostData(bikeId?: string | null) {
   for (const b of bikeList) {
     const bid = b.id as string
     const bikeKm = (b.total_km as number) ?? 0
-    const weekly = kmPerWeek[bid] ?? 0
+    const weekly = kmPerWeekByBike[bid] ?? 0
     for (const def of (defsByBikeCost[bid] ?? [])) {
       const cost = def.defaultCost
       if (!cost) continue // seulement les entretiens qui coûtent (atelier)
@@ -605,7 +608,7 @@ export async function getCostData(bikeId?: string | null) {
     kpis: {
       spendTotal: Math.round(spendTotal),
       spend12m: Math.round(spend12m),
-      costPerKm, // €/km sur 12 mois, non arrondi (null si pas de km)
+      costPerKm: costPerKmValue, // €/km sur 12 mois, non arrondi (null si pas de km)
       km12m: Math.round(km12mTotal),
     },
     byBike,
