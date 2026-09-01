@@ -7,6 +7,7 @@ import { SkelCard } from "@/components/bi/skeleton";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 import { loadBikeDetailData } from "./bike-detail-data";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { MaintenanceCard } from "@/components/bi/maintenance-card";
@@ -186,7 +187,7 @@ function BikeDetailContent() {
                   ? new Date(c.installed_at as string).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
                   : "—";
                 return (
-                  <Link key={c.id} href={`/components/${c.id}`} className="bi-component-row bi-comp-table-data-row">
+                  <Link key={c.id} href={routes.component(c.id as string)} className="bi-component-row bi-comp-table-data-row">
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div>

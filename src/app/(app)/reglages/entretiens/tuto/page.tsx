@@ -106,7 +106,7 @@ function MaintenanceTutoContent() {
         {/* Retour + fil d'ariane */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
           <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>
-            <Link href={`/reglages/entretiens${bike ? `?bike=${bike}` : ""}`} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>Entretiens</Link>
+            <Link href={routes.maintenanceSettings(bike ?? undefined)} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>Entretiens</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
             <Link href={backHref} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{label}</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
