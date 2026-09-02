@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getApiUser } from '@/lib/api-auth'
 
-export async function GET() {
+export async function GET(request: Request) {
   // Sans cette variable, le redirect_uri envoyé à Strava vaut littéralement
   // « undefined/api/strava/callback » et Strava renvoie une erreur opaque.
   // C'est le mode de panne le plus probable lors d'un changement de domaine :
@@ -16,10 +16,9 @@ export async function GET() {
     )
   }
 
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
+  // Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+  const auth = await getApiUser(request)
+  if (!auth) {
     return NextResponse.redirect(new URL('/login', appUrl))
   }
 

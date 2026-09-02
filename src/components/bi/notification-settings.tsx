@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/bi/ui";
+import { apiFetch } from "@/lib/api";
 
 type Settings = {
   notify_warn: boolean;
@@ -90,7 +91,7 @@ export function NotificationSettings() {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    fetch("/api/notifications/settings")
+    apiFetch("/api/notifications/settings")
       .then(r => r.json())
       .then(data => setSettings({
         notify_warn: data.notify_warn ?? true,
@@ -107,7 +108,7 @@ export function NotificationSettings() {
     setSettings(next);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await fetch("/api/notifications/settings", {
+      await apiFetch("/api/notifications/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),

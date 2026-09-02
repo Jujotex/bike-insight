@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 
 interface Bike {
   id: string;
@@ -83,7 +84,7 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
       .eq("id", bikeId);
 
     // Recalcule l'usure des composants
-    await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    await apiFetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     setOpen(false);
     reset();

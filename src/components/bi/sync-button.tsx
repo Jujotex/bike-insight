@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 interface Props {
   stravaConnected: boolean;
@@ -16,7 +17,7 @@ export function SyncButton({ stravaConnected }: Props) {
     setResult(null);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/strava/import" + (full ? "?full=1" : ""), { method: "POST" });
+      const res = await apiFetch("/api/strava/import" + (full ? "?full=1" : ""), { method: "POST" });
       let body: { imported?: number; error?: string } = {};
       try { body = await res.json() } catch { /* empty body */ }
 

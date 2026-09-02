@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getApiUser } from '@/lib/api-auth'
 import { createWearNotifications, createMaintenanceNotifications } from '@/lib/notifications-helper'
 
-export async function POST() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
+export async function POST(request: Request) {
+  // Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+  const auth = await getApiUser(request)
+  if (!auth) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
+  const { user, supabase } = auth
 
   // 1. Recalcul de l'usure
   const { error } = await supabase.rpc('recalculate_component_km', { p_user_id: user.id })

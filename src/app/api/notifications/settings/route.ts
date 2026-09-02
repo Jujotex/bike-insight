@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getApiUser } from '@/lib/api-auth'
 
-export async function GET() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+// Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+export async function GET(request: Request) {
+  const auth = await getApiUser(request)
+  if (!auth) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  const { user, supabase } = auth
 
   const { data } = await supabase
     .from('notification_settings')
@@ -22,9 +23,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  const auth = await getApiUser(req)
+  if (!auth) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  const { user, supabase } = auth
 
   const body = await req.json()
 

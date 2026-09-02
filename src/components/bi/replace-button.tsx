@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { routes } from "@/lib/routes";
+import { apiFetch } from "@/lib/api";
 import { showToast } from "@/components/bi/toast";
 
 type Reason = "usure" | "crevaison" | "casse" | "anticipé";
@@ -91,7 +92,7 @@ export function ReplaceButton({
         status:         "ok",
       }).select("id").single();
 
-      await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+      await apiFetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
       showToast("Pièce remplacée — le suivi repart de zéro");
       if (newComp?.id) {
@@ -104,7 +105,7 @@ export function ReplaceButton({
     }
 
     // Sinon → on enchaîne directement sur l'ajout du remplaçant (formulaire pré-rempli)
-    await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    await apiFetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
 
     const params = new URLSearchParams({
       bike_id:      bikeId,

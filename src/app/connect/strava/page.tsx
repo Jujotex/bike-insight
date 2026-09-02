@@ -7,6 +7,7 @@ import { AuthShell } from "@/components/bi/auth-shell";
 import { Mono } from "@/components/bi/ui";
 import { PoweredByStrava, StravaConnectButton } from "@/components/bi/strava-brand";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 
 // ── Step 1: Intro ──────────────────────────────────────────────
 function StepIntro() {
@@ -99,7 +100,7 @@ function StepSuccess() {
       // Import idempotent déclenché depuis le client : le déclenchement en
       // arrière-plan depuis le callback n'est pas garanti sur Vercel.
       // Il crée aussi les vélos manquants avant de rattacher les activités.
-      await fetch("/api/strava/import", { method: "POST" }).catch(() => {});
+      await apiFetch("/api/strava/import", { method: "POST" }).catch(() => {});
       const { data } = await supabase
         .from("bikes")
         .select("id, name, model, total_km")

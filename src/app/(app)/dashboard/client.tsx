@@ -14,6 +14,7 @@ import {
 } from "@/lib/repair-guides";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 import { routes } from "@/lib/routes";
+import { apiFetch } from "@/lib/api";
 
 function formatWeeks(w: number | null): string {
   if (w === null) return "—";
@@ -142,7 +143,7 @@ export function DashboardClient({
 
   // Le dashboard est la surface des alertes : marque les notifications comme lues
   useEffect(() => {
-    fetch("/api/notifications/read", {
+    apiFetch("/api/notifications/read", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "{}",

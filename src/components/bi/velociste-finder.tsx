@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent, type CSSProperties } from "react";
 import { Mono } from "@/components/bi/ui";
 import type { Velociste, AddressSuggestion } from "@/lib/velocistes";
+import { apiFetch } from "@/lib/api";
 
 // Recherche de vélocistes par adresse (avec autocomplétion Photon) ou
 // géolocalisation — rendu en liste, sans carte.
@@ -50,7 +51,7 @@ export function VelocisteFinder() {
     setError("");
     setShowSuggest(false);
     try {
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       const data = await res.json();
       if (!res.ok) {
         // La cause technique (miroirs OSM saturés, adresse non géocodée…) part
@@ -80,7 +81,7 @@ export function VelocisteFinder() {
     }
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/velocistes/suggest?q=${encodeURIComponent(value.trim())}`);
+        const res = await apiFetch(`/api/velocistes/suggest?q=${encodeURIComponent(value.trim())}`);
         const data = await res.json();
         setSuggestions((data.suggestions as AddressSuggestion[]) ?? []);
         setShowSuggest(true);

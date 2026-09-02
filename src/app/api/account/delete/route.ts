@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getApiUser } from '@/lib/api-auth'
 import { decryptToken } from '@/lib/token-crypto'
 
 /**
@@ -16,13 +16,13 @@ import { decryptToken } from '@/lib/token-crypto'
  * ne peut supprimer que son propre compte, et l'application n'a pas besoin d'une
  * clé de service.
  */
-export async function POST() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
+export async function POST(request: Request) {
+  // Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+  const auth = await getApiUser(request)
+  if (!auth) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
+  const { user, supabase } = auth
 
   // ── 1. Révoquer l'accès chez Strava, avant de perdre le token ──
   //

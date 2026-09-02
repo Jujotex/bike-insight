@@ -17,6 +17,11 @@
 /.next/
 /out/
 
+# Dossier temporaire du build Capacitor : `src/app/api` y est écarté le temps de
+# l'export statique. Sa présence hors build signale une interruption — voir
+# scripts/build-capacitor.mjs.
+/.api-build-aside/
+
 # production
 /build
 

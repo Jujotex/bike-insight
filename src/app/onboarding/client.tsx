@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { BIKE_TEMPLATES, getTemplatesForType, BIKE_TYPE_LABELS, OPTIONAL_COMPONENTS, type TemplateComponent } from "@/lib/bike-templates";
 import { getCatalogForTemplate, getComponentDescription, componentFamily, TIER_LABELS, type CatalogEntry } from "@/lib/components-catalog";
 import { CatalogAutocomplete } from "@/components/bi/catalog-autocomplete";
@@ -191,7 +192,7 @@ export function OnboardingWizard({
       await supabase.from("bikes").update({ groupset_template_id: templateId }).eq("id", selectedBikeId).eq("user_id", userId);
     }
 
-    await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    await apiFetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
     setSaving(false);
     setPhase("done");
   }

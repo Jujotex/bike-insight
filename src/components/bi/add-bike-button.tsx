@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 
 const BIKE_TYPES = [
   { value: "route", label: "Route", emoji: "🚴" },
@@ -86,7 +87,7 @@ export function AddBikeButton() {
       return;
     }
 
-    await fetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
+    await apiFetch("/api/components/recalculate", { method: "POST" }).catch(() => {});
     setLoading(false);
     close();
     router.refresh();

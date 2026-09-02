@@ -8,6 +8,7 @@ import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { SyncButton } from "@/components/bi/sync-button";
 import { NotificationSettings } from "@/components/bi/notification-settings";
 import { PRIVACY_POLICY_PATH, STRAVA_APPS_SETTINGS_URL, SUPPORT_EMAIL } from "@/lib/contact";
+import { apiFetch } from "@/lib/api";
 
 interface Props {
   userId: string;
@@ -58,7 +59,7 @@ export function AccountClient({
     setDeleting(true);
     setDeleteError(null);
     try {
-      const res = await fetch("/api/account/delete", { method: "POST" });
+      const res = await apiFetch("/api/account/delete", { method: "POST" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setDeleteError(body.error ?? "La suppression a échoué. Réessaie ou contacte le support.");

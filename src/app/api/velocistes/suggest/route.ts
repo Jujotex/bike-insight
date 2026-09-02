@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getApiUser } from "@/lib/api-auth";
 import { suggestAddresses } from "@/lib/velocistes";
 
 // Autocomplétion d'adresse (type-ahead) — proxy vers Photon.
 export async function GET(request: Request) {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
+  // Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+  const auth = await getApiUser(request);
+  if (!auth) {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
 

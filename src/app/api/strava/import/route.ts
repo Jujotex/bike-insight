@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getApiUser } from '@/lib/api-auth'
 import { createWearNotifications, createMaintenanceNotifications } from '@/lib/notifications-helper'
 import { getValidStravaToken } from '@/lib/strava'
 import { commentWearOnActivities } from '@/lib/strava-comment'
@@ -24,18 +24,21 @@ function isCycling(a: { sport_type?: string; type?: string }): boolean {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createSupabaseServerClient()
   // ?full=1 → réimporte TOUT l'historique (backfill), même si déjà synchronisé.
   const fullReimport = new URL(request.url).searchParams.get('full') === '1'
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
+  // Cookie (web) ou jeton en en-tête (app native) — cf. `lib/api-auth.ts`.
+  const auth = await getApiUser(request)
+  if (!auth) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
+  const { user, supabase } = auth
 
   let accessToken: string | null = null
   try {
-    accessToken = await getValidStravaToken(user.id)
+    // Le client authentifié est passé explicitement : en contexte natif il porte
+    // le jeton de l'en-tête, pas un cookie que `getValidStravaToken` ne verrait pas.
+    accessToken = await getValidStravaToken(user.id, supabase)
   } catch (err) {
     console.error('[sync] getValidStravaToken error:', err)
     return NextResponse.json({ error: 'Erreur lors du refresh du token Strava' }, { status: 500 })

@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { AuthShell } from "@/components/bi/auth-shell";
 
 const inputStyle: React.CSSProperties = {
@@ -68,7 +69,7 @@ function LoginForm() {
       setLoading(false);
     } else {
       // Sync Strava en arrière-plan dès la connexion
-      fetch("/api/strava/import", { method: "POST" }).catch(() => {});
+      apiFetch("/api/strava/import", { method: "POST" }).catch(() => {});
       const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
       // Hard reload pour que le middleware lise les cookies de session
       window.location.href = redirectTo;
