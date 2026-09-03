@@ -47,10 +47,10 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
     headers.set('Authorization', `Bearer ${session.access_token}`)
   }
 
-  return fetch(apiUrl(path), {
-    ...init,
-    headers,
-    // Conserve l'envoi du cookie sur le web, où l'origine est la même.
-    credentials: 'include',
-  })
+  // Pas de `credentials: 'include'`. Sur le web l'appel est de même origine, donc
+  // le cookie part de toute façon avec le comportement par défaut. En natif il est
+  // cross-origin, et demander l'envoi des identifiants forcerait le serveur à
+  // nommer explicitement chaque origine autorisée — un en-tête `*` étant interdit
+  // avec des identifiants. On s'en tient au jeton, qui suffit.
+  return fetch(apiUrl(path), { ...init, headers })
 }
