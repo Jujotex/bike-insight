@@ -23,6 +23,15 @@ const apiDir = path.join(root, 'src', 'app', 'api')
 const asideDir = path.join(root, '.api-build-aside')
 const outDir = path.join(root, 'out')
 
+// Node ne charge pas `.env.local` — c'est Next qui le fait, au moment du build.
+// Sans ce chargement explicite, le contrôle ci-dessous verrait un environnement
+// vide et refuserait de construire alors que la variable est bien définie.
+try {
+  process.loadEnvFile(path.join(root, '.env.local'))
+} catch {
+  // Pas de fichier : la variable peut venir de l'environnement (CI, Vercel).
+}
+
 // Sans adresse de backend, l'app embarquée appellerait `/api/…` en relatif — donc
 // le système de fichiers de l'appareil. Chaque appel échouerait silencieusement,
 // et le symptôme (écrans vides, synchro qui ne fait rien) ne pointerait vers rien.
