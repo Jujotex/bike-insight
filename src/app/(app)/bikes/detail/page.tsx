@@ -6,7 +6,9 @@ import { BiCard, BiLabel, Mono, ProgressBar, EmptyState, PageHead } from "@/comp
 import { SkelCard } from "@/components/bi/skeleton";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { loadBikeDetailData } from "./bike-detail-data";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
@@ -46,14 +48,12 @@ function BikeDetailContent() {
   const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    const result = await loadBikeDetailData(supabase, user.id, id);
+    const result = await loadBikeDetailData(supabase, userId, id);
     if (!result) {
       // Vélo introuvable ou n'appartenant pas à l'utilisateur.
       router.replace("/bikes");
@@ -62,7 +62,7 @@ function BikeDetailContent() {
     return result;
   }, [id, router]);
 
-  const { data, loading, error } = useAsyncData(load, [id]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [id], `bike:${id}`);
 
   if (loading && !data) {
     return (
@@ -104,6 +104,7 @@ function BikeDetailContent() {
   return (
     <>
       <div className="bi-page">
+        <OfflineBanner cachedAt={cachedAt} />
 
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)", marginBottom: 10 }}>

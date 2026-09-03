@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { apiFetch } from "@/lib/api";
 
 const BIKE_TYPES = [
@@ -61,8 +62,8 @@ export function AddBikeButton() {
     setLoading(true);
     setError("");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+    const userId = await getCurrentUserId();
+    if (!userId) { setLoading(false); return; }
 
     // Construire le nom complet avec le type si pas de marque
     const fullName = name.trim();
@@ -72,7 +73,7 @@ export function AddBikeButton() {
       : type !== "route" ? type : undefined;
 
     const { error: insertError } = await supabase.from("bikes").insert({
-      user_id:    user.id,
+      user_id:    userId,
       name:       fullName,
       brand:      brand.trim() || null,
       model:      modelValue ?? null,

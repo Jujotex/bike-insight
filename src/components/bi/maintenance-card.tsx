@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { BiCard, Mono, ProgressBar } from "@/components/bi/ui";
 import { showToast } from "@/components/bi/toast";
 import {
@@ -71,11 +72,11 @@ export function MaintenanceCard({
   async function save(t: MaintenanceDef) {
     setSaving(true);
     setError("");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("Non connecté."); setSaving(false); return; }
+    const userId = await getCurrentUserId();
+    if (!userId) { setError("Non connecté."); setSaving(false); return; }
 
     const { error: err } = await supabase.from("maintenance_logs").insert({
-      user_id: user.id,
+      user_id: userId,
       bike_id: bikeId,
       component_id: null,
       maintenance_type: t.id,

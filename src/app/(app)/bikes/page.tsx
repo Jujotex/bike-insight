@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { SyncButton } from "@/components/bi/sync-button";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { AddBikeButton } from "@/components/bi/add-bike-button";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
 import { routes } from "@/lib/routes";
 import { loadBikesData } from "./bikes-data";
@@ -17,17 +19,28 @@ export default function BikesPage() {
   const router = useRouter();
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    return loadBikesData(supabase, user.id);
+    return loadBikesData(supabase, userId);
   }, [router]);
 
-  const { data, loading, error } = useAsyncData(load, []);
+  // La clé n'a pas besoin de l'identifiant utilisateur : le cache est purgé au
+  // changement de compte (cf. `supabase.ts`).
+  const { data, loading, error, cachedAt } = useAsyncData(load, [], "bikes");
+
+  // Horloge lue une seule fois par montage, hors du rendu.
+  //
+  // `Date.now()` appelé pendant le rendu est signalé par React : deux rendus
+  // successifs donneraient deux instants différents, et des calculs censés
+  // s'accorder — vie restante, points d'un graphe, dates relatives —
+  // divergeraient. L'initialisation paresseuse d'un état fige la valeur.
+  //
+  // Placé avant les retours anticipés : c'est un hook, il ne peut pas être
+  // conditionnel.
+  const [nowMs] = useState(() => Date.now());
 
   if (loading && !data) {
     return (
@@ -69,7 +82,6 @@ export default function BikesPage() {
     bikesMini,
   } = data;
 
-  const nowMs = Date.now();
 
   function formatLastRide(iso: string | null): string {
     if (!iso) return "Aucune sortie";
@@ -85,6 +97,7 @@ export default function BikesPage() {
   return (
     <>
       <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
+        <OfflineBanner cachedAt={cachedAt} />
         <PageHead
           title="Mes vélos"
           sub={`${bikeList.length} vélo${bikeList.length !== 1 ? "s" : ""} · ${totalKm.toLocaleString("fr-FR")} km cumulés`}

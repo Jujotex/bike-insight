@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { apiFetch } from "@/lib/api";
 
 interface Bike {
@@ -44,11 +45,11 @@ export function ManualRideButton({ bikes, defaultBikeId }: Props) {
     setLoading(true);
     setError("");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("Non authentifié."); setLoading(false); return; }
+    const userId = await getCurrentUserId();
+    if (!userId) { setError("Non authentifié."); setLoading(false); return; }
 
     const { error: insertErr } = await supabase.from("activities").insert({
-      user_id: user.id,
+      user_id: userId,
       bike_id: bikeId,
       name: name.trim() || "Sortie manuelle",
       distance_km: Math.round(km * 10) / 10,

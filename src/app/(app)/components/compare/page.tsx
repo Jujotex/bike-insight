@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { ReplaceButton } from "@/components/bi/replace-button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { loadCompareData } from "./compare-data";
 import { findCatalogEntry, getCatalogForTemplate, TIER_LABELS, TIER_DESC, type CatalogProduct } from "@/lib/components-catalog";
@@ -41,14 +43,12 @@ function CompareContent() {
   const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    const result = await loadCompareData(supabase, user.id, id);
+    const result = await loadCompareData(supabase, userId, id);
     if (!result) {
       router.replace("/bikes");
       return null;
@@ -56,7 +56,18 @@ function CompareContent() {
     return result;
   }, [id, router]);
 
-  const { data, loading, error } = useAsyncData(load, [id]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [id], `compare:${id}`);
+
+  // Horloge lue une seule fois par montage, hors du rendu.
+  //
+  // `Date.now()` appelé pendant le rendu est signalé par React : deux rendus
+  // successifs donneraient deux instants différents, et des calculs censés
+  // s'accorder — vie restante, points d'un graphe, dates relatives —
+  // divergeraient. L'initialisation paresseuse d'un état fige la valeur.
+  //
+  // Placé avant les retours anticipés : c'est un hook, il ne peut pas être
+  // conditionnel.
+  const [nowMs] = useState(() => Date.now());
 
   if (loading && !data) {
     return (
@@ -117,10 +128,6 @@ function CompareContent() {
   // Garde-fou anti-données-incomplètes : si cette distance paraît sous-comptée
   // (bien en dessous de ce que l'odomètre implique), on bascule sur total ÷ âge.
   const bikeTotalKm = Math.round((bike?.total_km as number) ?? 0);
-  // Horloge lue une seule fois pour tout le rendu : deux `Date.now()` séparés
-  // donneraient deux instants légèrement différents dans des calculs qui doivent
-  // s'accorder. `km365` et `firstRide` viennent de la fonction de chargement.
-  const nowMs = Date.now();
 
   // Moyenne impliquée par l'odomètre : total ÷ âge du vélo (âge planché à 1 an
   // → ne dépasse jamais le total). Sert de repli quand la distance 12 mois est
@@ -158,6 +165,7 @@ function CompareContent() {
   return (
     <>
       <div className="bi-page">
+        <OfflineBanner cachedAt={cachedAt} />
         <PageHead
           title={"Remplacer : " + (comp.name as string)}
           sub={(bike?.name ?? "Ton vélo") + " · basé sur " + kmPerYear.toLocaleString("fr") + " km/an"}

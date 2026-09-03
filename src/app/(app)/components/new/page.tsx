@@ -6,6 +6,7 @@ import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { NewComponentForm } from "@/components/bi/new-component-form";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
 
 /**
@@ -19,17 +20,15 @@ function NewComponentContent() {
   const router = useRouter();
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
     const { data } = await supabase
       .from("bikes")
       .select("id, name, total_km, groupset_template_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("is_active", true)
       .order("total_km", { ascending: false });
     return data ?? [];

@@ -3,6 +3,7 @@
 import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
 import { OnboardingWizard } from "./client";
 
@@ -22,10 +23,8 @@ function OnboardingContent() {
   const preselectedBikeId = searchParams.get("bike_id") ?? undefined;
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
@@ -34,20 +33,20 @@ function OnboardingContent() {
       supabase
         .from("bikes")
         .select("id, name, brand, model, total_km, strava_gear_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("is_active", true)
         .order("total_km", { ascending: false }),
       supabase
         .from("components")
         .select("bike_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("is_active", true),
     ]);
 
     const configuredBikeIds = new Set((configuredBikes ?? []).map((c) => c.bike_id as string));
 
     return {
-      userId: user.id,
+      userId: userId,
       bikes: (bikes ?? []).map((b) => ({
         id: b.id as string,
         name: b.name as string,

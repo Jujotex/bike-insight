@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from '@/lib/supabase-result'
 
 /**
  * Données de la page « Comparer un remplacement ».
@@ -15,23 +16,28 @@ export async function loadCompareData(
   userId: string,
   componentId: string
 ) {
-  const { data: comp } = await supabase
+  // `maybeSingle` : une pièce introuvable mène à une redirection, pas à une
+  // erreur de chargement.
+  const compRes = await supabase
     .from('component_stats')
     .select('*')
     .eq('id', componentId)
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
+
+  assertNoError([compRes], 'compare')
+  const { data: comp } = compRes
 
   if (!comp) return null
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: bike }, { data: recentActs }, { data: firstActs }] = await Promise.all([
+  const results = await Promise.all([
     supabase
       .from('bikes')
       .select('name, total_km, groupset_template_id')
       .eq('id', comp.bike_id)
-      .single(),
+      .maybeSingle(),
     // Distance réelle des 12 derniers mois, pour le coût annuel.
     supabase
       .from('activities')
@@ -48,6 +54,9 @@ export async function loadCompareData(
       .order('started_at', { ascending: true })
       .limit(1),
   ])
+
+  assertNoError(results, 'compare')
+  const [{ data: bike }, { data: recentActs }, { data: firstActs }] = results
 
   return {
     comp,

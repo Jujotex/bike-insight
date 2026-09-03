@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+
+    // Code généré, pas le nôtre. Sans ces exclusions, `npm run lint` noyait les
+    // vrais avertissements sous une quarantaine d'entrées provenant du pont natif
+    // de Capacitor et des artefacts Gradle — au point de rendre la sortie
+    // inutilisable, donc ignorée.
+    "android/**",
+    "ios/**",
+    ".agents/**",
   ]),
 ]);
 

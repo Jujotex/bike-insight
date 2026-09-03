@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from '@/lib/supabase-result'
 
 /**
  * Données de la page « Mes vélos ».
@@ -39,13 +40,7 @@ export async function loadBikesData(
   supabase: SupabaseClient,
   userId: string
 ): Promise<BikesData> {
-  const [
-    { data: bikes },
-    { data: activityStats },
-    { data: profile },
-    { data: configuredBikes },
-    { data: maintLogs },
-  ] = await Promise.all([
+  const results = await Promise.all([
     supabase
       .from('bike_stats')
       .select('*')
@@ -57,7 +52,9 @@ export async function loadBikesData(
       .from('activity_bike_stats')
       .select('bike_id, rides_total, last_ride_at, rides_365d')
       .eq('user_id', userId),
-    supabase.from('profiles').select('strava_athlete_id').eq('id', userId).single(),
+    // `maybeSingle` et non `single` : un profil absent est un cas normal, que
+    // `single` transformerait en erreur et donc, désormais, en échec de page.
+    supabase.from('profiles').select('strava_athlete_id').eq('id', userId).maybeSingle(),
     supabase
       .from('components')
       .select('bike_id, status')
@@ -70,6 +67,19 @@ export async function loadBikesData(
       .eq('user_id', userId)
       .not('cost', 'is', null),
   ])
+
+  // Sans ce contrôle, une base injoignable produirait une page « 0 vélo, 0 km »
+  // au lieu d'une erreur — et le cache hors-ligne écrirait ce vide par-dessus la
+  // dernière bonne copie. Voir `lib/supabase-result.ts`.
+  assertNoError(results, 'bikes')
+
+  const [
+    { data: bikes },
+    { data: activityStats },
+    { data: profile },
+    { data: configuredBikes },
+    { data: maintLogs },
+  ] = results
 
   const configuredBikeIds = new Set((configuredBikes ?? []).map(c => c.bike_id as string))
 

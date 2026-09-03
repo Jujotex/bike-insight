@@ -8,7 +8,10 @@ import { VelocisteFinder } from "@/components/bi/velociste-finder";
 import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
+import { assertNoError } from "@/lib/supabase-result";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { findMaintenanceTuto } from "@/lib/maintenance-tutos";
 import { DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
@@ -31,10 +34,8 @@ function MaintenanceTutoContent() {
   const backHref = routes.maintenanceType(slug, bike ?? undefined);
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
@@ -48,15 +49,19 @@ function MaintenanceTutoContent() {
     let q = supabase
       .from("maintenance_types")
       .select("bike_id, slug, label, default_cost")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("slug", slug);
     if (bike) q = q.eq("bike_id", bike);
-    const { data: type } = await q.limit(1).maybeSingle();
+    const typeRes = await q.limit(1).maybeSingle();
+    assertNoError([typeRes], "entretien-tuto");
+    const { data: type } = typeRes;
 
     const bikeId = (type as { bike_id?: string } | null)?.bike_id ?? bike ?? "";
-    const { data: bikeRow } = bikeId
-      ? await supabase.from("bikes").select("name").eq("id", bikeId).single()
-      : { data: null };
+    const bikeRowRes = bikeId
+      ? await supabase.from("bikes").select("name").eq("id", bikeId).maybeSingle()
+      : { data: null, error: null };
+    assertNoError([bikeRowRes], "entretien-tuto");
+    const { data: bikeRow } = bikeRowRes;
 
     return {
       tuto,
@@ -66,7 +71,7 @@ function MaintenanceTutoContent() {
     };
   }, [slug, bike, backHref, router]);
 
-  const { data, loading, error } = useAsyncData(load, [slug, bike]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [slug, bike], `entretien-tuto:${slug}:${bike ?? "default"}`);
 
   if (loading && !data) {
     return (
@@ -103,6 +108,7 @@ function MaintenanceTutoContent() {
   return (
     <>
       <div className="bi-page">
+        <OfflineBanner cachedAt={cachedAt} />
         {/* Retour + fil d'ariane */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
           <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>

@@ -5,7 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
+import { assertNoError } from "@/lib/supabase-result";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceStatus } from "@/lib/maintenance-catalog";
 import { MaintenanceEditClient, type EditType } from "./client";
 
@@ -25,22 +28,23 @@ function MaintenanceTypeContent() {
   const bike = searchParams.get("bike");
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
 
     const isNew = slug === "new";
 
-    const { data: bikes } = await supabase
+    const bikesRes = await supabase
       .from("bikes")
       .select("id, name, total_km")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("is_active", true)
       .order("total_km", { ascending: false });
+
+    assertNoError([bikesRes], "entretien-detail");
+    const { data: bikes } = bikesRes;
     const bikeList = (bikes ?? []).map((b) => ({ id: b.id as string, name: b.name as string }));
 
     let bikeId = bike && bikeList.some((b) => b.id === bike) ? bike : bikeList[0]?.id ?? "";
@@ -50,7 +54,7 @@ function MaintenanceTypeContent() {
       let q = supabase
         .from("maintenance_types")
         .select("id, bike_id, slug, label, sub, interval_km, interval_months, default_cost")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("slug", slug);
       if (bike) q = q.eq("bike_id", bike);
       const { data } = await q.limit(1).maybeSingle();
@@ -102,10 +106,10 @@ function MaintenanceTypeContent() {
       }
     }
 
-    return { userId: user.id, isNew, type, bikeId, bikeName, urgent, status };
+    return { userId: userId, isNew, type, bikeId, bikeName, urgent, status };
   }, [slug, bike, router]);
 
-  const { data, loading, error } = useAsyncData(load, [slug, bike]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [slug, bike], `entretien:${slug}:${bike ?? "default"}`);
 
   if (loading && !data) {
     return (
@@ -135,6 +139,7 @@ function MaintenanceTypeContent() {
 
   return (
     <div className="bi-page">
+      <OfflineBanner cachedAt={cachedAt} />
       <PageHead
         title={isNew ? "Nouvel entretien" : type?.label ?? "Entretien"}
         sub={bikeName ? `Vélo : ${bikeName}` : undefined}

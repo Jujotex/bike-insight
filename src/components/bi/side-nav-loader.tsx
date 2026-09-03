@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getCurrentUser } from '@/lib/current-user'
+import { assertNoError } from '@/lib/supabase-result'
 import { useAsyncData } from '@/lib/use-async-data'
 import { SideNav, SideNavBike } from './side-nav'
 
@@ -22,23 +24,26 @@ import { SideNav, SideNavBike } from './side-nav'
  */
 export function SideNavLoader() {
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // L'objet complet : la nav affiche aussi le nom et l'e-mail.
+    const user = await getCurrentUser()
     if (!user) return null
+    const userId = user.id
 
-    const [{ data: bikesData }, { count }] = await Promise.all([
+    const results = await Promise.all([
       supabase
         .from('bikes')
         .select('id, name, is_active')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('total_km', { ascending: false }),
       supabase
         .from('notifications')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('read', false),
     ])
+
+    assertNoError(results, 'side-nav')
+    const [{ data: bikesData }, { count }] = results
 
     const bikes = (bikesData ?? []) as SideNavBike[]
     const email = user.email ?? ''
@@ -63,7 +68,7 @@ export function SideNavLoader() {
 
   // Les erreurs sont ignorées volontairement : la navigation ne doit jamais
   // empêcher le rendu de la page. Elle s'affiche alors dans son état vide.
-  const { data } = useAsyncData(load, [])
+  const { data } = useAsyncData(load, [], "side-nav")
 
   return (
     <SideNav

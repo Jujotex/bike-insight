@@ -6,7 +6,9 @@ import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { BikePicker } from "@/components/bi/bike-picker";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { HistoryLog } from "./history-log";
 import { HistoryCharts } from "./history-charts";
 import { loadHistoryData } from "./history-data";
@@ -34,17 +36,15 @@ function HistoriqueContent() {
   const requestedBike = searchParams.get("bike");
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    return loadHistoryData(supabase, user.id, requestedBike);
+    return loadHistoryData(supabase, userId, requestedBike);
   }, [requestedBike, router]);
 
-  const { data, loading, error } = useAsyncData(load, [requestedBike]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [requestedBike], `historique:${requestedBike ?? "default"}`);
 
   // Premier chargement : on n'a encore rien à montrer.
   if (loading && !data) {
@@ -76,6 +76,7 @@ function HistoriqueContent() {
 
   return (
     <div className="bi-page">
+      <OfflineBanner cachedAt={cachedAt} />
       <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" />
       <BikePicker bikes={data.bikes} selected={data.selectedBikeId} basePath="/historique" />
       <div className="bi-stack" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>

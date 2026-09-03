@@ -8,7 +8,10 @@ import { VelocisteFinder } from "@/components/bi/velociste-finder";
 import Link from "next/link";
 import { BackButton } from "@/components/bi/back-button";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
+import { assertNoError } from "@/lib/supabase-result";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import {
   findRepairGuide,
@@ -36,36 +39,41 @@ function TutoContent() {
   const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
 
-    const { data: comp } = await supabase
+    // `maybeSingle` : une pièce introuvable mène à une redirection, ce n'est pas
+    // une erreur de chargement.
+    const compRes = await supabase
       .from("component_stats")
       .select("*")
       .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    assertNoError([compRes], "component-tuto");
+    const { data: comp } = compRes;
 
     if (!comp) {
       router.replace("/bikes");
       return null;
     }
 
-    const { data: bike } = await supabase
+    const bikeRes = await supabase
       .from("bikes")
       .select("name")
       .eq("id", comp.bike_id)
-      .single();
+      .maybeSingle();
 
-    return { comp, bike };
+    assertNoError([bikeRes], "component-tuto");
+
+    return { comp, bike: bikeRes.data };
   }, [id, router]);
 
-  const { data, loading, error } = useAsyncData(load, [id]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [id], `component-tuto:${id}`);
 
   if (loading && !data) {
     return (
@@ -101,6 +109,7 @@ function TutoContent() {
   return (
     <>
       <div className="bi-page">
+        <OfflineBanner cachedAt={cachedAt} />
         {/* Barre de retour + fil d'ariane */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
           <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>

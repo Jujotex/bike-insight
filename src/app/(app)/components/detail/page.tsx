@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
@@ -9,7 +9,9 @@ import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { loadComponentDetailData } from "./component-detail-data";
 import { findRepairGuide, DIFFICULTY_LABELS, DIFFICULTY_LEVEL, DIFFICULTY_COLOR, formatRepairTime } from "@/lib/repair-guides";
@@ -52,14 +54,12 @@ function ComponentDetailContent() {
   const id = searchParams.get("id") ?? "";
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    const result = await loadComponentDetailData(supabase, user.id, id);
+    const result = await loadComponentDetailData(supabase, userId, id);
     if (!result) {
       router.replace("/bikes");
       return null;
@@ -67,7 +67,18 @@ function ComponentDetailContent() {
     return result;
   }, [id, router]);
 
-  const { data, loading, error } = useAsyncData(load, [id]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [id], `component:${id}`);
+
+  // Horloge lue une seule fois par montage, hors du rendu.
+  //
+  // `Date.now()` appelé pendant le rendu est signalé par React : deux rendus
+  // successifs donneraient deux instants différents, et des calculs censés
+  // s'accorder — vie restante, points d'un graphe, dates relatives —
+  // divergeraient. L'initialisation paresseuse d'un état fige la valeur.
+  //
+  // Placé avant les retours anticipés : c'est un hook, il ne peut pas être
+  // conditionnel.
+  const [nowMs] = useState(() => Date.now());
 
   if (loading && !data) {
     return (
@@ -95,10 +106,6 @@ function ComponentDetailContent() {
 
   const { comp, logs, bike, bikeRides } = data;
 
-  // Horloge lue une seule fois pour tout le rendu : deux `Date.now()` séparés
-  // donneraient deux instants légèrement différents dans des calculs qui doivent
-  // s'accorder (vie restante et points du graphe).
-  const nowMs = Date.now();
 
   const wearPct = Math.min(Math.round((comp.wear_pct as number) ?? 0), 100);
   const statusColor = STATUS_COLORS[comp.status as string] ?? "var(--bi-muted)";
@@ -217,6 +224,7 @@ function ComponentDetailContent() {
   return (
     <>
       <div className="bi-page">
+        <OfflineBanner cachedAt={cachedAt} />
         <PageHead
           title={comp.name as string}
           breadcrumb={["Composants", comp.name as string]}

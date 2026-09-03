@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { routes } from "@/lib/routes";
 import { apiFetch } from "@/lib/api";
 import { showToast } from "@/components/bi/toast";
@@ -104,11 +105,11 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
     setSaving(true);
     setError(null);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("Non authentifié"); setSaving(false); return; }
+    const userId = await getCurrentUserId();
+    if (!userId) { setError("Non authentifié"); setSaving(false); return; }
 
     const { error: err } = await supabase.from("components").insert({
-      user_id: user.id,
+      user_id: userId,
       bike_id: bikeId,
       name: selectedType.name + (brand ? ` · ${brand}` : ""),
       brand: brand || null,

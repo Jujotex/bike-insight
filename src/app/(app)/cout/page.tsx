@@ -15,7 +15,9 @@ import {
 } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { getCostData } from "@/lib/data";
 import { BikePicker } from "@/components/bi/bike-picker";
@@ -69,17 +71,15 @@ function CostContent() {
   const bike = searchParams.get("bike");
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
       router.replace("/login");
       return null;
     }
-    return getCostData(supabase, user.id, bike || null);
+    return getCostData(supabase, userId, bike || null);
   }, [bike, router]);
 
-  const { data, loading, error } = useAsyncData(load, [bike]);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [bike], `cout:${bike ?? "default"}`);
 
   if (loading && !data) {
     return (
@@ -110,6 +110,7 @@ function CostContent() {
 
   return (
     <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
+      <OfflineBanner cachedAt={cachedAt} />
       <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
 
       <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />

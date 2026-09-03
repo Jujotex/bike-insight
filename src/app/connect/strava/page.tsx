@@ -7,6 +7,7 @@ import { AuthShell } from "@/components/bi/auth-shell";
 import { Mono } from "@/components/bi/ui";
 import { PoweredByStrava, StravaConnectButton } from "@/components/bi/strava-brand";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { apiFetch } from "@/lib/api";
 
 // ── Step 1: Intro ──────────────────────────────────────────────
@@ -95,8 +96,8 @@ function StepSuccess() {
 
   useEffect(() => {
     async function importAndFetchBikes() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const userId = await getCurrentUserId();
+      if (!userId) { setLoading(false); return; }
       // Import idempotent déclenché depuis le client : le déclenchement en
       // arrière-plan depuis le callback n'est pas garanti sur Vercel.
       // Il crée aussi les vélos manquants avant de rattacher les activités.
@@ -104,7 +105,7 @@ function StepSuccess() {
       const { data } = await supabase
         .from("bikes")
         .select("id, name, model, total_km")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("is_active", true)
         .order("total_km", { ascending: false });
       setBikes(data ?? []);

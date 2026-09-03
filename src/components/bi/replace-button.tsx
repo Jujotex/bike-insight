@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUserId } from "@/lib/current-user";
 import { routes } from "@/lib/routes";
 import { apiFetch } from "@/lib/api";
 import { showToast } from "@/components/bi/toast";
@@ -55,8 +56,8 @@ export function ReplaceButton({
   async function handleReplace() {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+    const userId = await getCurrentUserId();
+    if (!userId) { setLoading(false); return; }
 
     const { error: archiveErr } = await supabase
       .from("components")
@@ -68,7 +69,7 @@ export function ReplaceButton({
     await supabase.from("maintenance_logs").insert({
       component_id: componentId,
       bike_id:      bikeId,
-      user_id:      user.id,
+      user_id:      userId,
       action:       "Remplacement",
       km_at_action: currentBikeKm,
       cost:         componentPrice ?? null,
@@ -79,7 +80,7 @@ export function ReplaceButton({
     // Si les données du nouveau composant sont fournies → création automatique
     if (newComponentName && newComponentKmMax) {
       const { data: newComp } = await supabase.from("components").insert({
-        user_id:        user.id,
+        user_id:        userId,
         bike_id:        bikeId,
         name:           newComponentName,
         brand:          newComponentBrand ?? null,

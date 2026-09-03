@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from '@/lib/supabase-result'
 
 /**
  * Données de la fiche pièce.
@@ -16,13 +17,15 @@ export async function loadComponentDetailData(
   userId: string,
   componentId: string
 ) {
-  const [{ data: comp }, { data: logs }] = await Promise.all([
+  const results = await Promise.all([
+    // `maybeSingle` : une pièce introuvable est traitée plus bas par une
+    // redirection, ce n'est pas une erreur de chargement.
     supabase
       .from('component_stats')
       .select('*')
       .eq('id', componentId)
       .eq('user_id', userId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('maintenance_logs')
       .select('action, performed_at, km_at_action, cost, reason')
@@ -30,13 +33,19 @@ export async function loadComponentDetailData(
       .order('performed_at', { ascending: true }),
   ])
 
+  assertNoError(results, 'component-detail')
+  const [{ data: comp }, { data: logs }] = results
+
   if (!comp) return null
 
-  const { data: bike } = await supabase
+  const bikeRes = await supabase
     .from('bikes')
     .select('name, total_km')
     .eq('id', comp.bike_id)
-    .single()
+    .maybeSingle()
+
+  assertNoError([bikeRes], 'component-detail')
+  const { data: bike } = bikeRes
 
   // Activités du vélo — une seule requête, réutilisée pour le rythme (vie
   // restante) et pour le graphe d'usure. Inutile de la lancer si la pièce n'a pas
@@ -52,8 +61,9 @@ export async function loadComponentDetailData(
     if (comp.installed_at) {
       ridesQuery = ridesQuery.gte('started_at', comp.installed_at as string)
     }
-    const { data: ra } = await ridesQuery.order('started_at', { ascending: true })
-    bikeRides = (ra ?? []) as { started_at: string; distance_km: number | null }[]
+    const ridesRes = await ridesQuery.order('started_at', { ascending: true })
+    assertNoError([ridesRes], 'component-detail')
+    bikeRides = (ridesRes.data ?? []) as { started_at: string; distance_km: number | null }[]
   }
 
   return { comp, logs: logs ?? [], bike, bikeRides }

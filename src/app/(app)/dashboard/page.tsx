@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { getDashboardData } from "@/lib/data";
 import { DashboardClient } from "./client";
 
@@ -23,9 +25,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) {
       router.replace("/login");
       return null;
@@ -38,7 +38,7 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  const { data, loading, error } = useAsyncData(load, []);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [], "dashboard");
 
   if (loading && !data) {
     return (
@@ -72,6 +72,7 @@ export default function DashboardPage() {
 
   return (
     <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
+      <OfflineBanner cachedAt={cachedAt} />
       <DashboardClient
         userName={data.userName}
         todayCap={today.charAt(0).toUpperCase() + today.slice(1)}

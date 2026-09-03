@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/current-user";
+import { assertNoError } from "@/lib/supabase-result";
 import { useAsyncData } from "@/lib/use-async-data";
+import { OfflineBanner } from "@/components/bi/offline-banner";
 import { AccountClient } from "./client";
 
 /**
@@ -19,21 +22,19 @@ export default function AccountPage() {
   const router = useRouter();
 
   const load = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) {
       router.replace("/login");
       return null;
     }
 
-    const [{ data: profile }, { data: bikes }, { data: components }, { count: notifCount }] =
-      await Promise.all([
+    const results = await Promise.all([
+        // `maybeSingle` : un profil incomplet ne doit pas faire échouer la page.
         supabase
           .from("profiles")
           .select("strava_athlete_id, strava_access_token")
           .eq("id", user.id)
-          .single(),
+          .maybeSingle(),
         supabase.from("bikes").select("id, name").eq("user_id", user.id).eq("is_active", true),
         supabase.from("components").select("id").eq("user_id", user.id).eq("is_active", true),
         supabase
@@ -42,6 +43,10 @@ export default function AccountPage() {
           .eq("user_id", user.id)
           .eq("read", false),
       ]);
+
+    assertNoError(results, "account");
+    const [{ data: profile }, { data: bikes }, { data: components }, { count: notifCount }] =
+      results;
 
     const fullName = (user.user_metadata?.full_name as string | undefined) ?? "";
     const email = user.email ?? "";
@@ -76,7 +81,7 @@ export default function AccountPage() {
     };
   }, [router]);
 
-  const { data, loading, error } = useAsyncData(load, []);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [], "account");
 
   if (loading && !data) {
     return (
@@ -104,6 +109,7 @@ export default function AccountPage() {
 
   return (
     <div className="bi-page">
+      <OfflineBanner cachedAt={cachedAt} />
       <PageHead title="Mon compte" sub={`Membre depuis ${data.memberSince}`} />
       <AccountClient
         userId={data.userId}

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from '@/lib/supabase-result'
 import type { HistoryItem } from './history-log'
 
 /**
@@ -29,7 +30,7 @@ export async function loadHistoryData(
   userId: string,
   requestedBikeId: string | null
 ): Promise<HistoryData> {
-  const [{ data: bikes }, { data: compStatuses }] = await Promise.all([
+  const results = await Promise.all([
     supabase
       .from('bikes')
       .select('id, name')
@@ -43,6 +44,9 @@ export async function loadHistoryData(
       .eq('user_id', userId)
       .eq('is_active', true),
   ])
+
+  assertNoError(results, 'historique')
+  const [{ data: bikes }, { data: compStatuses }] = results
 
   const statusByBike = new Map<string, 'ok' | 'warn' | 'bad'>()
   for (const c of compStatuses ?? []) {
@@ -67,7 +71,7 @@ export async function loadHistoryData(
 
   if (!selectedBikeId) return { bikes: bikeList, selectedBikeId: '', items: [] }
 
-  const { data: logRows } = await supabase
+  const logsRes = await supabase
     .from('maintenance_logs')
     .select(
       'id, action, maintenance_type, bike_id, performed_at, km_at_action, cost, reason, components(name, bike_id)'
@@ -75,6 +79,9 @@ export async function loadHistoryData(
     .eq('user_id', userId)
     .order('performed_at', { ascending: false })
     .limit(400)
+
+  assertNoError([logsRes], 'historique')
+  const { data: logRows } = logsRes
 
   const items: HistoryItem[] = (logRows ?? [])
     .filter(l => {

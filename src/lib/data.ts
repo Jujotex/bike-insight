@@ -13,6 +13,7 @@
  * déplacement de texte, sans risque, à faire quand l'occasion se présente.
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from './supabase-result'
 import { computeMaintenanceStatus, formatNextDue, type MaintenanceLast } from './maintenance-catalog'
 import { fetchUserMaintenanceDefsByBike } from './maintenance-types'
 import { routes } from './routes'
@@ -32,19 +33,17 @@ export async function getDashboardData(supabase: SupabaseClient, userId: string)
 
   const now = new Date()
 
-  const { data: bikes } = await supabase
+  const bikesRes = await supabase
     .from('bike_stats')
     .select('*')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('total_km', { ascending: false })
 
-  const [
-    { data: allComponents },
-    { data: activityStats },
-    { data: bikeMaintLogs },
-    defsByBike,
-  ] = await Promise.all([
+  assertNoError([bikesRes], 'dashboard')
+  const { data: bikes } = bikesRes
+
+  const dashResults = await Promise.all([
     // Composants actifs SUIVIS (km_max renseigné → km_remaining non nul) de tous
     // les vélos. Les pièces sans suivi km n'ont ni usure ni statut : les inclure
     // fausserait les moyennes.
@@ -57,6 +56,14 @@ export async function getDashboardData(supabase: SupabaseClient, userId: string)
     // Types d'entretien par vélo — parallélisé ici plutôt qu'en série plus bas.
     fetchUserMaintenanceDefsByBike(supabase, user.id),
   ])
+
+  // Le dernier élément est une valeur déjà construite, pas un résultat Supabase.
+  const [allComponentsRes, activityStatsRes, bikeMaintLogsRes, defsByBike] = dashResults
+  assertNoError([allComponentsRes, activityStatsRes, bikeMaintLogsRes], 'dashboard')
+
+  const { data: allComponents } = allComponentsRes
+  const { data: activityStats } = activityStatsRes
+  const { data: bikeMaintLogs } = bikeMaintLogsRes
 
   // Distance + sorties 12 mois PAR VÉLO + rythme km/semaine (90j, repli 12m).
   // Tout vient de la vue agrégée : un objet par vélo, plus de reduce sur les
@@ -278,11 +285,7 @@ export async function getCostData(
   // Il n'y a plus d'option « tous les vélos » : un vélo est toujours
   // sélectionné (comme sur le dashboard). Il faut donc résoudre le vélo par
   // défaut AVANT de lancer les requêtes filtrées — d'où ce premier aller-retour.
-  const [
-    { data: allBikesRaw },
-    { data: allBikeCompStatus },
-    { data: allBikeStats12m },
-  ] = await Promise.all([
+  const coutResults = await Promise.all([
     supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
     // État des pièces de TOUS les vélos — pastille de couleur du sélecteur.
     supabase
@@ -298,6 +301,10 @@ export async function getCostData(
       .select('bike_id, km_365d')
       .eq('user_id', user.id),
   ])
+
+  assertNoError(coutResults, 'cout')
+  const [{ data: allBikesRaw }, { data: allBikeCompStatus }, { data: allBikeStats12m }] =
+    coutResults
 
   const km12mByBikeAll: Record<string, number> = {}
   for (const s of allBikeStats12m ?? []) {
@@ -354,15 +361,7 @@ export async function getCostData(
     .not('maintenance_type', 'is', null)
     .order('performed_at', { ascending: false })
 
-  const [
-    { data: components },
-    { data: bikes },
-    { data: activities },
-    { data: maintLogs },
-    { data: replacements },
-    { data: bikeMaintLogs },
-    defsByBikeCost,
-  ] = await Promise.all([
+  const coutResults2 = await Promise.all([
     effectiveBikeId ? compQ.eq('bike_id', effectiveBikeId) : compQ,
     effectiveBikeId ? bikeQ.eq('id', effectiveBikeId) : bikeQ,
     effectiveBikeId ? actQ.eq('bike_id', effectiveBikeId) : actQ,
@@ -377,6 +376,28 @@ export async function getCostData(
     // Types d'entretien par vélo — parallélisé ici plutôt qu'en série plus bas.
     fetchUserMaintenanceDefsByBike(supabase, user.id),
   ])
+
+  // Le dernier élément est une valeur déjà construite, pas un résultat Supabase.
+  const [
+    componentsRes,
+    bikesRes2,
+    activitiesRes,
+    maintLogsRes,
+    replacementsRes,
+    bikeMaintLogsRes,
+    defsByBikeCost,
+  ] = coutResults2
+  assertNoError(
+    [componentsRes, bikesRes2, activitiesRes, maintLogsRes, replacementsRes, bikeMaintLogsRes],
+    'cout'
+  )
+
+  const { data: components } = componentsRes
+  const { data: bikes } = bikesRes2
+  const { data: activities } = activitiesRes
+  const { data: maintLogs } = maintLogsRes
+  const { data: replacements } = replacementsRes
+  const { data: bikeMaintLogs } = bikeMaintLogsRes
 
   const comps = components ?? []
   const bikeList = bikes ?? []

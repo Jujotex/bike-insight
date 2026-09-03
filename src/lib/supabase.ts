@@ -54,3 +54,29 @@ export const supabase: SupabaseClient = Capacitor.isNativePlatform()
       },
     })
   : createBrowserClient(url, anonKey)
+
+/**
+ * Purge du cache hors-ligne au changement d'utilisateur.
+ *
+ * Le cache de consultation (`offline-cache.ts`) est stocké par appareil, pas par
+ * compte. Sans cette purge, se déconnecter puis se reconnecter avec un autre
+ * compte afficherait brièvement les vélos du précédent — le temps que le réseau
+ * réponde et remplace l'affichage. Sur un téléphone partagé, ou simplement en
+ * démonstration, c'est une fuite de données visible.
+ *
+ * L'écoute est posée ici plutôt que dans le bouton de déconnexion parce qu'elle
+ * doit couvrir tous les chemins : déconnexion volontaire, suppression de compte,
+ * session expirée, ou connexion d'un autre utilisateur. Un seul point de sortie
+ * oublié suffirait à rendre la garantie fausse.
+ *
+ * `syncCacheOwner` compare le propriétaire enregistré : le rafraîchissement
+ * périodique du jeton émet lui aussi un événement, et purger à chaque fois
+ * viderait le cache toutes les heures sans raison.
+ */
+if (typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange((_event, session) => {
+    void import('./offline-cache').then(({ syncCacheOwner }) =>
+      syncCacheOwner(session?.user?.id ?? null)
+    )
+  })
+}

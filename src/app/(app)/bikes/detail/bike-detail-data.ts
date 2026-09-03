@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { assertNoError } from '@/lib/supabase-result'
 import { fetchBikeMaintenanceDefs } from '@/lib/maintenance-types'
 import type { MaintenanceLast } from '@/lib/maintenance-catalog'
 
@@ -21,8 +22,10 @@ export async function loadBikeDetailData(
 ) {
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: bike }, { data: components }, { data: activities }] = await Promise.all([
-    supabase.from('bike_stats').select('*').eq('id', bikeId).eq('user_id', userId).single(),
+  const results = await Promise.all([
+    // `maybeSingle` : un vélo introuvable est un cas géré plus bas par une
+    // redirection, pas une erreur de chargement.
+    supabase.from('bike_stats').select('*').eq('id', bikeId).eq('user_id', userId).maybeSingle(),
     supabase
       .from('component_stats')
       .select('*')
@@ -39,24 +42,34 @@ export async function loadBikeDetailData(
       .order('started_at', { ascending: false }),
   ])
 
+  assertNoError(results, 'bike-detail')
+  const [{ data: bike }, { data: components }, { data: activities }] = results
+
   if (!bike) return null
 
-  const [{ data: bikeMaintLogs }, { data: bikeReplacements }, maintenanceDefs] =
-    await Promise.all([
-      supabase
-        .from('maintenance_logs')
-        .select('id, action, cost, notes, maintenance_type, performed_at, km_at_action')
-        .eq('bike_id', bikeId)
-        .not('maintenance_type', 'is', null)
-        .order('performed_at', { ascending: false }),
-      // Remplacements de pièces de ce vélo (via le composant), pour la dépense.
-      supabase
-        .from('maintenance_logs')
-        .select('cost, components!inner(bike_id)')
-        .eq('action', 'Remplacement')
-        .eq('components.bike_id', bikeId),
-      fetchBikeMaintenanceDefs(supabase, bikeId),
-    ])
+  const secondResults = await Promise.all([
+    supabase
+      .from('maintenance_logs')
+      .select('id, action, cost, notes, maintenance_type, performed_at, km_at_action')
+      .eq('bike_id', bikeId)
+      .not('maintenance_type', 'is', null)
+      .order('performed_at', { ascending: false }),
+    // Remplacements de pièces de ce vélo (via le composant), pour la dépense.
+    supabase
+      .from('maintenance_logs')
+      .select('cost, components!inner(bike_id)')
+      .eq('action', 'Remplacement')
+      .eq('components.bike_id', bikeId),
+    fetchBikeMaintenanceDefs(supabase, bikeId),
+  ])
+
+  // Le troisième élément n'est pas un résultat Supabase mais une valeur déjà
+  // construite : on ne contrôle que les deux requêtes.
+  const [maintLogsRes, replacementsRes, maintenanceDefs] = secondResults
+  assertNoError([maintLogsRes, replacementsRes], 'bike-detail')
+
+  const { data: bikeMaintLogs } = maintLogsRes
+  const { data: bikeReplacements } = replacementsRes
 
   // Dépense d'entretien du vélo = entretiens + remplacements réellement payés.
   const maintenanceSpend = Math.round(
