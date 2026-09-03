@@ -19,8 +19,62 @@
  * Usage : npm run build:app
  */
 import { execSync } from 'node:child_process'
-import { existsSync, renameSync, rmSync } from 'node:fs'
+import { copyFileSync, existsSync, readdirSync, renameSync, rmSync } from 'node:fs'
 import path from 'node:path'
+
+/**
+ * Contourne une incohérence de Next en mode export sur les charges de
+ * préchargement.
+ *
+ * Le client demande `/account/__next.!KGFwcCk.account.__PAGE__.txt` — segments
+ * joints par des points. L'export écrit `account/__next.!KGFwcCk/account/__PAGE__.txt`
+ * — segments en dossiers. Les deux formes ne se rencontrent jamais, et **chaque
+ * préchargement de lien répond 404**.
+ *
+ * Ce n'est pas bloquant : le client se rabat sur `index.txt`, qui existe, et la
+ * navigation fonctionne. Mais c'est une requête perdue par lien préchargé, ce qui
+ * compte sur un réseau mobile, et ce bruit noie les vraies erreurs dans les
+ * journaux — au point qu'on a mis plusieurs jours à distinguer les deux.
+ *
+ * On **copie** au lieu de déplacer : si une version de Next se met à demander la
+ * forme imbriquée, elle sera toujours là. Les fichiers concernés pèsent quelques
+ * kilo-octets, la duplication est sans conséquence.
+ *
+ * À retirer quand Next produira les deux formes lui-même.
+ */
+function aplatirChargesDePrechargement(dir) {
+  let copies = 0
+
+  const parcourir = (repertoire) => {
+    for (const entree of readdirSync(repertoire, { withFileTypes: true })) {
+      const chemin = path.join(repertoire, entree.name)
+      if (!entree.isDirectory()) continue
+
+      if (entree.name.startsWith('__next.')) {
+        // `repertoire` est le dossier de la page ; `entree.name` le préfixe à
+        // conserver tel quel. Tout ce qui suit devient une suite de points.
+        const collecter = (courant, segments) => {
+          for (const e of readdirSync(courant, { withFileTypes: true })) {
+            if (e.isDirectory()) {
+              collecter(path.join(courant, e.name), [...segments, e.name])
+              continue
+            }
+            const plat = [entree.name, ...segments, e.name].join('.')
+            copyFileSync(path.join(courant, e.name), path.join(repertoire, plat))
+            copies++
+          }
+        }
+        collecter(chemin, [])
+        continue
+      }
+
+      parcourir(chemin)
+    }
+  }
+
+  parcourir(dir)
+  return copies
+}
 
 const root = process.cwd()
 const apiDir = path.join(root, 'src', 'app', 'api')
@@ -83,7 +137,10 @@ try {
     env: { ...process.env, CAPACITOR_BUILD: '1' },
   })
 
+  const copies = aplatirChargesDePrechargement(outDir)
+
   console.log('\n✓ Interface exportée dans out/')
+  console.log(`  ${copies} charges de préchargement aplaties (cf. commentaire du script)`)
   console.log('  Étape suivante : npx cap sync\n')
 } finally {
   if (moved && existsSync(asideDir)) {

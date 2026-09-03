@@ -28,6 +28,18 @@ const config: CapacitorConfig = {
   // API distante est parfaitement normale ; ce que la 4.2 sanctionne, c'est
   // l'interface téléchargée, pas les données.
   webDir: 'out',
+
+  plugins: {
+    SplashScreen: {
+      // Masquage confié au code (`components/bi/native-shell.tsx`), qui attend
+      // que l'interface soit montée. En automatique, l'écran disparaît dès que
+      // l'activité dessine — donc avant le premier rendu de la WebView, ce qui
+      // laisse un éclair blanc entre les deux.
+      launchAutoHide: false,
+      backgroundColor: '#F4F4EF', // = --bi-bg
+      androidScaleType: 'CENTER_CROP',
+    },
+  },
 };
 
 export default config;

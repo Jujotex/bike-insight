@@ -98,8 +98,25 @@ body {
 /* ── Responsive layout helpers ─────────────────────────────── */
 
 /* Largeur de contenu UNIQUE, centrée — même largeur sur toutes les pages
-   (fini les maxWidth inline au hasard). Un seul endroit à changer. */
-.bi-page { padding: 24px 36px 40px; max-width: 1120px; margin: 0 auto; }
+   (fini les maxWidth inline au hasard). Un seul endroit à changer.
+
+   Les `env(safe-area-inset-*)` valent zéro sur le web et sur un écran sans
+   encoche : la mise en page ne change donc pas d'un pixel là-bas. En natif ils
+   valent la hauteur de la barre d'état et la largeur des encoches en paysage —
+   `targetSdkVersion = 36` impose le bord-à-bord sur Android 15+, et la WebView
+   est dessinée dessous. Sans ces marges, l'en-tête passe sous l'horloge.
+
+   Ils supposent `viewport-fit=cover` (cf. `layout.tsx`) : sans lui, ils valent
+   zéro partout et ces calculs sont sans effet. */
+.bi-page {
+  padding:
+    calc(24px + env(safe-area-inset-top, 0px))
+    calc(36px + env(safe-area-inset-right, 0px))
+    40px
+    calc(36px + env(safe-area-inset-left, 0px));
+  max-width: 1120px;
+  margin: 0 auto;
+}
 
 /* Rythme vertical UNIQUE entre les blocs d'une page.
    Remplace les `marginBottom: 14` posés carte par carte. */
@@ -128,7 +145,15 @@ body {
 .bi-mobile  { display: none; }
 
 @media (max-width: 768px) {
-  .bi-page { padding: 16px 16px 100px; }
+  /* La marge basse de 100px dégage la barre de navigation du bas ; celle-ci porte
+     déjà son propre `env(safe-area-inset-bottom)`, inutile de l'ajouter ici. */
+  .bi-page {
+    padding:
+      calc(16px + env(safe-area-inset-top, 0px))
+      calc(16px + env(safe-area-inset-right, 0px))
+      100px
+      calc(16px + env(safe-area-inset-left, 0px));
+  }
 
   .bi-grid-4        { grid-template-columns: repeat(2, 1fr); }
   .bi-grid-3        { grid-template-columns: repeat(2, 1fr); }

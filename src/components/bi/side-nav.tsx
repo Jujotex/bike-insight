@@ -60,7 +60,11 @@ export function SideNav({ bikes = [], userInitials = "?", userName = "Utilisateu
         borderRight: "1px solid var(--bi-line)",
         display: "flex",
         flexDirection: "column",
-        padding: "24px 16px",
+        // Zones sûres : la nav touche le bord gauche et le haut de l'écran, donc
+        // l'encoche en paysage et la barre d'état en bord-à-bord. Valeurs nulles
+        // sur le web, la mise en page n'y bouge pas.
+        padding:
+          "calc(24px + env(safe-area-inset-top, 0px)) 16px 24px calc(16px + env(safe-area-inset-left, 0px))",
       }}
     >
       {/* Brand */}

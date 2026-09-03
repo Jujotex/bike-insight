@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/bi/app-shell";
 import { SideNavLoader } from "@/components/bi/side-nav-loader";
+import { NativeShell } from "@/components/bi/native-shell";
 
 // Layout partagé des pages authentifiées.
 //
@@ -17,5 +18,12 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell nav={<SideNavLoader />}>{children}</AppShell>;
+  return (
+    <AppShell nav={<SideNavLoader />}>
+      {/* Comportements natifs (bouton retour, barre de statut, écran de
+          démarrage). Sans rendu, et entièrement inerte sur le web. */}
+      <NativeShell />
+      {children}
+    </AppShell>
+  );
 }
