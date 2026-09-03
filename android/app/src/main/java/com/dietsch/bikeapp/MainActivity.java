@@ -1,4 +1,4 @@
-package com.bikeinsight.app;
+package com.dietsch.bikeapp;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -4,11 +4,15 @@ const config: CapacitorConfig = {
   // Identifiant unique de l'app sur les stores (reverse-DNS).
   // ⚠️ Définitif après la première soumission — ne plus changer ensuite.
   //
-  // ⏳ À TRANCHER AVANT `npx cap add` : garder un identifiant calqué sur la marque,
-  // ou le découpler (`com.dietsch.bikeapp`) pour qu'un futur changement de nom
-  // n'ait aucune conséquence. « Bike Insight » étant déjà déposé à l'INPI, la
-  // question n'est pas théorique. Voir `plan-app-native.md`, chapitre 0.
-  appId: 'com.bikeinsight.app',
+  // Délibérément détaché de la marque (03/09/2026). « Bike Insight » est déjà
+  // déposé à l'INPI : le nom commercial va changer, et un identifiant qui le
+  // reprendrait imposerait de régénérer les deux projets natifs — en refaisant au
+  // passage la configuration du push, qui s'y adosse. Comme cet identifiant n'est
+  // jamais montré à l'utilisateur, rien n'obligeait à ce qu'il ressemble au nom.
+  appId: 'com.dietsch.bikeapp',
+
+  // Nom affiché sous l'icône. Celui-ci suivra la marque : il est modifiable à
+  // tout moment, y compris après publication.
   appName: 'Bike Insight',
 
   // Interface embarquée dans le binaire, produite par `npm run build:app`.

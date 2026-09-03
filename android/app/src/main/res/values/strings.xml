@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Bike Insight</string>
     <string name="title_activity_main">Bike Insight</string>
-    <string name="package_name">com.bikeinsight.app</string>
-    <string name="custom_url_scheme">com.bikeinsight.app</string>
+    <string name="package_name">com.dietsch.bikeapp</string>
+    <string name="custom_url_scheme">com.dietsch.bikeapp</string>
 </resources>

@@ -23,7 +23,13 @@ import { supabase } from './supabase'
  * avant, l'en-tête est simplement redondant.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''
+// Le slash final est retiré : sans cela, une adresse copiée depuis un navigateur
+// (qui l'ajoute volontiers) produirait `https://exemple.app//api/strava/import`.
+// Vercel répond au double slash par une redirection — et une redirection sur une
+// requête préalable CORS n'est pas suivie par le navigateur, la spécification
+// l'interdit. L'appel échouerait donc sans jamais atteindre la route, avec pour
+// seul symptôme un « Impossible de joindre le serveur » qui ne désigne rien.
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 /** Préfixe un chemin d'API par l'adresse du backend, si elle est définie. */
 export function apiUrl(path: string): string {
