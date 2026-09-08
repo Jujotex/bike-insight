@@ -117,7 +117,9 @@ export default function SignupPage() {
       return;
     }
 
-    window.location.href = "/connect/strava";
+    // Voir `login/page.tsx` : un rechargement complet servirait la racine en
+    // natif, à cause de `trailingSlash`.
+    router.replace("/connect/strava");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -256,11 +258,14 @@ export default function SignupPage() {
       </div>
       {/* Ces mentions étaient de faux liens (<span> stylés) pointant vers des documents
           inexistants : on faisait accepter des textes introuvables. La politique de
-          confidentialité est désormais un vrai lien (API Policy Strava §7.3 : lien
-          « reasonably prominent »). Les CGU restent à écrire — mention retirée en
-          attendant plutôt que de promettre un document qui n'existe pas. */}
+          confidentialité est un vrai lien depuis le 12/08 (API Policy Strava §7.3 :
+          lien « reasonably prominent »), et les CGU depuis le 03/09 (§9.2). */}
       <div style={{ marginTop: 16, fontSize: 11, color: "var(--bi-muted)", textAlign: "center", lineHeight: 1.5 }}>
-        En continuant, tu acceptes notre{" "}
+        En continuant, tu acceptes nos{" "}
+        <Link href="/cgu" style={{ color: "var(--bi-ink)", textDecoration: "underline" }}>
+          conditions d&apos;utilisation
+        </Link>{" "}
+        et notre{" "}
         <Link href="/confidentialite" style={{ color: "var(--bi-ink)", textDecoration: "underline" }}>
           politique de confidentialité
         </Link>.

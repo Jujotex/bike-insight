@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getApiUser } from '@/lib/api-auth'
 import { createWearNotifications, createMaintenanceNotifications } from '@/lib/notifications-helper'
-import { getValidStravaToken } from '@/lib/strava'
+import { getValidStravaToken, StravaTokenError } from '@/lib/strava'
 import { commentWearOnActivities } from '@/lib/strava-comment'
 
 const PAGE_SIZE = 200  // max autorisé par Strava — limite le nombre de pages
@@ -41,11 +41,29 @@ export async function POST(request: Request) {
     accessToken = await getValidStravaToken(user.id, supabase)
   } catch (err) {
     console.error('[sync] getValidStravaToken error:', err)
-    return NextResponse.json({ error: 'Erreur lors du refresh du token Strava' }, { status: 500 })
+
+    // Le message dépend de ce que l'utilisateur peut réellement faire. Envoyer
+    // quelqu'un se reconnecter pendant une panne de Strava lui fait perdre son
+    // temps et lui laisse croire que le problème vient de son compte.
+    if (err instanceof StravaTokenError && err.reason === 'strava-unavailable') {
+      return NextResponse.json(
+        { error: 'Strava est momentanément injoignable. Réessaie dans quelques minutes.' },
+        { status: 503 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Ton autorisation Strava n’est plus valide — reconnecte ton compte' },
+      { status: 401 }
+    )
   }
 
+  // `null` sans exception : aucun compte Strava lié.
   if (!accessToken) {
-    return NextResponse.json({ error: 'Token Strava invalide ou expiré — reconnecte ton compte Strava' }, { status: 401 })
+    return NextResponse.json(
+      { error: 'Aucun compte Strava connecté' },
+      { status: 401 }
+    )
   }
 
   // ── Détermine la date de départ de l'import ───────────────────

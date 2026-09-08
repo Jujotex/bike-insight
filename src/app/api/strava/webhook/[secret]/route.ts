@@ -221,9 +221,19 @@ async function handleActivityUpsert(
   userId: string,
   stravaId: number
 ) {
-  const token = await getValidStravaToken(userId, admin)
+  // `getValidStravaToken` lève désormais quand un compte est lié mais que le
+  // token n'a pas pu être renouvelé. Ici, un webhook doit répondre 200 quoi qu'il
+  // arrive : Strava désactive une souscription qui échoue de façon répétée. On
+  // journalise et on abandonne cette notification.
+  let token: string | null = null
+  try {
+    token = await getValidStravaToken(userId, admin)
+  } catch (err) {
+    console.error('[webhook] token indisponible pour', userId, err)
+    return
+  }
   if (!token) {
-    console.error('[webhook] token indisponible pour', userId)
+    console.error('[webhook] aucun compte Strava lié pour', userId)
     return
   }
 
@@ -284,7 +294,15 @@ async function refreshGearKmAndWear(
   admin: ReturnType<typeof createSupabaseAdminClient>,
   userId: string
 ) {
-  const token = await getValidStravaToken(userId, admin)
+  // Même raison qu'au-dessus : ne jamais laisser une exception remonter jusqu'à
+  // la réponse du webhook.
+  let token: string | null = null
+  try {
+    token = await getValidStravaToken(userId, admin)
+  } catch (err) {
+    console.error('[webhook] rafraîchissement des km impossible pour', userId, err)
+    return
+  }
   if (!token) return
 
   const res = await fetch('https://www.strava.com/api/v3/athlete', {

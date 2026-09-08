@@ -366,8 +366,17 @@ body {
 
 /* ── Passe mobile : durcissement (audit responsive) ─────────── */
 
-/* Filet de sécurité global contre le scroll horizontal parasite */
-body { overflow-x: hidden; }
+/* Filet de sécurité global contre le scroll horizontal parasite.
+
+   Posé sur `html` **et** `body` : la règle ne portait que sur `body`, et l'app
+   défilait quand même latéralement sur téléphone — c'est `html` qui est le
+   conteneur de défilement du document. Un site qui glisse de côté sous le doigt
+   donne immédiatement une impression de page web mal fichue, ce qui est
+   exactement ce qu'on cherche à ne pas être.
+
+   `hidden` et non `clip` : aucun `position: sticky` dans le projet, donc rien à
+   préserver, et `hidden` a le support le plus large. */
+html, body { overflow-x: hidden; }
 
 /* Page pièce : héros usure (le "100 %" géant débordait) */
 @media (max-width: 768px) {
@@ -378,8 +387,23 @@ body { overflow-x: hidden; }
 }
 
 /* Landing page */
+
+/* Zones sûres de la page d'accueil.
+   Elle vit hors de `.bi-page`, donc les marges posées là ne l'atteignent pas —
+   et c'est précisément l'écran de lancement de l'app native. Sans ceci, la barre
+   de navigation du haut passe sous l'horloge du système.
+   Valeurs nulles sur le web et sur un écran sans encoche. */
+.bi-land-nav { padding-top: calc(20px + env(safe-area-inset-top, 0px)) !important; }
+.bi-land-pad {
+  padding-left: calc(48px + env(safe-area-inset-left, 0px));
+  padding-right: calc(48px + env(safe-area-inset-right, 0px));
+}
+
 @media (max-width: 768px) {
-  .bi-land-pad   { padding-left: 20px !important; padding-right: 20px !important; }
+  .bi-land-pad   {
+    padding-left: calc(20px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+  }
   .bi-land-hero  { grid-template-columns: 1fr !important; gap: 36px !important; padding-top: 36px !important; padding-bottom: 36px !important; }
   .bi-land-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
   .bi-land-3     { grid-template-columns: 1fr !important; }
@@ -427,7 +451,11 @@ body { overflow-x: hidden; }
    le plus contraint de la page. On resserre encore plutôt que de sacrifier
    l'entrée « Connexion ». */
 @media (max-width: 400px) {
-  .bi-land-nav        { padding-left: 14px !important; padding-right: 14px !important; gap: 6px; }
+  .bi-land-nav        {
+    padding-left: calc(14px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(14px + env(safe-area-inset-right, 0px)) !important;
+    gap: 6px;
+  }
   .bi-land-nav-cta    { padding-left: 11px !important; padding-right: 11px !important; }
   .bi-land-nav-login  { padding-left: 0 !important; padding-right: 0 !important; }
 }

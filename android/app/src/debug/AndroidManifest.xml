@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Surcharge de manifeste appliquée **aux seuls builds de débogage**.
+
+  Le fusionneur de manifestes d'Android combine celui-ci avec `src/main/` quand la
+  variante est `debug`, et l'ignore entièrement en `release`. C'est ce qui permet
+  d'autoriser le HTTP en clair vers la machine de développement sans que ce
+  relâchement ne parte jamais en production.
+
+  Voir `src/debug/res/xml/network_security_config.xml` pour le détail des hôtes.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+</manifest>

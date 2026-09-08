@@ -7,7 +7,8 @@ import { Mono } from "@/components/bi/ui";
 import { ManualRideButton } from "@/components/bi/manual-ride-button";
 import { SyncButton } from "@/components/bi/sync-button";
 import { NotificationSettings } from "@/components/bi/notification-settings";
-import { PRIVACY_POLICY_PATH, STRAVA_APPS_SETTINGS_URL, SUPPORT_EMAIL } from "@/lib/contact";
+import { ExportDataButton } from "@/components/bi/export-data-button";
+import { PRIVACY_POLICY_PATH, STRAVA_APPS_SETTINGS_URL, SUPPORT_EMAIL, TERMS_PATH } from "@/lib/contact";
 import { apiFetch } from "@/lib/api";
 
 interface Props {
@@ -258,13 +259,16 @@ export function AccountClient({
           )}
         </div>
 
-        {/* Sorties */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid var(--bi-line)" }}>
+        {/* Sorties
+            `flexWrap` : trois boutons plus un libellé sur deux lignes ne tiennent
+            pas sur la largeur d'un téléphone. Sans lui, le bouton de droite
+            sortait de l'écran et la page défilait latéralement. */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", padding: "14px 0", borderTop: "1px solid var(--bi-line)" }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>Sorties</div>
             <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 1 }}>Ajouter ou synchroniser des activités</div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end", marginLeft: "auto" }}>
             {stravaConnected && <SyncButton stravaConnected={stravaConnected} />}
             <ManualRideButton bikes={bikes} />
           </div>
@@ -278,6 +282,12 @@ export function AccountClient({
           accessible ») et §7.3 (politique de confidentialité par lien proéminent). */}
       <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
         <div style={sectionTitle}>Aide et confidentialité</div>
+
+        {/* Droit à la portabilité (RGPD art. 20) et API Policy Strava §2.2.
+            Placé au-dessus de la suppression de compte : les deux relèvent des
+            mêmes droits, et récupérer ses données avant de tout effacer est
+            l'enchaînement naturel. */}
+        <ExportDataButton />
 
         <a
           href={`mailto:${SUPPORT_EMAIL}`}
@@ -294,6 +304,15 @@ export function AccountClient({
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "14px 0", borderBottom: "1px solid var(--bi-line)", textDecoration: "none", color: "var(--bi-ink)" }}
         >
           <span style={{ fontWeight: 600 }}>Politique de confidentialité</span>
+          <span className="bi-text-sm" style={{ color: "var(--bi-muted)" }}>Voir</span>
+        </a>
+
+        <a
+          href={TERMS_PATH}
+          className="bi-text-base"
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "14px 0", borderBottom: "1px solid var(--bi-line)", textDecoration: "none", color: "var(--bi-ink)" }}
+        >
+          <span style={{ fontWeight: 600 }}>Conditions d&apos;utilisation</span>
           <span className="bi-text-sm" style={{ color: "var(--bi-muted)" }}>Voir</span>
         </a>
 
@@ -382,7 +401,7 @@ export function AccountClient({
               Bike Insight.
             </div>
             <button
-              onClick={() => { window.location.href = "/"; }}
+              onClick={() => { router.replace("/"); }}
               style={{ width: "100%", padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer", fontWeight: 600 }}
             >
               Retour à l&apos;accueil

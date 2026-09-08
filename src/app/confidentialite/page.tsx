@@ -184,7 +184,7 @@ export default function ConfidentialitePage() {
 
         <h2 style={h2}>4. Qui d&apos;autre traite ces données</h2>
         <p style={p}>
-          Bike Insight s&apos;appuie sur trois prestataires, qui n&apos;utilisent tes données que
+          Bike Insight s&apos;appuie sur cinq prestataires, qui n&apos;utilisent tes données que
           pour fournir leur service :
         </p>
         <ul style={{ ...p, paddingLeft: 20 }}>
@@ -196,16 +196,31 @@ export default function ConfidentialitePage() {
             <strong style={{ fontWeight: 600 }}>Vercel</strong> — hébergement de
             l&apos;application et journaux techniques.
           </li>
-          <li>
+          <li style={{ marginBottom: 6 }}>
             <strong style={{ fontWeight: 600 }}>Strava</strong> — source des données
             d&apos;activité, uniquement si tu as connecté ton compte.
           </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong style={{ fontWeight: 600 }}>Sentry</strong> — remontée des erreurs
+            techniques, pour corriger les pannes que tu rencontres. Seuls le message
+            d&apos;erreur, la page concernée et le type d&apos;appareil sont transmis.
+            L&apos;envoi de ton adresse IP est explicitement désactivé, et aucun
+            enregistrement de ton écran n&apos;est effectué.
+          </li>
+          <li>
+            <strong style={{ fontWeight: 600 }}>OpenStreetMap</strong> — annuaire des magasins
+            de vélo, uniquement lorsque tu lances une recherche de vélociste. La requête part
+            alors de ton appareil : l&apos;adresse et le rayon de recherche, donc ta position
+            approximative, ainsi que ton adresse IP, sont transmis à leurs serveurs. Aucun
+            identifiant de compte Bike Insight ne l&apos;accompagne, et rien n&apos;est envoyé
+            tant que tu ne lances pas de recherche.
+          </li>
         </ul>
         <p style={muted}>
-          Tes données sont stockées dans l&apos;Union européenne. Supabase et Vercel étant des
-          sociétés de droit américain, un accès depuis les États-Unis reste possible dans le cadre
-          de leurs opérations de support ; ces transferts éventuels sont encadrés par les clauses
-          contractuelles types de la Commission européenne.
+          Tes données sont stockées dans l&apos;Union européenne. Supabase, Vercel et Sentry étant
+          des sociétés de droit américain, un accès depuis les États-Unis reste possible dans le
+          cadre de leurs opérations de support ; ces transferts éventuels sont encadrés par les
+          clauses contractuelles types de la Commission européenne.
         </p>
 
         <h2 style={h2}>5. Combien de temps</h2>

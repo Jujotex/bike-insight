@@ -22,3 +22,11 @@ export const STRAVA_APPS_SETTINGS_URL = 'https://www.strava.com/settings/apps'
  * Liée depuis le pied de page de la landing, l'inscription et la page Compte.
  */
 export const PRIVACY_POLICY_PATH = '/confidentialite'
+
+/**
+ * Conditions générales d'utilisation — requises par l'API Policy §9.2, qui impose
+ * de décliner les garanties **pour le compte des fournisseurs tiers**, et par les
+ * deux stores (lien obligatoire depuis la fiche de l'application).
+ * Page publique : `src/app/cgu/page.tsx`.
+ */
+export const TERMS_PATH = '/cgu'

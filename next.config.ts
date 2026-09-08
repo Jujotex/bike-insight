@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Deux sorties de build depuis un seul dépôt.
@@ -65,4 +66,47 @@ const nextConfig: NextConfig = isCapacitorBuild
       },
     };
 
-export default nextConfig;
+/**
+ * Enveloppe Sentry.
+ *
+ * Elle fait deux choses : téléverser les *source maps* au build, et instrumenter
+ * le code serveur.
+ *
+ * **Le téléversement des source maps est l'intérêt principal.** Sans lui, une
+ * erreur de production ressemble à `a is not a function, ligne 1 colonne 48312`
+ * — le code est minifié, la trace ne désigne rien. Avec, Sentry pointe le
+ * fichier et la ligne d'origine. C'est la différence entre un rapport
+ * exploitable et une curiosité.
+ *
+ * Il faut pour cela `SENTRY_AUTH_TOKEN` dans l'environnement de build (Vercel).
+ * Absent, le téléversement est simplement ignoré avec un avertissement : le
+ * build local ne casse pas.
+ *
+ * `widenClientFileUpload` couvre les fichiers que Next sert depuis `_next/static`
+ * sans les rattacher à une page — sinon une partie des traces reste minifiée.
+ */
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Pas de bruit de l'outil Sentry dans les journaux de build, sauf en CI où
+  // c'est le seul endroit où lire ce qui s'est passé.
+  silent: !process.env.CI,
+
+  widenClientFileUpload: true,
+
+  // Les source maps sont téléversées à Sentry puis **retirées du bundle public**.
+  // Les laisser exposerait le code source original à qui ouvre les outils de
+  // développement.
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+
+  // Le bloqueur de publicités du navigateur bloque les requêtes vers Sentry :
+  // sans tunnel, les erreurs des utilisateurs qui en ont un ne remonteraient
+  // jamais — soit une part importante, et pas la moins avertie. Le tunnel les
+  // fait transiter par notre propre domaine.
+  //
+  // ⚠️ Uniquement sur le build Vercel : `tunnelRoute` **crée une route API**, ce
+  // que `output: "export"` refuse. Et l'option n'aurait aucun objet en natif —
+  // il n'y a pas de bloqueur de publicité dans une WebView.
+  ...(isCapacitorBuild ? {} : { tunnelRoute: "/monitoring" }),
+});

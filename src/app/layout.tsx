@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { NativeShell } from "@/components/bi/native-shell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +60,17 @@ export default function RootLayout({
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* Comportements natifs : bouton retour, barre de statut, masquage de
+            l'écran de démarrage. Sans rendu, et entièrement inerte sur le web.
+
+            Monté ici, à la racine, et non dans le layout du groupe `(app)` :
+            l'application démarre sur `/`, qui est hors de ce groupe. Le
+            composant n'y était jamais monté, `SplashScreen.hide()` jamais
+            appelé — et l'app restait bloquée sur l'écran de démarrage. */}
+        <NativeShell />
+        {children}
+      </body>
     </html>
   );
 }

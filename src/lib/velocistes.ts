@@ -219,6 +219,16 @@ async function raceOverpassMirrors(
   query: string,
   abortMs: number
 ): Promise<{ elements?: OverpassElement[] }> {
+  // `User-Agent` est un **en-tête interdit** dans un navigateur : la spécification
+  // fetch le retire silencieusement, et certains moteurs rejettent la requête.
+  // On ne le pose donc que côté serveur, où la politique d'usage d'OSM le
+  // réclame. Depuis un navigateur, l'agent réel du navigateur fait l'affaire.
+  const headers: Record<string, string> = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept: "application/json",
+  };
+  if (typeof window === "undefined") headers["User-Agent"] = USER_AGENT;
+
   try {
     return await Promise.any(
       OVERPASS_URLS.map(async (endpoint) => {
@@ -228,11 +238,7 @@ async function raceOverpassMirrors(
             endpoint,
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                Accept: "application/json",
-                "User-Agent": USER_AGENT,
-              },
+              headers,
               body: "data=" + encodeURIComponent(query),
               cache: "no-store",
             },
@@ -269,6 +275,27 @@ async function raceOverpassMirrors(
 
 // Cherche les magasins vélo (shop=bicycle) dans un rayon donné (mètres),
 // triés par distance croissante. Limité à `max` résultats.
+//
+// ## Appelable depuis le navigateur — et c'est le chemin normal (03/09/2026)
+//
+// Cette fonction tournait uniquement côté serveur. L'annuaire répondait alors
+// « ne répond pas » de façon récurrente, et la cause n'était pas le volume de nos
+// requêtes : **c'est l'adresse IP**. Les instances publiques d'Overpass limitent
+// durement les IP de centres de données, et une fonction Vercel partage la sienne
+// avec des milliers d'autres projets — on payait le quota consommé par des
+// inconnus. Mesure faite au moment d'une panne : deux créneaux encore libres
+// depuis une IP résidentielle, aucun depuis le serveur.
+//
+// Appelée depuis le navigateur ou le téléphone, la requête part d'une IP
+// résidentielle ou mobile, avec son propre quota. C'est aussi la façon dont
+// fonctionne la majorité des applications bâties sur OpenStreetMap.
+//
+// Contrepartie assumée, écrite dans la politique de confidentialité : l'adresse
+// IP de l'utilisateur est exposée à OpenStreetMap. Elle l'était déjà de façon
+// indirecte — sa position approximative transitait par notre serveur jusqu'à eux.
+//
+// La route serveur `/api/velocistes` est conservée en repli : si l'appel direct
+// échoue (CORS, filtrage réseau d'entreprise), le client la sollicite.
 export async function findVelocistes(
   lat: number,
   lon: number,

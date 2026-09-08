@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AuthShell } from "@/components/bi/auth-shell";
 
@@ -39,6 +39,7 @@ function validatePassword(p: string): string | null {
 }
 
 function ResetPasswordForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [linkError, setLinkError] = useState("");
@@ -117,7 +118,7 @@ function ResetPasswordForm() {
           Ton mot de passe a été mis à jour.
         </div>
         <button
-          onClick={() => { window.location.href = "/dashboard"; }}
+          onClick={() => { router.replace("/dashboard"); }}
           style={{ marginTop: 24, width: "100%", background: "var(--bi-ink)", color: "var(--bi-bg)", border: "none", borderRadius: 14, padding: "14px 0", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
         >
           Aller au dashboard

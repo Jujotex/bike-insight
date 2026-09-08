@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
 interface Props {
@@ -25,8 +26,11 @@ export function SyncButton({ stravaConnected }: Props) {
         setResult({ imported: body.imported ?? 0 });
         setStatus("done");
         setTimeout(() => window.location.reload(), 2000);
-      } else if (res.status === 401) {
-        setErrorMsg("Token Strava expiré — reconnecte ton compte");
+      } else if (res.status === 401 || res.status === 503) {
+        // Le serveur distingue désormais « ton autorisation est morte » de
+        // « Strava est en panne » : on affiche son message plutôt qu'un texte
+        // figé qui enverrait se reconnecter pour rien pendant un incident.
+        setErrorMsg(body.error ?? "Reconnecte ton compte Strava");
         setStatus("error");
       } else {
         setErrorMsg(body.error ?? "Erreur serveur");
@@ -45,7 +49,11 @@ export function SyncButton({ stravaConnected }: Props) {
     // surtout pas d'orange de marque sur un bouton maison : rendu neutre, avec une
     // simple mention factuelle de Strava en texte (autorisé par la section 4).
     return (
-      <a href="/connect/strava" style={{ textDecoration: "none" }}>
+      // `Link` et non `<a>` : une ancre nue déclenche une navigation complète,
+      // que Next n'intercepte pas. En natif elle demanderait `/connect/strava`
+      // sans slash final — introuvable avec `trailingSlash: true` — et le
+      // serveur local de Capacitor servirait la page d'accueil à la place.
+      <Link href="/connect/strava" style={{ textDecoration: "none" }}>
         <button
           className="bi-text-base"
           style={{
@@ -56,19 +64,23 @@ export function SyncButton({ stravaConnected }: Props) {
         >
           Connecter Strava
         </button>
-      </a>
+      </Link>
     );
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    // `flexWrap` et le message en pleine largeur : sur un écran de téléphone, le
+    // message inséré **avant** les deux boutons les poussait hors de l'écran, et
+    // se retrouvait lui-même comprimé sur quatre lignes entre deux blocs. Il
+    // occupe désormais sa propre ligne, au-dessus.
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
       {status === "done" && result && (
-        <span style={{ fontSize: 12, color: "var(--bi-ok)", fontWeight: 500 }}>
+        <span style={{ fontSize: 12, color: "var(--bi-ok)", fontWeight: 500, flexBasis: "100%", textAlign: "right" }}>
           ✓ {result.imported} activité{result.imported !== 1 ? "s" : ""} importée{result.imported !== 1 ? "s" : ""}
         </span>
       )}
       {status === "error" && errorMsg && (
-        <span style={{ fontSize: 12, color: "var(--bi-bad)", fontWeight: 500, maxWidth: 220 }}>
+        <span style={{ fontSize: 12, color: "var(--bi-bad)", fontWeight: 500, flexBasis: "100%", textAlign: "right" }}>
           {errorMsg}
         </span>
       )}

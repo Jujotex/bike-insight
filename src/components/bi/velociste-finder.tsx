@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent, type CSSProperties } from "react";
 import { Mono } from "@/components/bi/ui";
 import type { Velociste, AddressSuggestion } from "@/lib/velocistes";
+import { findVelocistes } from "@/lib/velocistes";
 import { apiFetch } from "@/lib/api";
 
 // Recherche de vélocistes par adresse (avec autocomplétion Photon) ou
@@ -45,18 +46,87 @@ export function VelocisteFinder() {
   // fournit que des coordonnées.
   const [lastUrl, setLastUrl] = useState("");
 
-  async function run(url: string) {
-    setLastUrl(url);
+  const RAYON_M = 15000;
+
+  /**
+   * Recherche à partir de coordonnées connues.
+   *
+   * **Overpass est interrogé directement depuis l'appareil**, et non par notre
+   * serveur : c'est le correctif de la panne récurrente de l'annuaire. Les
+   * instances publiques limitent durement les IP de centres de données, et une
+   * fonction Vercel partage la sienne avec des milliers de projets — on héritait
+   * du quota consommé par des inconnus. Depuis un téléphone ou un navigateur, la
+   * requête part d'une IP résidentielle ou mobile, avec son propre quota.
+   *
+   * La route serveur reste en second rideau : un réseau d'entreprise ou une
+   * politique CORS inattendue peut bloquer l'appel direct, et dans ce cas le
+   * détour par le serveur peut aboutir là où le client échoue.
+   */
+  async function runAt(lat: number, lon: number, urlPourRepli: string) {
+    setLastUrl(urlPourRepli);
     setLoading(true);
     setError("");
     setShowSuggest(false);
+
     try {
-      const res = await apiFetch(url);
+      setShops(await findVelocistes(lat, lon, RAYON_M));
+      setLoading(false);
+      return;
+    } catch (direct) {
+      console.warn("[velocistes] appel direct échoué, repli sur le serveur", direct);
+    }
+
+    try {
+      const res = await apiFetch(urlPourRepli);
       const data = await res.json();
       if (!res.ok) {
         // La cause technique (miroirs OSM saturés, adresse non géocodée…) part
         // en console : diagnosticable depuis la page en panne, sans accès aux
         // logs serveur, et sans polluer le message vu par le cycliste.
+        if (data?.detail) console.warn("[velocistes]", data.detail);
+        setError(data?.error ?? "Recherche indisponible.");
+        setShops(null);
+      } else {
+        setShops(data.shops as Velociste[]);
+      }
+    } catch {
+      setError("Recherche indisponible. Vérifie ta connexion.");
+      setShops(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Recherche à partir d'une adresse libre : géocodage d'abord, via le serveur. */
+  async function runQuery(q: string) {
+    const urlServeur = `/api/velocistes?q=${encodeURIComponent(q)}`;
+    setLastUrl(urlServeur);
+    setLoading(true);
+    setError("");
+    setShowSuggest(false);
+
+    // Le géocodage reste côté serveur : Nominatim et Photon n'ont pas le même
+    // problème de quota qu'Overpass, et notre route sait déjà basculer de l'un à
+    // l'autre. On ne récupère ici que les coordonnées.
+    try {
+      const res = await apiFetch(`/api/velocistes/suggest?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      const first = (data.suggestions as AddressSuggestion[] | undefined)?.[0];
+      if (first) {
+        await runAt(first.lat, first.lon, urlServeur);
+        return;
+      }
+    } catch (err) {
+      console.warn("[velocistes] géocodage client échoué, repli complet sur le serveur", err);
+    }
+
+    // Adresse non résolue : on laisse la route serveur faire les deux étapes,
+    // elle produira le message d'erreur adapté (adresse introuvable vs annuaire
+    // en panne).
+    try {
+      const res = await apiFetch(urlServeur);
+      const data = await res.json();
+      if (!res.ok) {
         if (data?.detail) console.warn("[velocistes]", data.detail);
         setError(data?.error ?? "Recherche indisponible.");
         setShops(null);
@@ -95,13 +165,13 @@ export function VelocisteFinder() {
     setQuery(s.label);
     setSuggestions([]);
     setShowSuggest(false);
-    run(`/api/velocistes?lat=${s.lat}&lon=${s.lon}`);
+    runAt(s.lat, s.lon, `/api/velocistes?lat=${s.lat}&lon=${s.lon}`);
   }
 
   function searchByAddress(e: FormEvent) {
     e.preventDefault();
     if (query.trim().length < 2) return;
-    run(`/api/velocistes?q=${encodeURIComponent(query.trim())}`);
+    runQuery(query.trim());
   }
 
   function useMyLocation() {
@@ -113,7 +183,12 @@ export function VelocisteFinder() {
     setError("");
     setShowSuggest(false);
     navigator.geolocation.getCurrentPosition(
-      (pos) => run(`/api/velocistes?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`),
+      (pos) =>
+        runAt(
+          pos.coords.latitude,
+          pos.coords.longitude,
+          `/api/velocistes?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
+        ),
       () => {
         setLoading(false);
         setError("Position refusée. Saisis une adresse à la place.");

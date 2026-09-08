@@ -7,7 +7,13 @@ import { Capacitor } from "@capacitor/core";
 /**
  * Comportements natifs qui n'ont pas d'équivalent web.
  *
- * Composant sans rendu, monté une fois dans le layout applicatif. Tout est gardé
+ * Composant sans rendu, monté **dans le layout racine**. L'emplacement compte :
+ * placé dans le layout du groupe `(app)`, il n'était jamais monté au lancement —
+ * l'application démarre sur `/`, qui est hors de ce groupe — et l'écran de
+ * démarrage n'était donc jamais masqué. Tout ce fichier doit rester atteignable
+ * depuis n'importe quelle page.
+ *
+ * Tout est gardé
  * derrière `Capacitor.isNativePlatform()`, qui vaut `false` dans un navigateur :
  * le site n'est pas concerné, et les modules ne sont même pas chargés — d'où les
  * `await import()` plutôt que des imports en tête de fichier, qui alourdiraient
@@ -22,7 +28,13 @@ import { Capacitor } from "@capacitor/core";
  * utilisateur qui y arrive par un onglet, et non par une navigation, n'a rien
  * derrière lui — le retour semblerait alors ne rien faire.
  */
-const RACINES = new Set(["/dashboard", "/bikes", "/cout", "/historique"]);
+const RACINES = new Set([
+  "/", // page d'accueil : premier écran au lancement, rien derrière
+  "/dashboard",
+  "/bikes",
+  "/cout",
+  "/historique",
+]);
 
 export function NativeShell() {
   const router = useRouter();

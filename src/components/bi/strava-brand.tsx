@@ -36,6 +36,18 @@ interface ConnectProps {
  * Le repli est volontairement **neutre** (encre, pas d'orange Strava) : reprendre
  * la couleur de marque sans utiliser l'asset officiel est précisément ce que les
  * guidelines proscrivent.
+ *
+ * ⚠️ **Ce lien ne fonctionne pas dans l'app native**, et c'est l'étape 2.4 qui le
+ * réglera. `/api/strava/auth` est relatif : dans une WebView, il désigne le
+ * système de fichiers de l'appareil. Le rendre absolu ne suffirait pas — le
+ * parcours OAuth s'ouvrirait alors *dans* la WebView sur le domaine du backend,
+ * et l'utilisateur se retrouverait sur une page web au lieu de revenir dans
+ * l'app. Il faut ouvrir le navigateur système, puis remonter par un lien profond,
+ * et faire transiter l'identité par le paramètre `state` — le callback
+ * s'authentifie aujourd'hui par cookie, que le navigateur système ne partage pas.
+ *
+ * Conséquence à connaître : un utilisateur **déjà** connecté à Strava n'est pas
+ * gêné, mais un nouveau ne peut pas lier son compte depuis l'app native.
  */
 export function StravaConnectButton({
   href = "/api/strava/auth",

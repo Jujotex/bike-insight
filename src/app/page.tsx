@@ -497,6 +497,9 @@ function LandingFooter() {
         <Link href="/confidentialite" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
           Politique de confidentialité
         </Link>
+        <Link href="/cgu" style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
+          Conditions d&apos;utilisation
+        </Link>
         <a href={`mailto:${SUPPORT_EMAIL}`} style={{ fontSize: 11, color: T.muted, textDecoration: "underline" }}>
           Contact
         </a>

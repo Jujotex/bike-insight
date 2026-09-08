@@ -31,11 +31,22 @@ const config: CapacitorConfig = {
 
   plugins: {
     SplashScreen: {
-      // Masquage confié au code (`components/bi/native-shell.tsx`), qui attend
-      // que l'interface soit montée. En automatique, l'écran disparaît dès que
-      // l'activité dessine — donc avant le premier rendu de la WebView, ce qui
-      // laisse un éclair blanc entre les deux.
-      launchAutoHide: false,
+      // Masquage normalement confié au code (`components/bi/native-shell.tsx`),
+      // qui attend que l'interface soit montée : en automatique pur, l'écran
+      // disparaîtrait dès que l'activité dessine, donc avant le premier rendu de
+      // la WebView, laissant un éclair blanc entre les deux.
+      //
+      // Mais `launchAutoHide: false` seul est dangereux : si le code ne s'exécute
+      // pas — bundle cassé, erreur au démarrage — l'écran reste **indéfiniment**,
+      // et l'utilisateur n'a aucun moyen de savoir ce qui se passe. C'est arrivé
+      // le 03/09/2026, le composant étant monté dans un layout que la page de
+      // démarrage ne traverse pas.
+      //
+      // Le masquage automatique est donc conservé, mais suffisamment tardif pour
+      // que l'appel du code arrive presque toujours en premier. Il ne sert que de
+      // filet.
+      launchAutoHide: true,
+      launchShowDuration: 3000,
       backgroundColor: '#F4F4EF', // = --bi-bg
       androidScaleType: 'CENTER_CROP',
     },

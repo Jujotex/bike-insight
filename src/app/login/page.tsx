@@ -71,8 +71,23 @@ function LoginForm() {
       // Sync Strava en arrière-plan dès la connexion
       apiFetch("/api/strava/import", { method: "POST" }).catch(() => {});
       const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
-      // Hard reload pour que le middleware lise les cookies de session
-      window.location.href = redirectTo;
+
+      // `router.replace` et non `window.location.href`.
+      //
+      // Le rechargement complet existait pour que le middleware relise les
+      // cookies de session. Il n'a plus d'objet : les pages sont devenues
+      // clientes (phase 2.1) et lisent la session directement.
+      //
+      // Surtout, il **cassait la connexion en natif**. L'export utilise
+      // `trailingSlash: true`, donc la page vit à `/dashboard/index.html` ;
+      // le serveur local de Capacitor ne trouvait rien à `/dashboard` sans
+      // slash et servait la racine — l'utilisateur atterrissait sur la page
+      // d'accueil après une connexion pourtant réussie.
+      //
+      // `replace` plutôt que `push` : revenir sur l'écran de connexion une
+      // fois connecté n'a pas de sens, et le bouton retour d'Android y
+      // ramènerait.
+      router.replace(redirectTo);
     }
   };
 
