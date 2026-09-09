@@ -10,10 +10,14 @@ interface AuthShellProps {
   children: React.ReactNode;
 }
 
+// Mêmes chiffres que la landing (LandingMetrics, src/app/page.tsx) : tirés du
+// contenu réel de l'app, vérifiables dans le code — pas des résultats
+// utilisateurs mesurés qui ne l'étaient pas. Voir le commentaire de
+// LandingMetrics pour l'historique des deux versions précédentes.
 const METRICS = [
-  ["12 €", "économie mensuelle moyenne"],
-  ["2,1×", "durée de vie composant"],
-  ["142", "pièces suivies"],
+  ["180", "pièces au catalogue"],
+  ["15", "tutos, avec l'estimation atelier"],
+  ["7", "entretiens suivis"],
 ];
 
 export function AuthShell({ step, total, eyebrow, headline, sub, children }: AuthShellProps) {
@@ -104,7 +108,7 @@ export function AuthShell({ step, total, eyebrow, headline, sub, children }: Aut
           <div
             style={{
               fontSize: 15,
-              color: "rgba(255,255,255,0.6)",
+              color: "var(--bi-on-dark-muted)",
               marginTop: 18,
               lineHeight: 1.55,
             }}
@@ -129,7 +133,7 @@ export function AuthShell({ step, total, eyebrow, headline, sub, children }: Aut
                 <div
                   style={{
                     fontSize: 11,
-                    color: "rgba(255,255,255,0.5)",
+                    color: "var(--bi-on-dark-muted)",
                     marginTop: 4,
                     maxWidth: 110,
                     lineHeight: 1.4,
@@ -149,10 +153,10 @@ export function AuthShell({ step, total, eyebrow, headline, sub, children }: Aut
             justifyContent: "space-between",
             alignItems: "center",
             fontSize: 11,
-            color: "rgba(255,255,255,0.4)",
+            color: "var(--bi-on-dark-muted)",
           }}
         >
-          <Mono>v 0.4.2 · beta</Mono>
+          <Mono>v 0.5 beta</Mono>
           {step && total && (
             <Mono>
               Étape {step} / {total}

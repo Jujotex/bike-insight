@@ -210,7 +210,7 @@ export function ComponentCheckForm({ component }: { component: CheckableComponen
                   +{km.toLocaleString("fr")} km
                 </Mono>
                 {isMin && (
-                  <div style={{ fontSize: 10, marginTop: 2, color: active ? "rgba(255,255,255,0.6)" : "var(--bi-muted)" }}>
+                  <div style={{ fontSize: 10, marginTop: 2, color: active ? "var(--bi-on-dark-muted)" : "var(--bi-muted)" }}>
                     sort de l&apos;alerte
                   </div>
                 )}

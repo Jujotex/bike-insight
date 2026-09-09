@@ -233,11 +233,11 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: isActive ? "var(--bi-bg)" : "var(--bi-ink)" }}>{p.name}</div>
-                    <div style={{ fontSize: 12, color: isActive ? "rgba(255,255,255,0.6)" : "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
+                    <div style={{ fontSize: 12, color: isActive ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", marginTop: 2 }}>{p.brand} · {p.lifeKm.toLocaleString("fr")} km · {p.note}</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", color: isActive ? "var(--bi-bg)" : "var(--bi-ink)" }}>{p.price} €</div>
-                    <div style={{ fontSize: 10, color: isActive ? "rgba(255,255,255,0.6)" : "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
+                    <div style={{ fontSize: 10, color: isActive ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{p.tier === "budget" ? "Budget" : p.tier === "original" ? "Recommandé" : "Premium"}</div>
                   </div>
                 </button>
                 );
@@ -309,7 +309,7 @@ export function NewComponentForm({ bikes }: { bikes: FormBike[] }) {
               </Mono>
               <div style={{
                 fontSize: 11,
-                color: kmMax === String(l.km) ? "rgba(255,255,255,0.6)" : "var(--bi-muted)",
+                color: kmMax === String(l.km) ? "var(--bi-on-dark-muted)" : "var(--bi-muted)",
                 marginTop: 2
               }}>
                 {l.label}

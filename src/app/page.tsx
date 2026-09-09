@@ -18,6 +18,7 @@ const T = {
   white: "var(--bi-white)",
   strava: "var(--bi-strava)",
   accentSoft: "var(--bi-accent-soft)",
+  onDarkMuted: "var(--bi-on-dark-muted)",
 };
 
 function Dot({ color, size = 7 }: { color: string; size?: number }) {
@@ -131,10 +132,10 @@ function MiniDashPreview() {
           <div style={{ fontSize: 8.5, fontWeight: 700, color: T.accent, letterSpacing: 0.8, textTransform: "uppercase" }}>Ce qui t&apos;attend · 3 mois</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginTop: 3 }}>
             <Mono style={{ fontSize: 24, fontWeight: 500, letterSpacing: -0.6, lineHeight: 1 }}>90</Mono>
-            <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>€</Mono>
+            <Mono style={{ fontSize: 11, color: T.onDarkMuted }}>€</Mono>
           </div>
         </div>
-        <div style={{ textAlign: "right", fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
+        <div style={{ textAlign: "right", fontSize: 11, color: T.onDarkMuted, lineHeight: 1.45 }}>
           Chaîne <span style={{ color: T.white, fontWeight: 600 }}>~3 sem.</span><br/>
           Pneus AR <span style={{ color: T.white, fontWeight: 600 }}>~10 sem.</span>
         </div>
@@ -314,11 +315,11 @@ function LandingHow() {
             <div style={{ fontSize: 14, fontWeight: 500, marginTop: 8, lineHeight: 1.3 }}>
               Remplace ta chaîne dans les <Mono style={{ color: T.accent, fontWeight: 600 }}>~160 km</Mono>.
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 6, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 11, color: T.onDarkMuted, marginTop: 6, lineHeight: 1.4 }}>
               Si tu attends, tu uses ta cassette et tes plateaux.
             </div>
             <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Coût évité ·</span>
+              <span style={{ fontSize: 10, color: T.onDarkMuted }}>Coût évité ·</span>
               <Mono style={{ fontSize: 16, fontWeight: 600, color: T.accent }}>180 €</Mono>
             </div>
           </div>
@@ -442,7 +443,7 @@ function LandingCTA() {
           Connecte ton Strava.<br />
           On s&apos;occupe du reste.
         </div>
-        <div style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", marginTop: 20, maxWidth: 480, margin: "20px auto 0", lineHeight: 1.55 }}>
+        <div style={{ fontSize: 15, color: T.onDarkMuted, marginTop: 20, maxWidth: 480, margin: "20px auto 0", lineHeight: 1.55 }}>
           30 secondes de setup. Tu vois tes premiers insights immédiatement.
         </div>
         <div style={{ marginTop: 36, display: "flex", justifyContent: "center", gap: 12 }}>

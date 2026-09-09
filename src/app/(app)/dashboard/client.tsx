@@ -294,7 +294,7 @@ export function DashboardClient({
           <div style={{ position: "relative" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
               <Dot color={DECISION_TONE[decision.tone].dot} size={6} />
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.65)", fontFamily: "var(--bi-font-mono)" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--bi-on-dark-muted)", fontFamily: "var(--bi-font-mono)" }}>
                 {decision.eyebrow}
               </span>
             </div>
@@ -308,13 +308,13 @@ export function DashboardClient({
                     <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.6, color: DECISION_TONE[decision.tone].stat }}>
                       {decision.stat1.value}
                     </Mono>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{decision.stat1.label}</div>
+                    <div style={{ fontSize: 10, color: "var(--bi-on-dark-muted)", marginTop: 3 }}>{decision.stat1.label}</div>
                   </div>
                 )}
                 {decision.stat2 && (
                   <div>
                     <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.6 }}>{decision.stat2.value}</Mono>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{decision.stat2.label}</div>
+                    <div style={{ fontSize: 10, color: "var(--bi-on-dark-muted)", marginTop: 3 }}>{decision.stat2.label}</div>
                   </div>
                 )}
               </div>

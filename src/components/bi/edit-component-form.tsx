@@ -158,7 +158,7 @@ export function EditComponentForm({ component }: { component: EditableComponent 
               </Mono>
               <div style={{
                 fontSize: 11,
-                color: kmMax === String(l.km) ? "rgba(255,255,255,0.6)" : "var(--bi-muted)",
+                color: kmMax === String(l.km) ? "var(--bi-on-dark-muted)" : "var(--bi-muted)",
                 marginTop: 2,
               }}>{l.label}</div>
             </button>
