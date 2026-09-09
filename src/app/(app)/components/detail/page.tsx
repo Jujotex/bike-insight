@@ -22,6 +22,17 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "var(--bi-muted)",
 };
 
+// Même couleurs que STATUS_COLORS, mais en littéral rgba() : le halo du héros
+// a besoin d'un canal alpha, et on ne peut pas en ajouter un à une valeur
+// var(--bi-*) par simple concaténation de chaîne (voir le commentaire au
+// point d'usage). Teintes alignées sur globals.css (--bi-ok/warn/bad).
+const STATUS_GLOW: Record<string, string> = {
+  ok: "rgba(14,143,90,0.32)",
+  warn: "rgba(208,132,21,0.32)",
+  bad: "rgba(200,54,46,0.32)",
+  archived: "rgba(107,107,114,0.32)",
+};
+
 const STATUS_LABELS: Record<string, string> = {
   ok: "En bon état",
   warn: "A surveiller",
@@ -126,6 +137,12 @@ function ComponentActions({
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", color: "var(--bi-ink)",
             boxShadow: "var(--bi-shadow-card)",
+            // `.bi-pagehead-row > *:last-child button` (globals.css) force
+            // flex:1 + min-width:120px sur mobile — pensé pour les boutons
+            // pleine largeur des autres pages, pas pour un cercle d'icône.
+            // Sans ce contre-style, ce bouton s'étirait en ovale déformé.
+            flex: "0 0 38px",
+            minWidth: 38,
           }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -396,7 +413,7 @@ function ComponentDetailContent() {
               style={{
                 position: "absolute", top: -55, right: -55, width: 200, height: 200,
                 borderRadius: 999,
-                background: `radial-gradient(circle, ${statusColor}52, transparent 65%)`,
+                background: `radial-gradient(circle, ${STATUS_GLOW[comp.status as string] ?? STATUS_GLOW.ok}, transparent 65%)`,
                 pointerEvents: "none",
               }}
             />
