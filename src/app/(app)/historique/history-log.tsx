@@ -33,8 +33,8 @@ function EventDot({ kind }: { kind: HistoryItem["kind"] }) {
   return (
     <div
       style={{
-        width: 34,
-        height: 34,
+        width: 38,
+        height: 38,
         borderRadius: 999,
         flexShrink: 0,
         display: "flex",
@@ -95,7 +95,7 @@ export function HistoryLog({ items }: { items: HistoryItem[] }) {
               + (it.reason ? ` · ${REASON_LABELS[it.reason] ?? it.reason}` : "")
             }
             trailing={
-              <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0, color: it.cost != null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+              <Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0, color: it.cost != null ? "var(--bi-ink)" : "var(--bi-muted)" }}>
                 {it.cost != null ? `${fmtNum(it.cost)} €` : "—"}
               </Mono>
             }

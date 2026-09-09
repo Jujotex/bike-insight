@@ -250,7 +250,7 @@ function CostContent() {
                         </>
                       }
                       sub={u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : fmtDelay(u.weeksUntil)}
-                      trailing={<Mono style={{ fontSize: 13, fontWeight: 600, color: "var(--bi-muted)", flexShrink: 0 }}>{fmtNum(u.cost)} €</Mono>}
+                      trailing={<Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, color: "var(--bi-ink)", flexShrink: 0 }}>{fmtNum(u.cost)} €</Mono>}
                     />
                   ))}
                 </div>
@@ -320,7 +320,7 @@ function CostContent() {
                       href={routes.bike(b.id)}
                       title={b.name}
                       sub={`${fmtNum(b.totalKm)} km parcourus`}
-                      trailing={<Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
+                      trailing={<Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
                     />
                   ))}
                 </div>
