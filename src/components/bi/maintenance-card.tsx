@@ -134,17 +134,17 @@ export function MaintenanceCard({
 
         return (
           <div key={t.id} style={{ borderTop: "1px solid var(--bi-line)" }}>
-            <div className="bi-maint-row">
+            <div className="bi-maint-row" style={{ padding: "17px 22px" }}>
               {/* Entretien — cliquable pour modifier ce type */}
               <Link
                 href={routes.maintenanceType(t.id, bikeId)}
                 title="Modifier cet entretien"
-                style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textDecoration: "none", color: "inherit" }}
+                style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, textDecoration: "none", color: "inherit" }}
               >
-                <div style={{ width: 4, height: 28, background: ui.color, borderRadius: 2, flexShrink: 0 }} />
+                <div style={{ width: 5, height: 34, background: ui.color, borderRadius: 2, flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</div>
-                  <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.sub}</div>
                 </div>
               </Link>
 
@@ -153,15 +153,17 @@ export function MaintenanceCard({
                 <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{lastDate}</Mono>
               </div>
 
-              {/* Échéance : progression + % (détail au survol) */}
+              {/* Échéance : progression + % (détail au survol). Même geste que
+                  le tableau des pièces : le chiffre qui dit l'urgence porte
+                  le poids (taille + couleur), pas un mono gris de 11px. */}
               {status.state === "never" ? (
                 <div style={{ fontSize: 12, color: "var(--bi-muted)" }}>Jamais enregistré</div>
               ) : (
-                <div title={echeanceDetail} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "default" }}>
+                <div title={echeanceDetail} style={{ display: "flex", alignItems: "center", gap: 12, cursor: "default" }}>
                   <div style={{ flex: 1 }}>
-                    <ProgressBar value={Math.min(status.pct / 100, 1)} color={ui.color} height={3} />
+                    <ProgressBar value={Math.min(status.pct / 100, 1)} color={ui.color} height={4} />
                   </div>
-                  <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 32, textAlign: "right" }}>
+                  <Mono style={{ fontSize: 16, fontWeight: 700, color: ui.color, width: 42, textAlign: "right", letterSpacing: -0.3 }}>
                     {status.pct}%
                   </Mono>
                 </div>

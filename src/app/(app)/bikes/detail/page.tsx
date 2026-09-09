@@ -207,27 +207,36 @@ function BikeDetailContent() {
                   ? new Date(c.installed_at as string).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
                   : "—";
                 return (
-                  <Link key={c.id} href={routes.component(c.id as string)} className="bi-component-row bi-comp-table-data-row">
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 4, height: 28, background: color, borderRadius: 2, flexShrink: 0 }} />
+                  <Link
+                    key={c.id}
+                    href={routes.component(c.id as string)}
+                    className="bi-component-row bi-comp-table-data-row"
+                    // Ligne un peu plus respirée et le chiffre qui compte le
+                    // plus sur cette table (l'usure) remonté en taille et en
+                    // couleur de statut plutôt qu'un mono gris de 11px — même
+                    // logique que les héros : le chiffre clé porte le poids.
+                    style={{ padding: "17px 22px" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 5, height: 34, background: color, borderRadius: 2, flexShrink: 0 }} />
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{getComponentType(c.name as string)}</div>
-                        <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 1 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{getComponentType(c.name as string)}</div>
+                        <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
                       </div>
                     </div>
                     <div className="bi-comp-col-installed" style={{ textAlign: "right" }}>
                       <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{installedDate}</Mono>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ flex: 1 }}>
-                        <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={3} />
+                        <ProgressBar value={Math.min(wearPct / 100, 1)} color={color} height={4} />
                       </div>
-                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)", width: 32, textAlign: "right" }}>
+                      <Mono style={{ fontSize: 16, fontWeight: 700, color, width: 42, textAlign: "right", letterSpacing: -0.3 }}>
                         {c.wear_pct !== null ? `${Math.round(wearPct)}%` : "—"}
                       </Mono>
                     </div>
                     <div className="bi-comp-col-km" style={{ textAlign: "right" }}>
-                      <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
+                      <Mono style={{ fontSize: 13, color: "var(--bi-muted)" }}>{fmt(c.km_used ?? 0)} km</Mono>
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", color: "var(--bi-muted)" }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
