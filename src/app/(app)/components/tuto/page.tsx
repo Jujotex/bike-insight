@@ -123,8 +123,9 @@ function TutoContent() {
         </div>
 
         {/* ── Héros : encre + accent lime ─────────────────────────── */}
-        <div className="bi-tuto-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div className="bi-tuto-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap", position: "relative", overflow: "hidden", boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)" }}>
+          <div style={{ position: "absolute", top: -60, right: -60, width: 220, height: 220, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 65%)", pointerEvents: "none" }} />
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 20 }}>
             {/* Pastille outil accent */}
             <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -136,7 +137,7 @@ function TutoContent() {
             </div>
           </div>
           {/* Jauge de difficulté */}
-          <div style={{ flexShrink: 0 }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--bi-white)", opacity: 0.5 }}>Difficulté</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <div style={{ display: "flex", gap: 4 }}>
