@@ -21,6 +21,42 @@ import { loadHistoryData } from "@/app/(app)/historique/history-data";
 import { HistoryLog } from "@/app/(app)/historique/history-log";
 import { categoryColor, categoryLabel } from "@/lib/design/categories";
 import { fmtDelay, fmtNum } from "@/lib/format";
+import {
+  KM_PER_YEAR,
+  MAINTENANCE_COST_PER_KM,
+  benchmarkVerdict,
+  formatRange,
+  verdictColor,
+  verdictLabel,
+  type BenchmarkRange,
+} from "@/lib/benchmarks";
+
+/** Une ligne « ta valeur face à la fourchette de référence ». N'a de sens
+ * qu'à l'échelle d'un vélo — mélanger plusieurs rythmes de vélo produirait
+ * un chiffre trompeur, d'où sa place dans le Hub plutôt que sur Coût global. */
+function BenchmarkRow({
+  value,
+  range,
+  format,
+}: {
+  value: number | null;
+  range: BenchmarkRange;
+  format: (v: number) => string;
+}) {
+  const verdict = benchmarkVerdict(value, range);
+  return (
+    <div style={{ padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-bg)" }}>
+      <div style={{ fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.4 }}>{range.label}</div>
+      <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <Mono style={{ fontSize: 20, fontWeight: 600 }}>{value !== null ? format(value) : "—"}</Mono>
+        <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>/ {formatRange(range)}</Mono>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: verdictColor(verdict), marginTop: 6 }}>
+        {verdictLabel(verdict)}
+      </div>
+    </div>
+  );
+}
 
 const STATUS_COLORS: Record<string, string> = {
   ok: "var(--bi-ok)",
@@ -415,6 +451,21 @@ function BikeDetailContent() {
                   </div>
                 </div>
               </BiCard>
+
+              {coutData.kpis.costPerKm !== null && (
+                <BiCard>
+                  <BiLabel>Où tu te situes</BiLabel>
+                  <div className="bi-grid-2" style={{ marginTop: 14 }}>
+                    <BenchmarkRow value={coutData.kpis.costPerKm} range={MAINTENANCE_COST_PER_KM} format={(v) => `${v.toFixed(3).replace(".", ",")} €/km`} />
+                    <BenchmarkRow value={coutData.kpis.km12m} range={KM_PER_YEAR} format={(v) => `${fmtNum(Math.round(v))} km/an`} />
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 14, lineHeight: 1.5 }}>
+                    Fourchettes indicatives pour un cycliste route régulier. Être en dehors
+                    n&apos;est ni bon ni mauvais : un coût faible peut vouloir dire un entretien
+                    repoussé, un coût élevé du matériel haut de gamme.
+                  </div>
+                </BiCard>
+              )}
 
               {coutData.breakdown.length > 0 && (
                 <BiCard pad={0}>

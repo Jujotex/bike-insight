@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bars,
   BiCard,
@@ -20,55 +20,25 @@ import { useAsyncData } from "@/lib/use-async-data";
 import { OfflineBanner } from "@/components/bi/offline-banner";
 import { routes } from "@/lib/routes";
 import { getCostData } from "@/lib/data";
-import { BikePicker } from "@/components/bi/bike-picker";
 import { categoryColor, categoryLabel } from "@/lib/design/categories";
 import { fmtDelay, fmtNum } from "@/lib/format";
-import {
-  KM_PER_YEAR,
-  MAINTENANCE_COST_PER_KM,
-  benchmarkVerdict,
-  formatRange,
-  verdictColor,
-  verdictLabel,
-  type BenchmarkRange,
-} from "@/lib/benchmarks";
-
-/** Une ligne « ta valeur face à la fourchette de référence ». */
-function BenchmarkRow({
-  value,
-  range,
-  format,
-}: {
-  value: number | null;
-  range: BenchmarkRange;
-  format: (v: number) => string;
-}) {
-  const verdict = benchmarkVerdict(value, range);
-  return (
-    <div style={{ padding: "14px 16px", border: "1px solid var(--bi-line)", borderRadius: 14, background: "var(--bi-bg)" }}>
-      <div style={{ fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.4 }}>{range.label}</div>
-      <div style={{ marginTop: 8, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-        <Mono style={{ fontSize: 20, fontWeight: 600 }}>{value !== null ? format(value) : "—"}</Mono>
-        <Mono style={{ fontSize: 12, color: "var(--bi-muted)" }}>/ {formatRange(range)}</Mono>
-      </div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: verdictColor(verdict), marginTop: 6 }}>
-        {verdictLabel(verdict)}
-      </div>
-    </div>
-  );
-}
 
 /**
- * Page Coût — dernier écran converti (phase 2.1, lot 4).
+ * Page Coût — vue flotte.
  *
- * `<Suspense>` requis : la page lit `?bike=`. Le paramètre est dans les
- * dépendances du chargement, car changer de vélo change réellement les données —
- * contrairement aux réglages d'entretien où il ne fixait qu'une sélection initiale.
+ * Depuis le Hub vélo (bikes/detail), le coût D'UN vélo vit dans son onglet
+ * Coût, qui réutilise `getCostData` en mode mono-vélo. Cette page globale
+ * n'a donc plus besoin de faire semblant d'être « la page d'un vélo » avec
+ * un sélecteur : elle répond à une question différente — toute la flotte —
+ * via `getCostData(..., { allBikes: true })`. Voir la note dans `data.ts`
+ * pour ce que ce mode change dans les requêtes.
+ *
+ * Le repère « où tu te situes » (coût/km vs un cycliste régulier) reste
+ * volontairement dans le Hub, pas ici : comparer un mélange de plusieurs
+ * vélos à un rythme de référence mono-vélo n'aurait pas de sens.
  */
-function CostContent() {
+export default function CostPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const bike = searchParams.get("bike");
 
   const load = useCallback(async () => {
     const userId = await getCurrentUserId();
@@ -76,15 +46,15 @@ function CostContent() {
       router.replace("/login");
       return null;
     }
-    return getCostData(supabase, userId, bike || null);
-  }, [bike, router]);
+    return getCostData(supabase, userId, null, { allBikes: true });
+  }, [router]);
 
-  const { data, loading, error, cachedAt } = useAsyncData(load, [bike], `cout:${bike ?? "default"}`);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [], "cout:flotte");
 
   if (loading && !data) {
     return (
       <div className="bi-page">
-        <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+        <PageHead title="Coût" sub="Ce que ta flotte te coûte à entretenir." />
         <SkelCard h={64} style={{ marginBottom: 14 }} />
         <SkelCard h={140} style={{ marginBottom: 14 }} />
         <SkelCard h={260} />
@@ -95,7 +65,7 @@ function CostContent() {
   if (error) {
     return (
       <div className="bi-page">
-        <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
+        <PageHead title="Coût" sub="Ce que ta flotte te coûte à entretenir." />
         <EmptyState
           title="Chargement impossible"
           text="Tes dépenses n'ont pas pu être récupérées. Vérifie ta connexion et réessaie."
@@ -106,28 +76,27 @@ function CostContent() {
 
   if (!data) return null; // redirection vers /login en cours
 
-  const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes, selectedBikeId } = data;
+  const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes } = data;
 
   return (
     <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
       <OfflineBanner cachedAt={cachedAt} />
-      <PageHead title="Coût" sub="Ce que ton vélo te coûte à entretenir." />
-
-      <BikePicker bikes={allBikes} selected={selectedBikeId} basePath="/cout" />
+      <PageHead
+        title="Coût"
+        sub={`Ce que ${allBikes.length > 1 ? `tes ${allBikes.length} vélos te coûtent` : "ton vélo te coûte"} à entretenir.`}
+      />
 
       <div className="bi-stack">
         {!hasData ? (
           <EmptyState
             title={"Pas encore de dépense d'entretien"}
-            text="Enregistre un remplacement de pièce ou un entretien, et tu verras ici ce que ton vélo te coûte au fil du temps."
+            text="Enregistre un remplacement de pièce ou un entretien, et tu verras ici ce que ta flotte te coûte au fil du temps."
           />
         ) : (
           <>
-            {/* Héros dépense — même geste que le dashboard et la fiche vélo :
-                le total domine, le reste (12 mois) vient en contexte plutôt
-                que deux cases identiques côte à côte. C'est aussi la promesse
-                de la landing (« ton matériel te coûte plus cher... ») livrée
-                ici, pas juste dans le marketing. */}
+            {/* Héros dépense — le total de la flotte domine, le reste (12 mois)
+                vient en contexte. Même geste que le dashboard et le Hub d'un
+                vélo, à l'échelle de toute la flotte cette fois. */}
             <div
               style={{
                 position: "relative", overflow: "hidden",
@@ -141,7 +110,7 @@ function CostContent() {
             >
               <div style={{ position: "absolute", top: -55, right: -55, width: 200, height: 200, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)", pointerEvents: "none" }} />
               <div style={{ position: "relative" }}>
-                <BiLabel style={{ color: "var(--bi-on-dark-muted)" }}>Dépensé en entretien</BiLabel>
+                <BiLabel style={{ color: "var(--bi-on-dark-muted)" }}>Dépensé en entretien · flotte entière</BiLabel>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
                   <Mono style={{ fontSize: 64, fontWeight: 700, letterSpacing: -3, lineHeight: 0.9 }}>{fmtNum(kpis.spendTotal)}</Mono>
                   <Mono style={{ fontSize: 18, color: "var(--bi-on-dark-muted)" }}>€</Mono>
@@ -154,22 +123,21 @@ function CostContent() {
               </div>
             </div>
 
-            {/* Où tu te situes — repères statiques (lib/benchmarks.ts).
-                `getCostData` calculait déjà `costPerKm` et `km12m` depuis juillet, mais
-                rien ne les affichait : le calcul tournait dans le vide. Les fourchettes
-                sont volontairement statiques — le §5.4 de l'API Policy Strava interdit
-                d'agréger les données des athlètes pour en tirer des moyennes. */}
-            {kpis.costPerKm !== null && (
-              <BiCard>
-                <BiLabel>Où tu te situes</BiLabel>
-                <div className="bi-grid-2" style={{ marginTop: 14 }}>
-                  <BenchmarkRow value={kpis.costPerKm} range={MAINTENANCE_COST_PER_KM} format={(v) => `${v.toFixed(3).replace(".", ",")} €/km`} />
-                  <BenchmarkRow value={kpis.km12m} range={KM_PER_YEAR} format={(v) => `${fmtNum(Math.round(v))} km/an`} />
-                </div>
-                <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 14, lineHeight: 1.5 }}>
-                  Fourchettes indicatives pour un cycliste route régulier. Être en dehors
-                  n&apos;est ni bon ni mauvais : un coût faible peut vouloir dire un entretien
-                  repoussé, un coût élevé du matériel haut de gamme.
+            {/* Par vélo — la comparaison qu'une page mono-vélo ne pouvait pas
+                montrer. Chaque ligne ouvre l'onglet Coût du vélo concerné. */}
+            {byBike.length > 1 && (
+              <BiCard pad={0} style={{ overflow: "hidden" }}>
+                <CardHead title="Par vélo" />
+                <div className="bi-rows">
+                  {byBike.map((b) => (
+                    <ListRow
+                      key={b.id}
+                      href={routes.bikeTab(b.id, "cout")}
+                      title={b.name}
+                      sub={`${fmtNum(b.totalKm)} km parcourus`}
+                      trailing={<Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
+                    />
+                  ))}
                 </div>
               </BiCard>
             )}
@@ -308,45 +276,19 @@ function CostContent() {
                 </div>
               </BiCard>
             )}
-
-            {/* Dépense par vélo (si plusieurs) */}
-            {byBike.length > 1 && (
-              <BiCard pad={0} style={{ overflow: "hidden" }}>
-                <CardHead title="Dépense par vélo" />
-                <div className="bi-rows">
-                  {byBike.map((b) => (
-                    <ListRow
-                      key={b.id}
-                      href={routes.bike(b.id)}
-                      title={b.name}
-                      sub={`${fmtNum(b.totalKm)} km parcourus`}
-                      trailing={<Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0 }}>{fmtNum(b.spend)} €</Mono>}
-                    />
-                  ))}
-                </div>
-              </BiCard>
-            )}
           </>
         )}
 
         <BiCard pad={0} style={{ overflow: "hidden" }}>
           <div className="bi-rows">
             <ListRow
-              href={routes.history(selectedBikeId)}
+              href={routes.history()}
               title="Historique"
-              sub="Tes remplacements et entretiens, datés et chiffrés"
+              sub="Tous tes remplacements et entretiens, datés et chiffrés"
             />
           </div>
         </BiCard>
       </div>
     </div>
-  );
-}
-
-export default function CostPage() {
-  return (
-    <Suspense fallback={null}>
-      <CostContent />
-    </Suspense>
   );
 }

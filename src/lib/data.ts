@@ -274,17 +274,20 @@ export async function getDashboardData(supabase: SupabaseClient, userId: string)
 export async function getCostData(
   supabase: SupabaseClient,
   userId: string,
-  bikeId?: string | null
+  bikeId?: string | null,
+  opts?: { allBikes?: boolean }
 ) {
   const user = { id: userId }
+  const allBikesMode = opts?.allBikes === true
 
   const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10)
 
   // ── Étape 1 : la liste des vélos et leur ordre ───────────────
-  // Il n'y a plus d'option « tous les vélos » : un vélo est toujours
-  // sélectionné (comme sur le dashboard). Il faut donc résoudre le vélo par
-  // défaut AVANT de lancer les requêtes filtrées — d'où ce premier aller-retour.
+  // Deux modes : un vélo précis (Hub d'un vélo, ex-page Coût), ou `allBikes`
+  // pour la vue flotte (page Coût globale). Dans les deux cas il faut
+  // résoudre `effectiveBikeId` AVANT de lancer les requêtes filtrées —
+  // d'où ce premier aller-retour, qui charge toujours tous les vélos.
   const coutResults = await Promise.all([
     supabase.from('bike_stats').select('id, name').eq('user_id', user.id).eq('is_active', true),
     // État des pièces de TOUS les vélos — pastille de couleur du sélecteur.
@@ -329,9 +332,12 @@ export async function getCostData(
     .sort((a, b) => b.km12m - a.km12m)
 
   // Un id inconnu (lien périmé, vélo archivé) retombe sur le défaut plutôt
-  // que d'afficher une page vide sans explication.
-  const effectiveBikeId =
-    (bikeId && allBikes.some(b => b.id === bikeId) ? bikeId : allBikes[0]?.id) ?? null
+  // que d'afficher une page vide sans explication. En mode flotte,
+  // `effectiveBikeId` reste `null` : chaque requête plus bas est déjà
+  // écrite pour rester non filtrée dans ce cas (`effectiveBikeId ? q.eq(...) : q`).
+  const effectiveBikeId = allBikesMode
+    ? null
+    : (bikeId && allBikes.some(b => b.id === bikeId) ? bikeId : allBikes[0]?.id) ?? null
 
   // ── Étape 2 : les données du vélo sélectionné ────────────────
   const compQ = supabase
@@ -615,7 +621,7 @@ export async function getCostData(
         name: def.label,
         cost,
         weeksUntil: Math.min(...candidates),
-        href: routes.bike(bid),
+        href: routes.bikeTab(bid, 'entretien'),
       })
     }
   }
