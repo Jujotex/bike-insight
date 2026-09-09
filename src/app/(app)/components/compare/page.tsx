@@ -69,6 +69,10 @@ function CompareContent() {
   // conditionnel.
   const [nowMs] = useState(() => Date.now());
 
+  // Sélection de l'option — les 3 cartes ne portent plus chacune leur bouton,
+  // un clic les sélectionne ; un seul CTA en bas agit sur le choix courant.
+  const [selectedTier, setSelectedTier] = useState<"budget" | "original" | "premium">("original");
+
   if (loading && !data) {
     return (
       <div className="bi-page">
@@ -122,6 +126,16 @@ function CompareContent() {
   const tiers = ["budget", "original", "premium"] as const;
   const options = tiers.map(tier => products.find(p => p.tier === tier) ?? products[0]);
   const recommended = options[1]; // original = recommandé
+
+  // Ratio de durée de vie premium/équivalent — remplace l'ancienne phrase
+  // statique ("au-delà de 5 000 km/an, la premium devient plus rentable"),
+  // fausse : un coût/km ne dépend pas du kilométrage annuel parcouru.
+  // L'argument qui tient, lui, est vrai quel que soit le rythme : une pièce
+  // qui dure plus longtemps se pose moins souvent.
+  const premiumLifeRatio = options[2].lifeKm / options[1].lifeKm;
+  const premiumRatioLabel = (Math.round(premiumLifeRatio * 10) / 10).toString().replace(".", ",");
+
+  const selectedOption = options.find(o => o.tier === selectedTier) ?? recommended;
 
   // Objectif : la distance RÉELLE parcourue sur les 12 derniers mois (pour le
   // coût annuel). Elle nécessite un historique Strava complet (« Tout réimporter »).
@@ -243,22 +257,42 @@ function CompareContent() {
         <div className="bi-compare-options">
           {options.map((o, idx) => {
             const isReco = idx === 1;
+            const isSelected = o.tier === selectedTier;
             const costPerKm = o.price / o.lifeKm;
             const annual = Math.round(costPerKm * kmPerYear);
 
             return (
-              <div key={o.tier} style={{
-                position: "relative",
-                background: isReco ? "var(--bi-ink)" : "var(--bi-card)",
-                color: isReco ? "var(--bi-white)" : "var(--bi-ink)",
-                borderRadius: 18,
-                border: isReco ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
-                padding: 24,
-                display: "flex", flexDirection: "column",
-              }}>
+              <div
+                key={o.tier}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                onClick={() => setSelectedTier(o.tier)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedTier(o.tier);
+                  }
+                }}
+                style={{
+                  position: "relative",
+                  background: isReco ? "var(--bi-ink)" : "var(--bi-card)",
+                  color: isReco ? "var(--bi-white)" : "var(--bi-ink)",
+                  borderRadius: 18,
+                  border: isSelected ? "2px solid var(--bi-accent)" : isReco ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
+                  boxShadow: isSelected ? "0 0 0 4px rgba(199,255,63,0.18), var(--bi-shadow-card)" : "var(--bi-shadow-card)",
+                  padding: 24,
+                  display: "flex", flexDirection: "column",
+                  cursor: "pointer",
+                }}>
                 {isReco && (
                   <div style={{ position: "absolute", top: -10, left: 24, padding: "3px 8px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
                     RECOMMANDÉ
+                  </div>
+                )}
+                {isSelected && (
+                  <div style={{ position: "absolute", top: 14, right: 14, width: 22, height: 22, borderRadius: 999, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 7"/></svg>
                   </div>
                 )}
 
@@ -272,7 +306,7 @@ function CompareContent() {
 
                 {/* Marque + référence */}
                 {(o.brand || o.reference) && (
-                  <div style={{ fontSize: 12, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: isReco ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", marginTop: 4 }}>
                     {o.brand}{o.reference ? ` · ${o.reference}` : ""}
                   </div>
                 )}
@@ -281,9 +315,9 @@ function CompareContent() {
                 <div style={{ marginTop: 20, paddingBottom: 16, borderBottom: "1px solid " + (isReco ? "rgba(255,255,255,0.1)" : "var(--bi-line)") }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                     <Mono style={{ fontSize: 40, fontWeight: 500, letterSpacing: -1.4, lineHeight: 1 }}>{o.price}</Mono>
-                    <span style={{ fontSize: 15, color: isReco ? "rgba(255,255,255,0.5)" : "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
+                    <span style={{ fontSize: 15, color: isReco ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", fontFamily: "var(--bi-font-mono)" }}>€</span>
                   </div>
-                  <div style={{ fontSize: 11, color: isReco ? "rgba(255,255,255,0.4)" : "var(--bi-muted)", marginTop: 4 }}>{TIER_DESC[o.tier]}</div>
+                  <div style={{ fontSize: 11, color: isReco ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", marginTop: 4 }}>{TIER_DESC[o.tier]}</div>
                 </div>
 
                 {/* Stats */}
@@ -293,7 +327,7 @@ function CompareContent() {
                     ["Coût annuel (" + kmPerYear.toLocaleString("fr") + " km)", annual + " €"],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 12, color: isReco ? "rgba(255,255,255,0.55)" : "var(--bi-muted)" }}>{k}</span>
+                      <span style={{ fontSize: 12, color: isReco ? "var(--bi-on-dark-muted)" : "var(--bi-muted)" }}>{k}</span>
                       <Mono style={{ fontSize: 13, fontWeight: 500 }}>{v}</Mono>
                     </div>
                   ))}
@@ -301,31 +335,16 @@ function CompareContent() {
 
                 {/* Note / conseil */}
                 {o.note && (
-                  <div style={{ paddingTop: 14, flex: 1, fontSize: 12, color: isReco ? "rgba(255,255,255,0.65)" : "var(--bi-muted)", lineHeight: 1.5 }}>
+                  <div style={{ paddingTop: 14, flex: 1, fontSize: 12, color: isReco ? "var(--bi-on-dark-muted)" : "var(--bi-muted)", lineHeight: 1.5 }}>
                     {o.note}
                   </div>
                 )}
-
-                {/* CTA */}
-                <div style={{ marginTop: 20 }}>
-                  <ReplaceButton
-                    componentId={id}
-                    bikeId={comp.bike_id as string}
-                    componentName={(comp.name as string).split(" · ")[0]}
-                    componentCategory={comp.category as string}
-                    currentBikeKm={bike?.total_km ?? 0}
-                    componentPrice={o.price}
-                    label="Choisir cette option"
-                    fullWidth
-                    variant={isReco ? "accent" : "default"}
-                    newComponentName={o.name}
-                    newComponentBrand={o.brand || undefined}
-                    newComponentKmMax={o.lifeKm}
-                  />
-                </div>
               </div>
             );
           })}
+        </div>
+        <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--bi-muted)", marginTop: -8, marginBottom: 22 }}>
+          Touche une carte pour choisir — le bouton en bas s&apos;adapte à ton choix.
         </div>
 
 
@@ -349,9 +368,9 @@ function CompareContent() {
                 : (<><strong>L&apos;option équivalente</strong> est la plus équilibrée. Elle correspond au niveau de ton composant actuel et son cycle d&apos;usure est maîtrisé.</>)
               }
             </div>
-            {catalogEntry && (
+            {catalogEntry && premiumLifeRatio >= 1.15 && (
               <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "var(--bi-bg)", fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-                <strong style={{ color: "var(--bi-ink)" }}>Si tu roules plus de 5 000 km/an,</strong> l&apos;option premium devient plus rentable grâce à sa durée de vie accrue.
+                <strong style={{ color: "var(--bi-ink)" }}>L&apos;option premium dure {premiumRatioLabel}× plus longtemps</strong> que l&apos;équivalente : moins de remplacements, moins de main-d&apos;œuvre à payer à chaque fois — quel que soit ton rythme annuel.
               </div>
             )}
           </BiCard>
@@ -385,22 +404,28 @@ function CompareContent() {
                 );
               })}
             </div>
-            <div style={{ marginTop: 18 }}>
-              <ReplaceButton
-                componentId={id}
-                bikeId={comp.bike_id as string}
-                componentName={(comp.name as string).split(" · ")[0]}
-                componentCategory={comp.category as string}
-                currentBikeKm={bike?.total_km ?? 0}
-                componentPrice={recommended.price}
-                label="Marquer comme remplacé (recommandé)"
-                fullWidth
-                newComponentName={recommended.name}
-                newComponentBrand={recommended.brand || undefined}
-                newComponentKmMax={recommended.lifeKm}
-              />
-            </div>
           </BiCard>
+        </div>
+
+        {/* CTA unique, persistant — agit sur la carte sélectionnée plus haut.
+            `key` force un nouveau ReplaceButton (donc un état idle) si le
+            choix change pendant une confirmation en cours. */}
+        <div style={{ marginTop: 14 }}>
+          <ReplaceButton
+            key={selectedTier}
+            componentId={id}
+            bikeId={comp.bike_id as string}
+            componentName={(comp.name as string).split(" · ")[0]}
+            componentCategory={comp.category as string}
+            currentBikeKm={bike?.total_km ?? 0}
+            componentPrice={selectedOption.price}
+            label={`Remplacer par ${selectedOption.name} — ${selectedOption.price} €`}
+            fullWidth
+            variant="accent"
+            newComponentName={selectedOption.name}
+            newComponentBrand={selectedOption.brand || undefined}
+            newComponentKmMax={selectedOption.lifeKm}
+          />
         </div>
 
       </div>
