@@ -12,7 +12,17 @@ export type HistoryItem = {
   km: number | null;
   reason: string | null;
   cost: number | null;
+  bikeId?: string | null;
+  bikeName?: string | null;
 };
+
+// Couleur cyclique par vélo — juste de quoi distinguer les étiquettes dans
+// un journal qui mélange plusieurs vélos, pas une palette à mémoriser.
+const BIKE_TAG_COLORS = ["var(--bi-ink)", "var(--bi-muted)", "var(--bi-accent-ink)", "#6B6B72"];
+function bikeTagColor(bikeId: string, order: string[]): string {
+  const idx = order.indexOf(bikeId);
+  return BIKE_TAG_COLORS[idx % BIKE_TAG_COLORS.length] ?? "var(--bi-muted)";
+}
 
 const REASON_LABELS: Record<string, string> = {
   usure: "Usure",
@@ -59,6 +69,13 @@ export function HistoryLog({ items }: { items: HistoryItem[] }) {
 
   if (items.length === 0) return null;
 
+  // Ordre stable d'apparition des vélos, pour une couleur d'étiquette
+  // constante d'un rendu à l'autre. L'étiquette elle-même ne s'affiche que
+  // si le journal mélange plusieurs vélos — dans le Hub d'un vélo, où tous
+  // les items partagent le même, elle serait un bruit répété sans info.
+  const bikeOrder = [...new Set(items.map((i) => i.bikeId).filter((b): b is string => !!b))];
+  const isMultiBike = bikeOrder.length > 1;
+
   const filtered = items.filter((i) => filter === "all" || i.kind === filter);
   const shown = showAll ? filtered : filtered.slice(0, 20);
   const total = Math.round(filtered.reduce((s, i) => s + (i.cost ?? 0), 0));
@@ -90,9 +107,18 @@ export function HistoryLog({ items }: { items: HistoryItem[] }) {
             leading={<EventDot kind={it.kind} />}
             title={`${it.kind === "repl" ? "Remplacement · " : ""}${it.title}`}
             sub={
-              fmtDate(it.dateISO)
-              + (it.km != null ? ` · ${fmtNum(it.km)} km` : "")
-              + (it.reason ? ` · ${REASON_LABELS[it.reason] ?? it.reason}` : "")
+              <>
+                {isMultiBike && it.bikeId && it.bikeName && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600, color: "var(--bi-ink)", marginRight: 6 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: 999, background: bikeTagColor(it.bikeId, bikeOrder), display: "inline-block" }} />
+                    {it.bikeName}
+                    <span style={{ color: "var(--bi-muted)" }}>·</span>
+                  </span>
+                )}
+                {fmtDate(it.dateISO)
+                  + (it.km != null ? ` · ${fmtNum(it.km)} km` : "")
+                  + (it.reason ? ` · ${REASON_LABELS[it.reason] ?? it.reason}` : "")}
+              </>
             }
             trailing={
               <Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, flexShrink: 0, color: it.cost != null ? "var(--bi-ink)" : "var(--bi-muted)" }}>

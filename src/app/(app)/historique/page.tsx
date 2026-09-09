@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
-import { BikePicker } from "@/components/bi/bike-picker";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
@@ -14,26 +13,17 @@ import { HistoryCharts } from "./history-charts";
 import { loadHistoryData } from "./history-data";
 
 /**
- * Page Historique — premier écran converti en composant client (phase 2.1).
+ * Page Historique — vue flotte.
  *
- * Elle sert de patron pour les quatorze autres. Ce qui change par rapport à la
- * version Server Component :
- *   • `searchParams` (promesse) → `useSearchParams()` ;
- *   • `redirect("/login")` → redirection client après vérification de session ;
- *   • le rendu se fait en deux temps, d'où un état de chargement — c'est le vrai
- *     coût de la conversion, le rendu serveur l'évitait.
- *
- * La requête SQL est identique à celle d'avant : seul le client change. Cela n'est
- * défendable que parce que la RLS cloisonne réellement depuis le correctif des
- * vues `component_stats` / `bike_stats` du 12/08/2026.
- *
- * `useSearchParams` impose un `<Suspense>` : Next refuse de prérendre un composant
- * qui le lit sans limite de suspense.
+ * Comme Coût (`cout/page.tsx`), cette page globale n'a plus besoin d'un
+ * sélecteur mono-vélo : le journal d'UN vélo vit désormais dans son Hub
+ * (onglet Historique), qui appelle `loadHistoryData` sans `allBikes` —
+ * exactement le comportement d'avant, filtré sur ce vélo. Ici, `allBikes`
+ * mélange tous les vélos dans un seul journal ; chaque ligne porte son
+ * étiquette de vélo (`HistoryLog`) pour rester lisible sans sélecteur.
  */
 function HistoriqueContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedBike = searchParams.get("bike");
 
   const load = useCallback(async () => {
     const userId = await getCurrentUserId();
@@ -41,10 +31,10 @@ function HistoriqueContent() {
       router.replace("/login");
       return null;
     }
-    return loadHistoryData(supabase, userId, requestedBike);
-  }, [requestedBike, router]);
+    return loadHistoryData(supabase, userId, null, { allBikes: true });
+  }, [router]);
 
-  const { data, loading, error, cachedAt } = useAsyncData(load, [requestedBike], `historique:${requestedBike ?? "default"}`);
+  const { data, loading, error, cachedAt } = useAsyncData(load, [], "historique:flotte");
 
   // Premier chargement : on n'a encore rien à montrer.
   if (loading && !data) {
@@ -77,8 +67,10 @@ function HistoriqueContent() {
   return (
     <div className="bi-page">
       <OfflineBanner cachedAt={cachedAt} />
-      <PageHead title="Historique" sub="Tes remplacements de pièces et tes entretiens" />
-      <BikePicker bikes={data.bikes} selected={data.selectedBikeId} basePath="/historique" />
+      <PageHead
+        title="Historique"
+        sub={data.bikes.length > 1 ? `Tous tes vélos · ${data.bikes.length} vélos` : "Tes remplacements de pièces et tes entretiens"}
+      />
       <div className="bi-stack" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
         {data.items.length === 0 ? (
           <EmptyState
@@ -99,9 +91,5 @@ function HistoriqueContent() {
 }
 
 export default function HistoriquePage() {
-  return (
-    <Suspense fallback={null}>
-      <HistoriqueContent />
-    </Suspense>
-  );
+  return <HistoriqueContent />;
 }

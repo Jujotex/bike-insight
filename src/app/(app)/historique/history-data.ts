@@ -21,15 +21,17 @@ export type BikeOption = {
 
 export type HistoryData = {
   bikes: BikeOption[]
-  selectedBikeId: string
+  selectedBikeId: string | null
   items: HistoryItem[]
 }
 
 export async function loadHistoryData(
   supabase: SupabaseClient,
   userId: string,
-  requestedBikeId: string | null
+  requestedBikeId: string | null,
+  opts?: { allBikes?: boolean }
 ): Promise<HistoryData> {
+  const allBikesMode = opts?.allBikes === true
   const results = await Promise.all([
     supabase
       .from('bikes')
@@ -64,13 +66,18 @@ export async function loadHistoryData(
     status: statusByBike.get(b.id as string) ?? ('ok' as const),
   }))
 
-  const selectedBikeId =
-    requestedBikeId && bikeList.some(b => b.id === requestedBikeId)
+  const selectedBikeId = allBikesMode
+    ? null
+    : requestedBikeId && bikeList.some(b => b.id === requestedBikeId)
       ? requestedBikeId
       : bikeList[0]?.id ?? ''
 
-  if (!selectedBikeId) return { bikes: bikeList, selectedBikeId: '', items: [] }
+  if (!allBikesMode && !selectedBikeId) return { bikes: bikeList, selectedBikeId: '', items: [] }
 
+  const bikeNameById = new Map(bikeList.map(b => [b.id, b.name]))
+
+  // Déjà non filtrée par vélo côté SQL — le filtrage par vélo se fait plus
+  // bas, en JS, sur `logBike`. En mode flotte on garde simplement tout.
   const logsRes = await supabase
     .from('maintenance_logs')
     .select(
@@ -84,14 +91,15 @@ export async function loadHistoryData(
   const { data: logRows } = logsRes
 
   const items: HistoryItem[] = (logRows ?? [])
-    .filter(l => {
+    .map(l => {
       const cr = (l as { components?: { bike_id?: string } | { bike_id?: string }[] | null }).components
       const c = Array.isArray(cr) ? cr[0] : cr
       const logBike = (l as { bike_id?: string | null }).bike_id ?? c?.bike_id ?? null
-      return logBike === selectedBikeId
+      return { l, logBike }
     })
+    .filter(({ logBike }) => allBikesMode || logBike === selectedBikeId)
     .slice(0, 200)
-    .map(l => {
+    .map(({ l, logBike }) => {
       const compRaw = (l as { components?: { name?: string } | { name?: string }[] | null }).components
       const comp = Array.isArray(compRaw) ? compRaw[0] : compRaw
       const isMaint = (l as { maintenance_type?: string | null }).maintenance_type != null
@@ -103,6 +111,8 @@ export async function loadHistoryData(
         km: (l as { km_at_action?: number | null }).km_at_action ?? null,
         reason: (l as { reason?: string | null }).reason ?? null,
         cost: (l as { cost?: number | null }).cost ?? null,
+        bikeId: logBike,
+        bikeName: logBike ? (bikeNameById.get(logBike) ?? null) : null,
       }
     })
 
