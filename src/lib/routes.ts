@@ -31,6 +31,8 @@ export const routes = {
 
   /** Fiche d'un vélo. */
   bike: (id: string) => `/bikes/detail?id=${id}`,
+  /** Fiche d'un vélo, sur un onglet du Hub précis (apercu par défaut si omis). */
+  bikeTab: (id: string, tab: string) => `/bikes/detail?id=${id}&tab=${tab}`,
 
   /** Fiche d'une pièce. */
   component: (id: string) => `/components/detail?id=${id}`,
