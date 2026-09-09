@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BiCard, BiLabel, Mono, Dot, PageHead, EmptyState } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { ArchiveButton } from "@/components/bi/archive-button";
-import { ReplaceButton } from "@/components/bi/replace-button";
 import { DeleteButton } from "@/components/bi/delete-button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -46,6 +45,135 @@ const REASON_LABELS: Record<string, string> = {
   casse: "Casse",
   "anticipe": "Anticipe",
 };
+
+/**
+ * Barre d'actions de la fiche pièce.
+ *
+ * Avant : 5 boutons de poids égal (Modifier, Voir les options, Contrôle
+ * effectué, Remplacer, Supprimer) — se repliaient sur 2-3 lignes en mobile.
+ * « Voir les options » et Remplacer menaient d'ailleurs au même résultat par
+ * deux chemins différents (archiver + remplacer), l'un direct, l'autre après
+ * comparaison des prix.
+ *
+ * Après : une seule action primaire, choisie selon le statut ; le reste
+ * passe dans un menu. Le raccourci de remplacement direct disparaît — il ne
+ * reste que le chemin qui compare avant de trancher (page Comparer).
+ */
+function ComponentActions({
+  id,
+  status,
+  componentName,
+  bikeId,
+}: {
+  id: string;
+  status: string;
+  componentName: string;
+  bikeId: string;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [menuOpen]);
+
+  if (status === "archived") {
+    return (
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <ArchiveButton componentId={id} isArchived={true} />
+        <DeleteButton componentId={id} componentName={componentName} bikeId={bikeId} />
+      </div>
+    );
+  }
+
+  const ALL_ACTIONS = {
+    modifier: { label: "Modifier", href: routes.componentEdit(id) },
+    options: { label: "Voir les options", href: routes.componentCompare(id) },
+    controle: { label: "Contrôle effectué", href: routes.componentCheck(id) },
+  } as const;
+
+  let primaryKey: keyof typeof ALL_ACTIONS;
+  let primary: { label: string; href: string };
+  if (status === "bad") {
+    primaryKey = "options";
+    primary = { label: "Remplacer", href: ALL_ACTIONS.options.href };
+  } else if (status === "warn") {
+    primaryKey = "controle";
+    primary = ALL_ACTIONS.controle;
+  } else {
+    primaryKey = "modifier";
+    primary = ALL_ACTIONS.modifier;
+  }
+  const menuKeys = (Object.keys(ALL_ACTIONS) as (keyof typeof ALL_ACTIONS)[]).filter(k => k !== primaryKey);
+
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      <div ref={menuRef} style={{ position: "relative" }}>
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Plus d'actions"
+          aria-expanded={menuOpen}
+          style={{
+            width: 38, height: 38, borderRadius: 999,
+            background: "var(--bi-card)", border: "1px solid var(--bi-line)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "var(--bi-ink)",
+            boxShadow: "var(--bi-shadow-card)",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+          </svg>
+        </button>
+        {menuOpen && (
+          <div
+            style={{
+              position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 30,
+              width: 240, background: "var(--bi-card)", border: "1px solid var(--bi-line)",
+              borderRadius: 14, boxShadow: "0 16px 34px -14px rgba(14,14,16,0.24)", overflow: "hidden",
+            }}
+          >
+            {menuKeys.map((k, i) => (
+              <Link
+                key={k}
+                href={ALL_ACTIONS[k].href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block", padding: "11px 14px", fontSize: 13, fontWeight: 500,
+                  color: "var(--bi-ink)", textDecoration: "none",
+                  borderTop: i > 0 ? "1px solid var(--bi-line)" : "none",
+                }}
+              >
+                {ALL_ACTIONS[k].label}
+              </Link>
+            ))}
+            <div style={{ borderTop: "1px solid var(--bi-line)", padding: 10 }}>
+              <DeleteButton componentId={id} componentName={componentName} bikeId={bikeId} />
+            </div>
+          </div>
+        )}
+      </div>
+      <Link href={primary.href} style={{ flex: 1 }}>
+        <button
+          style={{
+            width: "100%", padding: "10px 18px", background: "var(--bi-ink)", color: "var(--bi-bg)",
+            border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+            cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          {primary.label}
+        </button>
+      </Link>
+    </div>
+  );
+}
 
 /** Fiche pièce. Identifiant via `?id=` — voir `lib/routes.ts`. */
 function ComponentDetailContent() {
@@ -242,66 +370,45 @@ function ComponentDetailContent() {
           breadcrumb={["Composants", comp.name as string]}
           sub={(CATEGORY_LABELS[comp.category as string] ?? String(comp.category)) + " · installé le " + installedDate}
           actions={
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Link href={routes.componentEdit(id)}>
-                <button style={{ padding: "10px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Modifier
-                </button>
-              </Link>
-              {(comp.status as string) !== "archived" && (
-                <Link href={routes.componentCompare(id)}>
-                  <button style={{ padding: "10px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                    Voir les options
-                  </button>
-                </Link>
-              )}
-              {(comp.status as string) !== "archived" && (
-                <Link href={routes.componentCheck(id)}>
-                  <button style={{ padding: "10px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    Contrôle effectué
-                  </button>
-                </Link>
-              )}
-              {(comp.status as string) !== "archived" && (
-                <ReplaceButton
-                  componentId={id}
-                  bikeId={comp.bike_id as string}
-                  componentName={(comp.name as string).split(" - ")[0]}
-                  componentCategory={comp.category as string}
-                  currentBikeKm={bike?.total_km ?? 0}
-                  componentPrice={comp.purchase_price as number | null}
-                />
-              )}
-              {(comp.status as string) === "archived" && (
-                <ArchiveButton componentId={id} isArchived={true} />
-              )}
-              <DeleteButton componentId={id} componentName={comp.name as string} bikeId={comp.bike_id as string} />
-            </div>
+            <ComponentActions
+              id={id}
+              status={comp.status as string}
+              componentName={comp.name as string}
+              bikeId={comp.bike_id as string}
+            />
           }
         />
 
         <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <div className="bi-comp-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div className="bi-comp-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden", boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)" }}>
+            {/* Halo teinté par le statut — même vocabulaire que la carte
+                décision du dashboard, couleur en plus pour rappeler l'urgence. */}
+            <div
+              style={{
+                position: "absolute", top: -60, right: -60, width: 220, height: 220,
+                borderRadius: 999,
+                background: `radial-gradient(circle, ${statusColor}33, transparent 65%)`,
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: statusColor, letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                   <Dot color={statusColor} size={6} /> {statusLabel}
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--bi-on-dark-muted)", marginTop: 4 }}>
                   {bike?.name ?? "Vélo inconnu"}
                 </div>
               </div>
-              <Mono style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+              <Mono style={{ fontSize: 11, color: "var(--bi-on-dark-muted)" }}>
                 {CATEGORY_LABELS[comp.category as string] ?? String(comp.category)}
               </Mono>
             </div>
-            <div className="bi-wear-hero" style={{ marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div className="bi-wear-hero" style={{ position: "relative", marginTop: 32, display: "flex", alignItems: "baseline", gap: 10 }}>
               <span className="bi-wear-num" style={{ fontSize: 100, fontWeight: 300, letterSpacing: -5, lineHeight: 1, fontFamily: "var(--bi-font-ui)" }}>
                 {kmMax > 0 ? wearPct : "-"}
               </span>
-              {kmMax > 0 && <Mono style={{ fontSize: 28, color: "rgba(255,255,255,0.45)" }}>%</Mono>}
+              {kmMax > 0 && <Mono style={{ fontSize: 28, color: "var(--bi-on-dark-muted)" }}>%</Mono>}
               <div style={{ flex: 1 }} />
               {kmMax > 0 && (
                 <div className="bi-wear-side" style={{ textAlign: "right" }}>
@@ -310,7 +417,7 @@ function ComponentDetailContent() {
                   <Mono style={{ display: "block", fontSize: 20, fontWeight: 500 }}>
                     {kmUsed.toLocaleString("fr")} / {kmMax.toLocaleString("fr")} km
                   </Mono>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  <span style={{ fontSize: 11, color: "var(--bi-on-dark-muted)" }}>
                     {kmRemaining.toLocaleString("fr")} km restants
                   </span>
                 </div>
@@ -318,17 +425,17 @@ function ComponentDetailContent() {
             </div>
             {kmMax > 0 && (
               <>
-                <div style={{ marginTop: 22, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                <div style={{ position: "relative", marginTop: 22, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
                   <div style={{ width: wearPct + "%", height: "100%", background: statusColor, borderRadius: 999 }} />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                <div style={{ position: "relative", display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "var(--bi-on-dark-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
                   <span>0 km</span>
                   <span>{Math.round(kmMax / 3).toLocaleString("fr")}</span>
                   <span>{Math.round(kmMax * 2 / 3).toLocaleString("fr")}</span>
                   <span>{kmMax.toLocaleString("fr")} km</span>
                 </div>
                 {kmAddedTotal > 0 && originalKmMax !== null && (
-                  <div style={{ marginTop: 12, fontSize: 11, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ position: "relative", marginTop: 12, fontSize: 11, color: "var(--bi-on-dark-muted)", display: "flex", alignItems: "center", gap: 6 }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                     Durée de vie révisée après contrôle : {originalKmMax.toLocaleString("fr")} → {kmMax.toLocaleString("fr")} km
                   </div>
@@ -338,7 +445,7 @@ function ComponentDetailContent() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ padding: 22, border: "1.5px solid " + statusColor, borderRadius: 18, background: statusBgColor }}>
+            <div style={{ padding: 22, border: "1.5px solid " + statusColor, borderRadius: 18, background: statusBgColor, boxShadow: "var(--bi-shadow-card)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={statusColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 9v4M12 17h.01M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/>

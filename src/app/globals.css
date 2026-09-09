@@ -38,6 +38,12 @@
   /* Marque Strava */
   --bi-strava:      #FC4C02;
 
+  /* Texte secondaire sur fond sombre (héros --bi-ink). Un seul palier plutôt
+     que des opacités choisies au cas par cas (0.3 à 0.45 selon l'endroit,
+     dont plusieurs sous le seuil WCAG AA 4.5:1 pour du texte < 18px). Blanc
+     à 72% sur #0E0E10 ≈ 4.6:1. */
+  --bi-on-dark-muted: rgba(255,255,255,0.72);
+
   /* Barres de graphique — teinte « en dessous du seuil » */
   --bi-bar-idle:    #D9D8D2;
 
