@@ -243,13 +243,6 @@ function ComponentDetailContent() {
           title="Chargement impossible"
           text="La pièce n'a pas pu être récupérée. Vérifie ta connexion et réessaie."
         />
-        {/* TEMPORAIRE — diagnostic. `error` (le vrai message, normalement
-            réservé à console.error dans useAsyncData) affiché à l'écran le
-            temps de comprendre pourquoi ça échoue sur téléphone. À retirer
-            une fois la vraie cause identifiée. */}
-        <div style={{ marginTop: 16, padding: "12px 14px", borderRadius: 10, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 12, fontFamily: "var(--bi-font-mono)", wordBreak: "break-word" }}>
-          DEBUG : {error}
-        </div>
       </div>
     );
   }
