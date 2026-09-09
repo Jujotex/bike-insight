@@ -243,6 +243,10 @@ function ComponentDetailContent() {
           title="Chargement impossible"
           text="La pièce n'a pas pu être récupérée. Vérifie ta connexion et réessaie."
         />
+        {/* TEMPORAIRE — diagnostic, à retirer une fois le problème résolu. */}
+        <div style={{ marginTop: 16, padding: "12px 14px", borderRadius: 10, background: "var(--bi-bad-soft)", color: "var(--bi-bad)", fontSize: 12, fontFamily: "var(--bi-font-mono)", wordBreak: "break-word" }}>
+          DEBUG : {error}
+        </div>
       </div>
     );
   }
