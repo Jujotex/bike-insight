@@ -481,8 +481,8 @@ export function DashboardClient({
                 const pill = m.state === "due" ? "À FAIRE" : m.state === "soon" ? "BIENTÔT" : "À JOUR";
                 const pillBg = m.state === "due" ? "var(--bi-bad-soft)" : m.state === "soon" ? "var(--bi-warn-soft)" : "var(--bi-ok-soft)";
                 return (
-                  <Link key={m.typeId} href={routes.maintenanceType(m.typeId, selectedBikeId)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
-                    <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
+                  <Link key={m.typeId} href={routes.maintenanceType(m.typeId, selectedBikeId)} className="bi-attention-row bi-component-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                    <div style={{ width: 5, height: 56, background: color, borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 14, fontWeight: 600 }}>{m.label}</span>
@@ -491,11 +491,11 @@ export function DashboardClient({
                         </span>
                       </div>
                       <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{m.detail}</div>
-                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ flex: 1, maxWidth: 180, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ flex: 1, maxWidth: 180, height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
                           <div style={{ width: `${Math.min(m.pct, 100)}%`, height: "100%", background: color, borderRadius: 999 }} />
                         </div>
-                        <Mono style={{ fontSize: 11, color }}>{Math.round(m.pct)}%</Mono>
+                        <Mono style={{ fontSize: 16, fontWeight: 700, color, letterSpacing: -0.3 }}>{Math.round(m.pct)}%</Mono>
                       </div>
                       <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{m.statusLabel}</div>
                       {(() => {
@@ -581,20 +581,20 @@ export function DashboardClient({
               // Rien à traiter : on affiche quand même chaque pièce avec son usure
               // et ses km restants — le dashboard reste informatif dans tous les cas.
               filteredOk.map((c) => (
-                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
-                  <div style={{ width: 4, height: 40, background: "var(--bi-ok)", borderRadius: 2, flexShrink: 0 }} />
+                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "16px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                  <div style={{ width: 5, height: 42, background: "var(--bi-ok)", borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 14, fontWeight: 600 }}>{CATEGORY_LABELS[c.category] ?? c.name}</span>
                     <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{c.name}</div>
-                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ flex: 1, maxWidth: 180, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ flex: 1, maxWidth: 180, height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
                         <div style={{ width: `${c.wearPct}%`, height: "100%", background: "var(--bi-ok)", borderRadius: 999 }} />
                       </div>
-                      <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>{c.wearPct}%</Mono>
+                      <Mono style={{ fontSize: 15, fontWeight: 700, color: "var(--bi-ok)", letterSpacing: -0.2 }}>{c.wearPct}%</Mono>
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <Mono style={{ fontSize: 13, fontWeight: 600 }}>{c.kmRemaining.toLocaleString("fr")}</Mono>
+                    <Mono style={{ fontSize: 14, fontWeight: 600 }}>{c.kmRemaining.toLocaleString("fr")}</Mono>
                     <div style={{ fontSize: 11, color: "var(--bi-muted)" }}>km restants</div>
                   </div>
                 </Link>
@@ -608,8 +608,8 @@ export function DashboardClient({
                 : c.weeksUntil !== null ? `Dans ${formatWeeks(c.weeksUntil)}`
                 : `~${c.kmRemaining.toLocaleString("fr")} km`;
               return (
-                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "14px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
-                  <div style={{ width: 4, height: 52, background: color, borderRadius: 2, flexShrink: 0 }} />
+                <Link key={c.id} href={routes.component(c.id)} className="bi-attention-row bi-component-row" style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 16, borderTop: "1px solid var(--bi-line)", textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+                  <div style={{ width: 5, height: 56, background: color, borderRadius: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 14, fontWeight: 600 }}>{CATEGORY_LABELS[c.category] ?? c.name}</span>
@@ -618,11 +618,11 @@ export function DashboardClient({
                       </span>
                     </div>
                     <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>{c.name}</div>
-                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ flex: 1, maxWidth: 180, height: 3, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ flex: 1, maxWidth: 180, height: 4, background: "var(--bi-line)", borderRadius: 999, overflow: "hidden" }}>
                         <div style={{ width: `${c.wearPct}%`, height: "100%", background: color, borderRadius: 999 }} />
                       </div>
-                      <Mono style={{ fontSize: 11, color }}>{c.wearPct}%</Mono>
+                      <Mono style={{ fontSize: 16, fontWeight: 700, color, letterSpacing: -0.3 }}>{c.wearPct}%</Mono>
                     </div>
                     <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{urgencyLine}</div>
 
