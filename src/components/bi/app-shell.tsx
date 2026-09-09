@@ -1,5 +1,6 @@
 import { SideNav } from "./side-nav";
 import { BottomNav } from "./bottom-nav";
+import { MobileAccountBar } from "./mobile-account-bar";
 import { Toaster } from "./toast";
 import { StravaAttributionFooter } from "./strava-brand";
 
@@ -13,7 +14,8 @@ interface AppShellProps {
 /**
  * Wraps main app pages with the appropriate nav:
  * - Desktop: SideNav (left rail) + scrollable main area
- * - Mobile: BottomNav footer (via CSS visibility)
+ * - Mobile: MobileAccountBar (avatar, top) + floating BottomNav dock (bottom),
+ *   both shown/hidden via CSS visibility
  *
  * IMPORTANT: AppShell n'importe pas de code server-only pour rester
  * compatible avec les pages "use client". Passer nav={<SideNavLoader />}
@@ -43,6 +45,12 @@ export function AppShell({ children, nav }: AppShellProps) {
           overflow: "hidden",
         }}
       >
+        {/* Avatar Compte mobile : prend sa place dans le flux, au-dessus de main
+            (pas en position fixed) — voir mobile-account-bar.tsx pour le pourquoi. */}
+        <div className="md:hidden">
+          <MobileAccountBar />
+        </div>
+
         <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {children}
           {/* Attribution Strava (Brand Guidelines section 4) : obligatoire sur les écrans
@@ -52,7 +60,8 @@ export function AppShell({ children, nav }: AppShellProps) {
         </main>
         <Toaster />
 
-        {/* Mobile bottom nav */}
+        {/* Dock de nav mobile — flottant (position: fixed dans bottom-nav.tsx),
+            donc hors du flux : .bi-page réserve l'espace en bas pour lui. */}
         <div className="md:hidden">
           <BottomNav />
         </div>

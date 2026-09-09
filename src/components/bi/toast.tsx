@@ -55,7 +55,7 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div style={{ position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)", zIndex: 300, display: "flex", flexDirection: "column", gap: 8, alignItems: "center", pointerEvents: "none" }}>
+    <div style={{ position: "fixed", bottom: "calc(88px + env(safe-area-inset-bottom, 0px))", left: "50%", transform: "translateX(-50%)", zIndex: 300, display: "flex", flexDirection: "column", gap: 8, alignItems: "center", pointerEvents: "none" }}>
       {toasts.map(t => (
         <div
           key={t.id}

@@ -145,13 +145,16 @@ body {
 .bi-mobile  { display: none; }
 
 @media (max-width: 768px) {
-  /* La marge basse de 100px dégage la barre de navigation du bas ; celle-ci porte
-     déjà son propre `env(safe-area-inset-bottom)`, inutile de l'ajouter ici. */
+  /* Le dock de nav (bottom-nav.tsx) est en `position: fixed`, donc hors du
+     flux — contrairement à l'ancienne barre statique, il ne pousse plus le
+     contenu tout seul. 130px de marge basse : sa hauteur (~60px) + son
+     décalage du bord (14px + encoche) + une marge de respiration. À ajuster
+     au premier test réel si le dock chevauche encore le bas du contenu. */
   .bi-page {
     padding:
       calc(16px + env(safe-area-inset-top, 0px))
       calc(16px + env(safe-area-inset-right, 0px))
-      100px
+      130px
       calc(16px + env(safe-area-inset-left, 0px));
   }
 

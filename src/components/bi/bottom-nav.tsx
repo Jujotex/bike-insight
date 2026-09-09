@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUserId } from "@/lib/current-user";
 
+// 4 items : Compte est passé dans l'avatar du header mobile (mobile-account-bar.tsx).
+// Un 5e item ne tenait pas sur 375px sans tronquer un libellé.
 const NAV_ITEMS = [
   {
     id: "dashboard",
@@ -31,14 +33,13 @@ const NAV_ITEMS = [
     href: "/historique",
     icon: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v4l3 2",
   },
-  {
-    id: "account",
-    label: "Compte",
-    href: "/account",
-    icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-  },
 ];
 
+/**
+ * Dock flottant plutôt que barre bord-à-bord : `position: fixed`, retiré du flux.
+ * `.bi-page` réserve l'espace en bas (voir globals.css) puisque le dock ne pousse
+ * plus le contenu comme le faisait l'ancienne barre statique.
+ */
 export function BottomNav() {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -63,13 +64,18 @@ export function BottomNav() {
   return (
     <nav
       style={{
-        flexShrink: 0,
-        padding: "12px 8px calc(14px + env(safe-area-inset-bottom, 14px))",
-        background: "var(--bi-bg)",
-        borderTop: "1px solid var(--bi-line)",
+        position: "fixed",
+        left: 14,
+        right: 14,
+        bottom: "calc(14px + env(safe-area-inset-bottom, 14px))",
+        zIndex: 60,
+        background: "var(--bi-ink)",
+        borderRadius: 999,
+        boxShadow: "0 16px 40px -14px rgba(14,14,16,0.4)",
+        padding: "8px 10px",
         display: "flex",
-        justifyContent: "space-around",
         alignItems: "center",
+        justifyContent: "space-between",
       }}
     >
       {NAV_ITEMS.map((item) => {
@@ -83,26 +89,26 @@ export function BottomNav() {
             href={item.href}
             style={{
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: 4,
-              padding: "6px 20px",
-              borderRadius: 14,
+              gap: 7,
+              padding: active ? "11px 15px" : "11px 12px",
+              borderRadius: 999,
               textDecoration: "none",
-              color: active ? "var(--bi-ink)" : "var(--bi-muted)",
-              position: "relative",
+              background: active ? "var(--bi-accent)" : "transparent",
+              flexShrink: 0,
+              transition: "background 0.15s",
             }}
           >
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", display: "flex" }}>
               <svg
                 width="22"
                 height="22"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="currentColor"
+                stroke={active ? "var(--bi-accent-ink)" : "rgba(255,255,255,0.55)"}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="1.6"
+                strokeWidth="1.7"
               >
                 <path d={item.icon} />
               </svg>
@@ -122,9 +128,11 @@ export function BottomNav() {
                 </span>
               )}
             </div>
-            <span style={{ fontSize: 11, fontWeight: active ? 600 : 500, letterSpacing: 0.2 }}>
-              {item.label}
-            </span>
+            {active && (
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bi-accent-ink)", whiteSpace: "nowrap" }}>
+                {item.label}
+              </span>
+            )}
           </Link>
         );
       })}
