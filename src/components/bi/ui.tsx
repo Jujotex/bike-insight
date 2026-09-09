@@ -75,6 +75,7 @@ export function BiCard({
         background: "var(--bi-card)",
         borderRadius: 18,
         border: "1px solid var(--bi-line)",
+        boxShadow: "var(--bi-shadow-card)",
         padding: pad,
         ...style,
       }}

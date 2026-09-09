@@ -152,6 +152,12 @@ export default function BikesPage() {
                       overflow: "hidden",
                       cursor: "pointer",
                       border: isActive ? "1.5px solid var(--bi-ink)" : "1px solid var(--bi-line)",
+                      // Le vélo actif se détache par la lumière plutôt que par
+                      // une bordure 0.5px plus épaisse — halo lime en plus de
+                      // l'ombre de carte standard.
+                      boxShadow: isActive
+                        ? "0 22px 44px -22px rgba(199,255,63,0.45), var(--bi-shadow-card)"
+                        : "var(--bi-shadow-card)",
                     }}
                   >
                     {/* Hero — fond sombre + quadrillage + SVG coloré */}
