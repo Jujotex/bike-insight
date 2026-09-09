@@ -123,22 +123,35 @@ function CostContent() {
           />
         ) : (
           <>
-            {/* Deux chiffres clés */}
-            <div className="bi-grid-2">
-              <BiCard>
-                <BiLabel>Dépensé en entretien</BiLabel>
-                <div style={{ marginTop: 10 }}>
-                  <Metric value={fmtNum(kpis.spendTotal)} unit="€" />
+            {/* Héros dépense — même geste que le dashboard et la fiche vélo :
+                le total domine, le reste (12 mois) vient en contexte plutôt
+                que deux cases identiques côte à côte. C'est aussi la promesse
+                de la landing (« ton matériel te coûte plus cher... ») livrée
+                ici, pas juste dans le marketing. */}
+            <div
+              style={{
+                position: "relative", overflow: "hidden",
+                background: "var(--bi-ink)",
+                backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                backgroundSize: "16px 16px",
+                color: "var(--bi-white)",
+                borderRadius: 18, padding: 28,
+                boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)",
+              }}
+            >
+              <div style={{ position: "absolute", top: -55, right: -55, width: 200, height: 200, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative" }}>
+                <BiLabel style={{ color: "var(--bi-on-dark-muted)" }}>Dépensé en entretien</BiLabel>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
+                  <Mono style={{ fontSize: 64, fontWeight: 700, letterSpacing: -3, lineHeight: 0.9 }}>{fmtNum(kpis.spendTotal)}</Mono>
+                  <Mono style={{ fontSize: 18, color: "var(--bi-on-dark-muted)" }}>€</Mono>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>remplacements + entretiens</div>
-              </BiCard>
-              <BiCard>
-                <BiLabel>Cette année</BiLabel>
-                <div style={{ marginTop: 10 }}>
-                  <Metric value={fmtNum(kpis.spend12m)} unit="€" />
+                <div style={{ fontSize: 12, color: "var(--bi-on-dark-muted)", marginTop: 8 }}>remplacements + entretiens, depuis le début du suivi</div>
+                <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <Mono style={{ display: "block", fontSize: 20, fontWeight: 600, letterSpacing: -0.4 }}>{fmtNum(kpis.spend12m)} €</Mono>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--bi-on-dark-muted)", marginTop: 4 }}>CETTE ANNÉE · 12 MOIS</div>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4 }}>sur 12 mois</div>
-              </BiCard>
+              </div>
             </div>
 
             {/* Où tu te situes — repères statiques (lib/benchmarks.ts).
