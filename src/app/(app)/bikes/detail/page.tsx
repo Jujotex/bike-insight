@@ -139,22 +139,41 @@ function BikeDetailContent() {
           </div>
         </div>
 
-        {/* Hero stats */}
-        <div className="bi-stats-4" style={{ marginBottom: 14 }}>
-          {[
-            ["Kilométrage total", fmt(bike.total_km ?? 0), "km"],
-            ["Dépensé en entretien", fmt(maintenanceSpend), "€"],
-            ["Sorties · 12 m", String(totalRides12m), ""],
-            ["Moy. par sortie", String(avgKmPerRide), "km"],
-          ].map(([k, v, u]) => (
-            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
-              <BiLabel>{k}</BiLabel>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
-                <Mono style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.8 }}>{v}</Mono>
-                {u && <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>{u}</span>}
-              </div>
+        {/* Hero vélo — même geste que la carte décision du dashboard et le
+            héros de la fiche pièce : un chiffre qui domine (le kilométrage,
+            la donnée qu'on vient chercher sur cette page), le reste en
+            contexte plutôt que quatre cases de poids égal. */}
+        <div
+          style={{
+            position: "relative", overflow: "hidden",
+            background: "var(--bi-ink)",
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+            color: "var(--bi-white)",
+            borderRadius: 18, padding: 28, marginBottom: 14,
+            boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)",
+          }}
+        >
+          <div style={{ position: "absolute", top: -55, right: -55, width: 200, height: 200, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)", pointerEvents: "none" }} />
+          <div style={{ position: "relative" }}>
+            <BiLabel style={{ color: "var(--bi-on-dark-muted)" }}>Kilométrage total</BiLabel>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
+              <Mono style={{ fontSize: 64, fontWeight: 700, letterSpacing: -3, lineHeight: 0.9 }}>{fmt(bike.total_km ?? 0)}</Mono>
+              <Mono style={{ fontSize: 18, color: "var(--bi-on-dark-muted)" }}>km</Mono>
             </div>
-          ))}
+            <div style={{ display: "flex", gap: 28, marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
+              {[
+                [fmt(maintenanceSpend) + " €", "DÉPENSÉ ENTRETIEN"],
+                [String(totalRides12m), "SORTIES · 12 M"],
+                [String(avgKmPerRide) + " km", "MOY. PAR SORTIE"],
+              ].map(([v, l]) => (
+                <div key={l}>
+                  <Mono style={{ display: "block", fontSize: 20, fontWeight: 600, letterSpacing: -0.4 }}>{v}</Mono>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--bi-on-dark-muted)", marginTop: 4 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Pièces (pleine largeur) */}

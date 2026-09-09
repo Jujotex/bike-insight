@@ -109,17 +109,18 @@ export default function BikesPage() {
           }
         />
 
-        {/* Summary strip */}
-        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 22 }}>
+        {/* Summary strip — chiffres à l'échelle du reste de l'app (dashboard,
+            fiche pièce) plutôt que des labels discrets de 24px. */}
+        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 22, boxShadow: "var(--bi-shadow-card)" }}>
           {[
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
             ["Distance totale", `${totalKm.toLocaleString("fr-FR")} km`],
             ["Dépensé en entretien", `${totalCost.toLocaleString("fr-FR")} €`],
           ].map(([k, v]) => (
-            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "20px 22px" }}>
+            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "22px 22px" }}>
               <BiLabel>{k}</BiLabel>
-              <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.7, marginTop: 8 }}>{v}</Mono>
+              <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: -1.4, marginTop: 9, lineHeight: 1 }}>{v}</Mono>
             </div>
           ))}
         </div>
@@ -160,68 +161,80 @@ export default function BikesPage() {
                         : "var(--bi-shadow-card)",
                     }}
                   >
-                    {/* Hero — fond sombre + quadrillage + SVG coloré */}
+                    {/* Hero — fond sombre + quadrillage + SVG coloré. Le kilométrage,
+                        avant un petit label mono de 12px en coin, devient le second
+                        événement visuel de la carte après l'illustration — même
+                        échelle de geste que la carte décision et la fiche pièce. */}
                     <div style={{
-                      height: 160,
+                      height: 176,
                       background: "var(--bi-ink)",
                       backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
                       backgroundSize: "20px 20px",
                       position: "relative",
+                      overflow: "hidden",
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flexDirection: "column",
                     }}>
-                      {/* SVG vélo cartoon « Chunky » — traits épais, arrondis */}
-                      <svg width="140" height="94" viewBox="0 0 150 100" fill="none">
-                        <g stroke={bikeColor} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round">
-                          {/* Roues (fond = hero sombre) */}
-                          <circle cx="34" cy="66" r="22" fill="var(--bi-ink)"/>
-                          <circle cx="116" cy="66" r="22" fill="var(--bi-ink)"/>
-                          {/* Cadre losange + fourche */}
-                          <path d="M34 66 L70 66 L58 34 L92 34 M70 66 L92 34 M92 34 L116 66"/>
-                          {/* Tige de selle + selle */}
-                          <path d="M58 34 L54 24 M46 24 L64 24"/>
-                          {/* Potence + cintre */}
-                          <path d="M92 34 L92 24 M85 22 L99 22"/>
-                        </g>
-                        {/* Moyeux + pédalier pleins */}
-                        <circle cx="34" cy="66" r="5" fill={bikeColor}/>
-                        <circle cx="116" cy="66" r="5" fill={bikeColor}/>
-                        <circle cx="70" cy="66" r="6" fill={bikeColor}/>
-                      </svg>
-
-                      {/* Badge STRAVA ou MANUEL */}
-                      <span style={{
-                        position: "absolute", top: 12, left: 12,
-                        fontSize: 10, padding: "3px 8px",
-                        background: isStrava ? "var(--bi-strava)" : "rgba(255,255,255,0.12)",
-                        color: "var(--bi-white)",
-                        borderRadius: 999, fontWeight: 700, letterSpacing: 0.8,
-                      }}>
-                        {isStrava ? "STRAVA" : "MANUEL"}
-                      </span>
-
-                      {/* Km en bas à droite */}
-                      <span style={{
-                        position: "absolute", bottom: 12, right: 12,
-                        fontSize: 12, fontWeight: 600,
-                        color: bikeColor,
-                        fontFamily: "var(--bi-font-mono)",
-                      }}>
-                        {((b.total_km as number) ?? 0).toLocaleString("fr-FR")} km
-                      </span>
-
-                      {/* ACTIF badge */}
                       {isActive && (
-                        <span style={{
-                          position: "absolute", top: 12, right: 12,
-                          fontSize: 10, padding: "3px 8px",
-                          background: "var(--bi-accent)", color: "var(--bi-accent-ink)",
-                          borderRadius: 999, fontWeight: 700, letterSpacing: 0.5,
-                        }}>
-                          ACTIF
-                        </span>
+                        <div style={{
+                          position: "absolute", top: -50, right: -50, width: 180, height: 180,
+                          borderRadius: 999,
+                          background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)",
+                          pointerEvents: "none",
+                        }} />
                       )}
+
+                      <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {/* SVG vélo cartoon « Chunky » — traits épais, arrondis */}
+                        <svg width="118" height="80" viewBox="0 0 150 100" fill="none">
+                          <g stroke={bikeColor} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round">
+                            {/* Roues (fond = hero sombre) */}
+                            <circle cx="34" cy="66" r="22" fill="var(--bi-ink)"/>
+                            <circle cx="116" cy="66" r="22" fill="var(--bi-ink)"/>
+                            {/* Cadre losange + fourche */}
+                            <path d="M34 66 L70 66 L58 34 L92 34 M70 66 L92 34 M92 34 L116 66"/>
+                            {/* Tige de selle + selle */}
+                            <path d="M58 34 L54 24 M46 24 L64 24"/>
+                            {/* Potence + cintre */}
+                            <path d="M92 34 L92 24 M85 22 L99 22"/>
+                          </g>
+                          {/* Moyeux + pédalier pleins */}
+                          <circle cx="34" cy="66" r="5" fill={bikeColor}/>
+                          <circle cx="116" cy="66" r="5" fill={bikeColor}/>
+                          <circle cx="70" cy="66" r="6" fill={bikeColor}/>
+                        </svg>
+
+                        {/* Badge STRAVA ou MANUEL */}
+                        <span style={{
+                          position: "absolute", top: 12, left: 12,
+                          fontSize: 10, padding: "3px 8px",
+                          background: isStrava ? "var(--bi-strava)" : "rgba(255,255,255,0.12)",
+                          color: "var(--bi-white)",
+                          borderRadius: 999, fontWeight: 700, letterSpacing: 0.8,
+                        }}>
+                          {isStrava ? "STRAVA" : "MANUEL"}
+                        </span>
+
+                        {/* ACTIF badge */}
+                        {isActive && (
+                          <span style={{
+                            position: "absolute", top: 12, right: 12,
+                            fontSize: 10, padding: "3px 8px",
+                            background: "var(--bi-accent)", color: "var(--bi-accent-ink)",
+                            borderRadius: 999, fontWeight: 700, letterSpacing: 0.5,
+                          }}>
+                            ACTIF
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Kilométrage — grand, en bas de héros */}
+                      <div style={{ position: "relative", padding: "0 16px 14px", display: "flex", alignItems: "baseline", gap: 6 }}>
+                        <Mono style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1.3, lineHeight: 1, color: bikeColor }}>
+                          {((b.total_km as number) ?? 0).toLocaleString("fr-FR")}
+                        </Mono>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-on-dark-muted)", fontFamily: "var(--bi-font-mono)" }}>km</span>
+                      </div>
                     </div>
 
 
