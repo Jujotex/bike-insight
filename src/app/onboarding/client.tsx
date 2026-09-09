@@ -269,7 +269,7 @@ export function OnboardingWizard({
 
         {/* ÉTAPE 0 — Vélo & groupe */}
         {step === 0 && (
-          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
+          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28, boxShadow: "var(--bi-shadow-card)" }}>
 
             {showBikePicker ? (
               <div style={{ marginBottom: 24 }}>
@@ -373,7 +373,7 @@ export function OnboardingWizard({
 
         {/* ÉTAPE 1 — Pièces */}
         {step === 1 && (
-          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
+          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28, boxShadow: "var(--bi-shadow-card)" }}>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Ces pièces sont-elles neuves ?</div>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 16 }}>Une seule question pour calibrer l&apos;usure de départ — pas de saisie de km.</div>
@@ -539,7 +539,7 @@ export function OnboardingWizard({
 
         {/* ÉTAPE 2 — Confirmation */}
         {step === 2 && (
-          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28 }}>
+          <div style={{ background: T.card, borderRadius: 18, border: `1px solid ${T.line}`, padding: 28, boxShadow: "var(--bi-shadow-card)" }}>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 4 }}>Vélo : <strong style={{ color: T.ink }}>{selectedBike?.name}</strong></div>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Tout est prêt !</div>
             <div style={{ fontSize: 13, color: T.muted, marginBottom: 20 }}>

@@ -117,17 +117,17 @@ export function AccountClient({
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
       {/* Avatar + résumé */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: 24, border: "1px solid var(--bi-line)", display: "flex", alignItems: "center", gap: 20 }}>
+      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: 24, border: "1px solid var(--bi-line)", boxShadow: "var(--bi-shadow-card)", display: "flex", alignItems: "center", gap: 20 }}>
         <div style={{
-          width: 64, height: 64, borderRadius: 999,
+          width: 76, height: 76, borderRadius: 999,
           background: "var(--bi-ink)", color: "var(--bi-bg)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, fontWeight: 700, flexShrink: 0,
+          fontSize: 25, fontWeight: 700, flexShrink: 0,
         }}>
           {initials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.5 }}>{fullName}</div>
+          <div style={{ fontSize: 23, fontWeight: 700, letterSpacing: -0.6 }}>{fullName}</div>
           <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 2 }}>{email}</div>
           <div style={{ marginTop: 10, display: "flex", gap: 16 }}>
             <span style={{ fontSize: 12, color: "var(--bi-muted)" }}>
@@ -147,7 +147,7 @@ export function AccountClient({
       </div>
 
       {/* Profil */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
+      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)", boxShadow: "var(--bi-shadow-card)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div style={sectionTitle as React.CSSProperties}>Profil</div>
           {!editingProfile ? (
@@ -228,7 +228,7 @@ export function AccountClient({
       </div>
 
       {/* Connexions */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
+      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)", boxShadow: "var(--bi-shadow-card)" }}>
         <div style={sectionTitle}>Connexions</div>
 
         {/* Strava */}
@@ -280,7 +280,7 @@ export function AccountClient({
 
       {/* Aide et confidentialité — API Policy Strava §2.4 (contact support « easily
           accessible ») et §7.3 (politique de confidentialité par lien proéminent). */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
+      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)", boxShadow: "var(--bi-shadow-card)" }}>
         <div style={sectionTitle}>Aide et confidentialité</div>
 
         {/* Droit à la portabilité (RGPD art. 20) et API Policy Strava §2.2.
@@ -334,7 +334,7 @@ export function AccountClient({
       </div>
 
       {/* Actions compte */}
-      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)" }}>
+      <div style={{ background: "var(--bi-card)", borderRadius: 18, padding: "20px 24px", border: "1px solid var(--bi-line)", boxShadow: "var(--bi-shadow-card)" }}>
         <div style={sectionTitle}>Compte</div>
 
         <button
