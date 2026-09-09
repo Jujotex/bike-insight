@@ -48,25 +48,6 @@ function validatePassword(p: string): string | null {
   return null;
 }
 
-function GoogleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18">
-      <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.71v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.61z" fill="#4285F4" />
-      <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.83.87-3.04.87a5.27 5.27 0 01-4.96-3.65H.96v2.34A9 9 0 009 18z" fill="#34A853" />
-      <path d="M4.04 10.78A5.4 5.4 0 013.76 9c0-.62.1-1.22.28-1.78V4.88H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.05l3.08-2.27z" fill="#FBBC05" />
-      <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A9 9 0 009 0 9 9 0 00.96 4.88l3.08 2.34A5.27 5.27 0 019 3.58z" fill="#EA4335" />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.05 12.04c-.03-2.74 2.24-4.06 2.34-4.13-1.28-1.87-3.26-2.13-3.96-2.16-1.69-.17-3.3 1-4.16 1-.87 0-2.19-.97-3.59-.95-1.85.03-3.55 1.07-4.5 2.72-1.92 3.32-.49 8.24 1.39 10.94.92 1.32 2.01 2.81 3.44 2.75 1.38-.06 1.91-.89 3.58-.89 1.67 0 2.14.89 3.6.86 1.49-.02 2.43-1.34 3.34-2.67 1.05-1.53 1.49-3.01 1.51-3.09-.03-.01-2.91-1.11-2.99-4.38zM14.5 4.05c.76-.92 1.27-2.2 1.13-3.48-1.09.04-2.42.73-3.21 1.65-.71.81-1.33 2.11-1.16 3.37 1.22.09 2.47-.62 3.24-1.54z" />
-    </svg>
-  );
-}
-
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -234,21 +215,6 @@ export default function SignupPage() {
         {loading ? "Création…" : "Créer mon compte"}
         {!loading && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>}
       </button>
-
-      <div style={{ margin: "22px 0", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1, height: 1, background: "var(--bi-line)" }} />
-        <span style={{ fontSize: 11, color: "var(--bi-muted)", letterSpacing: "0.07em", textTransform: "uppercase" }}>ou</span>
-        <div style={{ flex: 1, height: 1, background: "var(--bi-line)" }} />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 14, padding: "12px 0", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
-          <GoogleIcon /> Google
-        </button>
-        <button style={{ background: "transparent", color: "var(--bi-ink)", border: "1px solid var(--bi-line)", borderRadius: 14, padding: "12px 0", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer" }}>
-          <AppleIcon /> Apple
-        </button>
-      </div>
 
       <div style={{ marginTop: 32, fontSize: 13, color: "var(--bi-muted)", textAlign: "center" }}>
         Déjà inscrit ?{" "}
