@@ -209,6 +209,18 @@ function ComponentDetailContent() {
 
   const maintenanceLogs = logs ?? [];
 
+  // Contrôles déclarés par l'utilisateur. Ils révisent `km_max` en base :
+  // l'estimation d'origine ne survit que dans ces lignes d'historique, d'où la
+  // relecture ici plutôt qu'une colonne dédiée sur la pièce.
+  const checkLogs = maintenanceLogs.filter(
+    (l) => (l.km_added as number | null) !== null && ((l.km_added as number) ?? 0) > 0
+  );
+  const kmAddedTotal = checkLogs.reduce((sum, l) => sum + ((l.km_added as number) ?? 0), 0);
+  const originalKmMax =
+    checkLogs.length > 0 && checkLogs[0].km_max_before !== null
+      ? Math.round(checkLogs[0].km_max_before as number)
+      : null;
+
   const repairGuide = findRepairGuide(comp.name as string, comp.category as string);
   // La carte « Et maintenant ? » crie sa prochaine étape seulement quand
   // la pièce demande une action (à surveiller / à remplacer). Sur une pièce
@@ -241,6 +253,14 @@ function ComponentDetailContent() {
                 <Link href={routes.componentCompare(id)}>
                   <button style={{ padding: "10px 16px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                     Voir les options
+                  </button>
+                </Link>
+              )}
+              {(comp.status as string) !== "archived" && (
+                <Link href={routes.componentCheck(id)}>
+                  <button style={{ padding: "10px 16px", background: "var(--bi-card)", border: "1px solid var(--bi-line)", borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", color: "var(--bi-ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    Contrôle effectué
                   </button>
                 </Link>
               )}
@@ -307,6 +327,12 @@ function ComponentDetailContent() {
                   <span>{Math.round(kmMax * 2 / 3).toLocaleString("fr")}</span>
                   <span>{kmMax.toLocaleString("fr")} km</span>
                 </div>
+                {kmAddedTotal > 0 && originalKmMax !== null && (
+                  <div style={{ marginTop: 12, fontSize: 11, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    Durée de vie révisée après contrôle : {originalKmMax.toLocaleString("fr")} → {kmMax.toLocaleString("fr")} km
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -333,6 +359,15 @@ function ComponentDetailContent() {
                 {(comp.status as string) === "ok" && "Aucune action requise pour l'instant."}
                 {(comp.status as string) === "archived" && "Cette pièce a été retirée du suivi actif."}
               </div>
+              {((comp.status as string) === "bad" || (comp.status as string) === "warn") && (
+                <Link
+                  href={routes.componentCheck(id)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12, fontSize: 12, fontWeight: 600, color: "var(--bi-ink)" }}
+                >
+                  Tu l&apos;as vérifiée et elle tient encore ? Déclare un contrôle
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                </Link>
+              )}
             </div>
 
             <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--bi-line)", borderRadius: 14, overflow: "hidden" }}>
@@ -473,7 +508,10 @@ function ComponentDetailContent() {
                   : "-";
                 const logKm = log.km_at_action !== null ? Math.round(log.km_at_action as number).toLocaleString("fr") + " km" : null;
                 const reason = (log.reason as string | null);
-                const dotColor = reason === "casse" || reason === "usure" ? "var(--bi-bad)"
+                const kmAdded = log.km_added as number | null;
+                const isCheck = kmAdded !== null;
+                const dotColor = isCheck ? "var(--bi-ok)"
+                  : reason === "casse" || reason === "usure" ? "var(--bi-bad)"
                   : reason === "crevaison" ? "var(--bi-warn)"
                   : "var(--bi-muted)";
                 return (
@@ -484,8 +522,18 @@ function ComponentDetailContent() {
                       <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>
                         {logDate}{logKm ? " - " + logKm : ""}
                       </div>
+                      {log.notes && (
+                        <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 4, lineHeight: 1.45 }}>
+                          {log.notes as string}
+                        </div>
+                      )}
                     </div>
-                    {reason && (
+                    {isCheck && (
+                      <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "var(--bi-ok-soft)", color: "var(--bi-ok)", border: "1px solid var(--bi-ok)", fontWeight: 600, flexShrink: 0, fontFamily: "var(--font-jetbrains-mono)" }}>
+                        {(kmAdded ?? 0) > 0 ? "+" + Math.round(kmAdded ?? 0).toLocaleString("fr") + " km" : "confirmé"}
+                      </span>
+                    )}
+                    {!isCheck && reason && (
                       <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, background: "var(--bi-bg)", color: "var(--bi-muted)", border: "1px solid var(--bi-line)", fontWeight: 600, flexShrink: 0 }}>
                         {REASON_LABELS[reason] ?? reason}
                       </span>

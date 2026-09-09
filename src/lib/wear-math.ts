@@ -121,3 +121,75 @@ export function costPerKm(spend: number, km: number): number | null {
   if (!(km > 0)) return null
   return spend / km
 }
+
+// ── Contrôles de pièce ────────────────────────────────────────────────────────
+//
+// Quand l'utilisateur vérifie une pièce et la juge encore bonne, il prolonge sa
+// durée de vie de quelques kilomètres. Les fonctions ci-dessous servent à lui
+// montrer, avant qu'il valide, ce que cette prolongation change vraiment.
+
+/**
+ * Seuils du moteur d'usure, en ratio `km_used / km_max`.
+ *
+ * Miroir exact du trigger `update_component_status` (migration
+ * `20260523000001_initial_schema`) : c'est lui qui fixe la couleur affichée. Les
+ * seuils de *notification* sont autre chose — ils sont réglables par
+ * l'utilisateur et vivent dans `notification_settings`. Ne pas confondre les
+ * deux : ici on prédit la pastille, pas l'alerte.
+ */
+export const WEAR_WARN_RATIO = 0.7
+export const WEAR_BAD_RATIO = 0.9
+
+/** Usure en %, arrondie au dixième. `null` sans durée de vie déclarée. */
+export function wearPctOf(kmUsed: number, kmMax: number): number | null {
+  if (!(kmMax > 0)) return null
+  return Math.round((kmUsed / kmMax) * 1000) / 10
+}
+
+/** Statut d'une pièce pour un couple (km parcourus, durée de vie). */
+export function statusFromKm(kmUsed: number, kmMax: number): ComponentStatus {
+  if (!(kmMax > 0)) return 'ok'
+  const ratio = kmUsed / kmMax
+  if (ratio >= WEAR_BAD_RATIO) return 'bad'
+  if (ratio >= WEAR_WARN_RATIO) return 'warn'
+  return 'ok'
+}
+
+/**
+ * Plus petit nombre de kilomètres à ajouter pour repasser sous un seuil.
+ *
+ * Sert à répondre à la question que pose l'écran de contrôle : « +250 km, ça
+ * suffit à faire disparaître le rouge ? ». Sur une chaîne à 5 000/5 000 km, il
+ * en faut 556 pour repasser sous 90 % — sans ce calcul, l'utilisateur ajoute
+ * 250 km, ne voit rien changer, et conclut que la fonction est cassée.
+ *
+ * Renvoie 0 quand la pièce est déjà sous le seuil. Entier, et strictement
+ * au-dessus de la limite : le trigger déclenche sur `>=`, une égalité ne
+ * suffirait pas.
+ */
+export function minKmExtensionFor(
+  kmUsed: number,
+  kmMax: number,
+  ratio: number
+): number {
+  if (!(kmMax > 0) || !(ratio > 0)) return 0
+  if (kmUsed / kmMax < ratio) return 0
+  return Math.max(0, Math.floor(kmUsed / ratio - kmMax) + 1)
+}
+
+/**
+ * Trois prolongations proposées en un clic, proportionnelles à la pièce.
+ *
+ * Des valeurs fixes (+250 / +500 / +1 000) sont dérisoires pour une cassette à
+ * 20 000 km et énormes pour des plaquettes à 2 500. On propose donc 5 %, 10 % et
+ * 20 % de la durée de vie, arrondis à un palier lisible.
+ */
+export function extensionSuggestions(kmMax: number): number[] {
+  if (!(kmMax > 0)) return []
+  return [0.05, 0.1, 0.2].map(f => roundToNiceStep(kmMax * f))
+}
+
+function roundToNiceStep(km: number): number {
+  const step = km < 200 ? 25 : km < 500 ? 50 : km < 2000 ? 100 : 500
+  return Math.max(step, Math.round(km / step) * step)
+}

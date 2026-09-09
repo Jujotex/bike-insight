@@ -37,6 +37,8 @@ export const routes = {
   componentEdit: (id: string) => `/components/edit?id=${id}`,
   componentCompare: (id: string) => `/components/compare?id=${id}`,
   componentTuto: (id: string) => `/components/tuto?id=${id}`,
+  /** Déclarer un contrôle sur une pièce (et prolonger sa durée de vie). */
+  componentCheck: (id: string) => `/components/check?id=${id}`,
   componentNew: (bikeId?: string) =>
     bikeId ? `/components/new?bike_id=${bikeId}` : '/components/new',
 

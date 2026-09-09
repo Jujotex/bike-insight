@@ -80,7 +80,7 @@ Toutes les pages sont implémentées avec des **données statiques**. Aucune req
 | `bikes` | Vélos de l'utilisateur. Lié à Strava via `strava_gear_id`. |
 | `components` | Composants installés sur un vélo. Suivi `km_used` / `km_max`. |
 | `activities` | Activités Strava importées. Source de vérité pour les km. |
-| `maintenance_logs` | Historique des opérations de maintenance. |
+| `maintenance_logs` | Historique des opérations de maintenance (remplacements, entretiens, contrôles). |
 
 ### Logique automatique (triggers)
 
@@ -105,6 +105,32 @@ Chaque remplacement de composant via `ReplaceButton` insère automatiquement une
 - `performed_at` — date du jour
 
 La page détail vélo (`/bikes/[id]`) affiche un historique de ces entrées, filtré sur les composants du vélo courant.
+
+### Contrôles de pièce (`/components/check`)
+
+Le moteur d'usure ne connaît que des kilomètres. Une pièce peut donc être annoncée en fin de vie
+alors que l'utilisateur, jauge en main, la sait encore bonne. L'écran de contrôle lui laisse
+**réviser `components.km_max` à la hausse** — les km parcourus (`km_used`, dérivés de Strava)
+ne bougent jamais.
+
+Le contrôle écrit une ligne `maintenance_logs` avec `action = "Contrôle"` et trois colonnes qui
+lui sont propres :
+- `km_added` — kilomètres ajoutés à la durée de vie (`0` = estimation simplement confirmée)
+- `km_max_before` / `km_max_after` — l'avant/après de la révision
+
+C'est cette trace qui conserve l'estimation d'origine : `km_max` étant écrasé en base, la valeur
+initiale n'existe plus ailleurs. La fiche pièce la relit pour afficher « durée de vie révisée :
+5 000 → 5 250 km ».
+
+Pourquoi réviser `km_max` plutôt qu'ajouter un crédit de kilomètres dans une colonne à part : une
+colonne parallèle aurait imposé de changer la vue `component_stats`, le trigger de statut et tous
+les écrans qui lisent `km_max`, pour le même résultat affiché. `km_max` est déjà une estimation
+éditable à la main (écran « Modifier ») ; un contrôle n'en est que la version guidée et tracée.
+
+Les seuils de couleur (70 % / 90 %) vivent en double : dans le trigger SQL `update_component_status`
+et dans `src/lib/wear-math.ts` (`WEAR_WARN_RATIO` / `WEAR_BAD_RATIO`), qui sert à l'aperçu en direct
+de l'écran de contrôle. Toute modification de l'un doit suivre dans l'autre. À ne pas confondre avec
+les seuils de *notification*, eux réglables par l'utilisateur (`notification_settings`).
 
 ## Conformité Strava (Brand Guidelines + accord API)
 

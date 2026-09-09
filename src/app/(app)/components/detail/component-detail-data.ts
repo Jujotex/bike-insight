@@ -28,7 +28,7 @@ export async function loadComponentDetailData(
       .maybeSingle(),
     supabase
       .from('maintenance_logs')
-      .select('action, performed_at, km_at_action, cost, reason')
+      .select('action, performed_at, km_at_action, cost, reason, notes, km_added, km_max_before, km_max_after')
       .eq('component_id', componentId)
       .order('performed_at', { ascending: true }),
   ])

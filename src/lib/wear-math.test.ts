@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
+  WEAR_BAD_RATIO,
   costPerKm,
   estimatedReplacementDate,
+  extensionSuggestions,
   kmPerWeek,
+  minKmExtensionFor,
   readinessScore,
+  statusFromKm,
   urgencyOf,
+  wearPctOf,
   weeksUntilWorn,
 } from './wear-math'
 
@@ -129,5 +134,61 @@ describe('costPerKm', () => {
   it('renvoie null sans kilomètres, jamais Infinity', () => {
     expect(costPerKm(300, 0)).toBeNull()
     expect(costPerKm(0, 0)).toBeNull()
+  })
+})
+
+describe('statusFromKm', () => {
+  it('reproduit les seuils du trigger SQL', () => {
+    expect(statusFromKm(4000, 5000)).toBe('warn') // 80 %
+    expect(statusFromKm(3400, 5000)).toBe('ok')   // 68 %
+    expect(statusFromKm(4500, 5000)).toBe('bad')  // 90 % pile → bad
+  })
+
+  it('reste « ok » sans durée de vie déclarée', () => {
+    expect(statusFromKm(4000, 0)).toBe('ok')
+  })
+})
+
+describe('wearPctOf', () => {
+  it('arrondit au dixième comme la vue component_stats', () => {
+    expect(wearPctOf(5000, 5250)).toBeCloseTo(95.2)
+  })
+
+  it('renvoie null sans durée de vie', () => {
+    expect(wearPctOf(5000, 0)).toBeNull()
+  })
+})
+
+describe('minKmExtensionFor', () => {
+  // Le cas qui a motivé la fonctionnalité : chaîne à 5 000 / 5 000 km, encore
+  // bonne au contrôle. +250 km ne suffisent pas à sortir du rouge (95 %), il en
+  // faut 556. C'est ce chiffre que l'écran doit afficher.
+  it('donne les km nécessaires pour repasser sous le seuil rouge', () => {
+    expect(minKmExtensionFor(5000, 5000, WEAR_BAD_RATIO)).toBe(556)
+    expect(statusFromKm(5000, 5000 + 556)).toBe('warn')
+    expect(statusFromKm(5000, 5000 + 555)).toBe('bad')
+  })
+
+  it('renvoie 0 quand la pièce est déjà sous le seuil', () => {
+    expect(minKmExtensionFor(3000, 5000, WEAR_BAD_RATIO)).toBe(0)
+  })
+
+  it('renvoie 0 sans durée de vie déclarée', () => {
+    expect(minKmExtensionFor(3000, 0, WEAR_BAD_RATIO)).toBe(0)
+  })
+})
+
+describe('extensionSuggestions', () => {
+  it('propose des paliers proportionnels à la pièce', () => {
+    expect(extensionSuggestions(5000)).toEqual([250, 500, 1000])
+    expect(extensionSuggestions(20000)).toEqual([1000, 2000, 4000])
+  })
+
+  it('ne descend jamais sous un palier lisible', () => {
+    expect(extensionSuggestions(300)).toEqual([25, 25, 50])
+  })
+
+  it('renvoie une liste vide sans durée de vie', () => {
+    expect(extensionSuggestions(0)).toEqual([])
   })
 })

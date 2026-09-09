@@ -1,5 +1,53 @@
 # Changelog
 
+## [Non publié] — Contrôle de pièce : quand l'utilisateur en sait plus que le compteur
+
+*Une chaîne à 5 000 km sur 5 000 km estimés passe en rouge. Sauf que la jauge d'usure, elle,
+dit qu'elle a encore de la marge. L'app avait raison sur les kilomètres et tort sur la pièce —
+et l'utilisateur n'avait aucun moyen de le lui dire, sinon aller bidouiller la durée de vie dans
+l'écran « Modifier », sans trace ni garde-fou.*
+
+### Ajouté
+- **Écran « Contrôle effectué »** (`/components/check?id=…`). L'utilisateur déclare qu'il a vérifié
+  la pièce et ajoute les kilomètres qu'il lui accorde encore. Les km parcourus ne bougent pas :
+  `km_used` reste la vérité Strava, c'est l'**estimation** `km_max` qui est révisée.
+- **Aperçu en direct avant validation** — usure actuelle → usure après, statut résultant, km
+  restants. Sans lui, l'utilisateur ajoutait 250 km à une pièce à 100 %, ne voyait pas le rouge
+  disparaître (95 %, toujours au-dessus du seuil de 90 %) et concluait que la fonction ne marchait
+  pas. L'écran affiche désormais le minimum réellement nécessaire — 556 km dans cet exemple — et le
+  propose en un clic.
+- **Prolongations proposées proportionnelles à la pièce** (5 / 10 / 20 % de la durée de vie,
+  arrondies à un palier lisible). Des valeurs fixes seraient dérisoires sur une cassette à
+  20 000 km et énormes sur des plaquettes à 2 500.
+- **Trace du contrôle dans `maintenance_logs`** : nouvelles colonnes `km_added`, `km_max_before`,
+  `km_max_after` (migration `20260908000001_component_checks`). C'est elle qui conserve
+  l'estimation d'origine — `km_max` étant écrasé, elle n'existe nulle part ailleurs. La fiche pièce
+  affiche « durée de vie révisée : 5 000 → 5 250 km » et l'historique marque chaque contrôle
+  d'un badge `+250 km`.
+- **Deux portes d'entrée sur la fiche pièce** : un bouton « Contrôle effectué » dans la barre
+  d'actions, et un lien depuis la carte Recommandation — là précisément où l'utilisateur lit
+  l'alerte à laquelle il ne croit pas.
+- **Fonctions pures testées** dans `wear-math.ts` : `wearPctOf`, `statusFromKm`,
+  `minKmExtensionFor`, `extensionSuggestions`, plus les seuils `WEAR_WARN_RATIO` /
+  `WEAR_BAD_RATIO`.
+
+### Modifié
+- **Notifications soldées à l'enregistrement.** Un contrôle marque comme lues les notifications non
+  lues de la pièce, *avant* le recalcul : l'utilisateur vient de la regarder, l'alerte a été
+  traitée. Si elle reste au-dessus du seuil, `recalculate` en recrée une, à jour — plutôt qu'une
+  vieille alerte qui traîne et une nouvelle bloquée par la déduplication.
+
+### Décisions
+- **Le contrôle révise `km_max`, il n'ajoute pas un crédit dans une colonne à part.** Une colonne
+  parallèle aurait obligé à changer la vue `component_stats`, le trigger de statut et les quinze
+  endroits qui lisent `km_max`, pour exactement le même résultat à l'écran. `km_max` est déjà une
+  estimation éditable à la main ; un contrôle n'en est que la version guidée et tracée.
+- **Les seuils de couleur sont désormais écrits deux fois** — dans le trigger SQL et dans
+  `wear-math.ts`, pour l'aperçu en direct. Duplication assumée mais fragile : modifier l'un impose
+  de suivre dans l'autre. Notée dans `docs/architecture.md`.
+- **Un contrôle sans kilomètres ajoutés reste enregistré.** « J'ai vérifié, l'estimation est
+  bonne » est une information : elle date la dernière vérification dans l'historique.
+
 ## [Non publié] — Vélocistes : l'annuaire tombait dès qu'Overpass toussait
 
 *Signalé depuis la page tuto « Remplacer la chaîne » : « L'annuaire des magasins ne répond pas. »
