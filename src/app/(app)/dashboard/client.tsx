@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BiCard, Mono } from "@/components/bi/ui";
+import { BiCard, Mono, Dot } from "@/components/bi/ui";
 import { BikePicker } from "@/components/bi/bike-picker";
 import {
   findRepairGuide,
@@ -141,6 +141,74 @@ export function DashboardClient({
     ? `Prochain remplacement : ${CATEGORY_LABELS[filteredPredictions[0].category] ?? filteredPredictions[0].componentName} dans ${formatWeeks(filteredPredictions[0].weeksUntil)}`
     : "Tout est au vert, continue comme ça !";
 
+  // Carte décision : la pièce (ou l'entretien) le plus urgent, mis en avant
+  // en tête de page plutôt que noyé dans « À traiter ». Même cascade de
+  // priorité que `formeReason` ci-dessus, juste mise en scène différemment —
+  // aucun nouveau calcul, aucune nouvelle donnée.
+  const decision = (() => {
+    if (badItems.length > 0) {
+      const item = badItems[0];
+      const urgency = item.weeksUntil !== null && item.weeksUntil <= 0
+        ? "Dépassé"
+        : item.weeksUntil !== null
+        ? formatWeeks(item.weeksUntil)
+        : `${item.kmRemaining.toLocaleString("fr")} km`;
+      return {
+        tone: "bad" as const,
+        eyebrow: "Prochaine décision",
+        headline: formeReason,
+        stat1: { value: urgency, label: "avant le seuil critique" },
+        stat2: item.cost !== null ? { value: `${item.cost} €`, label: "coût du remplacement" } : null,
+        primary: { label: "Voir mes options", href: routes.componentCompare(item.id) },
+        secondary: { label: "Elle tient encore", href: routes.componentCheck(item.id) },
+      };
+    }
+    if (dueMaint.length > 0) {
+      const m = dueMaint[0];
+      return {
+        tone: "bad" as const,
+        eyebrow: "Prochaine décision",
+        headline: formeReason,
+        stat1: null,
+        stat2: null,
+        primary: { label: "Marquer comme fait", href: routes.maintenanceType(m.typeId, selectedBikeId) },
+        secondary: null,
+      };
+    }
+    if (warnItems.length > 0) {
+      const item = warnItems[0];
+      const urgency = item.weeksUntil !== null && item.weeksUntil <= 0
+        ? "Dépassé"
+        : item.weeksUntil !== null
+        ? formatWeeks(item.weeksUntil)
+        : `${item.kmRemaining.toLocaleString("fr")} km`;
+      return {
+        tone: "warn" as const,
+        eyebrow: "À surveiller",
+        headline: formeReason,
+        stat1: { value: urgency, label: "km restants" },
+        stat2: item.cost !== null ? { value: `${item.cost} €`, label: "coût du remplacement" } : null,
+        primary: { label: "Voir mes options", href: routes.componentCompare(item.id) },
+        secondary: { label: "Elle tient encore", href: routes.componentCheck(item.id) },
+      };
+    }
+    return {
+      tone: "ok" as const,
+      eyebrow: "Aujourd'hui",
+      headline: formeReason,
+      stat1: null,
+      stat2: null,
+      primary: null,
+      secondary: null,
+    };
+  })();
+
+  const DECISION_TONE: Record<"bad" | "warn" | "ok", { dot: string; stat: string }> = {
+    bad: { dot: "var(--bi-bad)", stat: "var(--bi-bad)" },
+    warn: { dot: "var(--bi-warn)", stat: "var(--bi-warn)" },
+    ok: { dot: "var(--bi-ok)", stat: "var(--bi-ok)" },
+  };
+
   // Le dashboard est la surface des alertes : marque les notifications comme lues
   useEffect(() => {
     apiFetch("/api/notifications/read", {
@@ -200,6 +268,79 @@ export function DashboardClient({
         onSelect={setSelectedBikeId}
       />
 
+      {/* Décision du jour — la promesse de la landing (« une décision, pas un
+          tableau de bord ») remontée en tête d'écran plutôt que sur /cout. */}
+      {!hasNoComponents && (
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            background: "var(--bi-ink)",
+            color: "var(--bi-white)",
+            borderRadius: 18,
+            padding: 24,
+            marginBottom: 14,
+            boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute", top: -60, right: -60, width: 220, height: 220,
+              borderRadius: 999,
+              background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 65%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <Dot color={DECISION_TONE[decision.tone].dot} size={6} />
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.65)", fontFamily: "var(--bi-font-mono)" }}>
+                {decision.eyebrow}
+              </span>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.4, lineHeight: 1.35, marginTop: 12, maxWidth: 480 }}>
+              {decision.headline}
+            </div>
+            {(decision.stat1 || decision.stat2) && (
+              <div style={{ display: "flex", gap: 28, marginTop: 18, flexWrap: "wrap" }}>
+                {decision.stat1 && (
+                  <div>
+                    <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.6, color: DECISION_TONE[decision.tone].stat }}>
+                      {decision.stat1.value}
+                    </Mono>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{decision.stat1.label}</div>
+                  </div>
+                )}
+                {decision.stat2 && (
+                  <div>
+                    <Mono style={{ display: "block", fontSize: 24, fontWeight: 500, letterSpacing: -0.6 }}>{decision.stat2.value}</Mono>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{decision.stat2.label}</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {(decision.primary || decision.secondary) && (
+              <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
+                {decision.primary && (
+                  <Link href={decision.primary.href} style={{ textDecoration: "none" }}>
+                    <button style={{ padding: "11px 18px", background: "var(--bi-accent)", color: "var(--bi-accent-ink)", border: "none", borderRadius: 999, fontSize: 13, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}>
+                      {decision.primary.label}
+                    </button>
+                  </Link>
+                )}
+                {decision.secondary && (
+                  <Link href={decision.secondary.href} style={{ textDecoration: "none" }}>
+                    <button style={{ padding: "11px 18px", background: "rgba(255,255,255,0.08)", color: "var(--bi-white)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 999, fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+                      {decision.secondary.label}
+                    </button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Score de forme + Chiffres 12 mois (même rangée) */}
       <div className={hasNoComponents ? undefined : "bi-grid-2"} style={{ marginBottom: 14, alignItems: "stretch" }}>
         {/* Score de forme */}
@@ -225,7 +366,6 @@ export function DashboardClient({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Santé du vélo</div>
                 <div style={{ fontSize: 26, fontWeight: 700, color: formeBand.color, marginTop: 5, letterSpacing: -0.4 }}>{formeBand.label}</div>
-                <div style={{ fontSize: 13, color: "var(--bi-muted)", marginTop: 5, lineHeight: 1.5 }}>{formeReason}</div>
               </div>
             </div>
           </BiCard>
