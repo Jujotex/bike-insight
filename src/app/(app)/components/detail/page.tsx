@@ -380,14 +380,23 @@ function ComponentDetailContent() {
         />
 
         <div className="bi-grid-split" style={{ marginBottom: 14 }}>
-          <div className="bi-comp-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden", boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)" }}>
+          <div
+            className="bi-comp-hero"
+            style={{
+              background: "var(--bi-ink)",
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+              backgroundSize: "16px 16px",
+              color: "var(--bi-white)", borderRadius: 18, padding: 32, position: "relative", overflow: "hidden",
+              boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)",
+            }}
+          >
             {/* Halo teinté par le statut — même vocabulaire que la carte
                 décision du dashboard, couleur en plus pour rappeler l'urgence. */}
             <div
               style={{
-                position: "absolute", top: -60, right: -60, width: 220, height: 220,
+                position: "absolute", top: -55, right: -55, width: 200, height: 200,
                 borderRadius: 999,
-                background: `radial-gradient(circle, ${statusColor}33, transparent 65%)`,
+                background: `radial-gradient(circle, ${statusColor}52, transparent 65%)`,
                 pointerEvents: "none",
               }}
             />

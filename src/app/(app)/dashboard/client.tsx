@@ -157,6 +157,10 @@ export function DashboardClient({
         tone: "bad" as const,
         eyebrow: "Prochaine décision",
         headline: formeReason,
+        // Le chiffre qui domine la carte : le % d'usure de la pièce en cause,
+        // même geste que le héros de la fiche pièce (bi-wear-num) — juste à
+        // une échelle qui tient dans la carte plutôt qu'en pleine largeur.
+        bigNumber: { value: String(item.wearPct), unit: "%" },
         stat1: { value: urgency, label: "avant le seuil critique" },
         stat2: item.cost !== null ? { value: `${item.cost} €`, label: "coût du remplacement" } : null,
         primary: { label: "Voir mes options", href: routes.componentCompare(item.id) },
@@ -169,6 +173,9 @@ export function DashboardClient({
         tone: "bad" as const,
         eyebrow: "Prochaine décision",
         headline: formeReason,
+        // Pas de pièce précise ici (c'est un entretien, pas un composant) :
+        // le score de forme du vélo prend la place du chiffre dominant.
+        bigNumber: { value: String(formeScore), unit: "/100" },
         stat1: null,
         stat2: null,
         primary: { label: "Marquer comme fait", href: routes.maintenanceType(m.typeId, selectedBikeId) },
@@ -186,6 +193,7 @@ export function DashboardClient({
         tone: "warn" as const,
         eyebrow: "À surveiller",
         headline: formeReason,
+        bigNumber: { value: String(item.wearPct), unit: "%" },
         stat1: { value: urgency, label: "km restants" },
         stat2: item.cost !== null ? { value: `${item.cost} €`, label: "coût du remplacement" } : null,
         primary: { label: "Voir mes options", href: routes.componentCompare(item.id) },
@@ -196,6 +204,7 @@ export function DashboardClient({
       tone: "ok" as const,
       eyebrow: "Aujourd'hui",
       headline: formeReason,
+      bigNumber: { value: String(formeScore), unit: "/100" },
       stat1: null,
       stat2: null,
       primary: null,
@@ -276,6 +285,10 @@ export function DashboardClient({
             position: "relative",
             overflow: "hidden",
             background: "var(--bi-ink)",
+            // Même quadrillage à points que le héros des cartes vélo (bikes/page.tsx) —
+            // de la matière derrière le glow plutôt qu'un aplat plat.
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
             color: "var(--bi-white)",
             borderRadius: 18,
             padding: 24,
@@ -285,9 +298,9 @@ export function DashboardClient({
         >
           <div
             style={{
-              position: "absolute", top: -60, right: -60, width: 220, height: 220,
+              position: "absolute", top: -55, right: -55, width: 200, height: 200,
               borderRadius: 999,
-              background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 65%)",
+              background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)",
               pointerEvents: "none",
             }}
           />
@@ -298,7 +311,11 @@ export function DashboardClient({
                 {decision.eyebrow}
               </span>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.4, lineHeight: 1.35, marginTop: 12, maxWidth: 480 }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 14 }}>
+              <Mono style={{ fontSize: 64, fontWeight: 700, letterSpacing: -3, lineHeight: 0.85 }}>{decision.bigNumber.value}</Mono>
+              <Mono style={{ fontSize: 18, fontWeight: 600, color: "var(--bi-on-dark-muted)", marginBottom: 5 }}>{decision.bigNumber.unit}</Mono>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.2, lineHeight: 1.4, marginTop: 14, maxWidth: 480, color: "rgba(255,255,255,0.92)" }}>
               {decision.headline}
             </div>
             {(decision.stat1 || decision.stat2) && (

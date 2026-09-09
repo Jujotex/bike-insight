@@ -123,8 +123,17 @@ function TutoContent() {
         </div>
 
         {/* ── Héros : encre + accent lime ─────────────────────────── */}
-        <div className="bi-tuto-hero" style={{ background: "var(--bi-ink)", color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap", position: "relative", overflow: "hidden", boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)" }}>
-          <div style={{ position: "absolute", top: -60, right: -60, width: 220, height: 220, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.13), transparent 65%)", pointerEvents: "none" }} />
+        <div
+          className="bi-tuto-hero"
+          style={{
+            background: "var(--bi-ink)",
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+            color: "var(--bi-white)", borderRadius: 18, padding: 28, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap", position: "relative", overflow: "hidden",
+            boxShadow: "0 20px 40px -20px rgba(14,14,16,0.35)",
+          }}
+        >
+          <div style={{ position: "absolute", top: -55, right: -55, width: 200, height: 200, borderRadius: 999, background: "radial-gradient(circle, rgba(199,255,63,0.32), transparent 65%)", pointerEvents: "none" }} />
           <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 20 }}>
             {/* Pastille outil accent */}
             <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
