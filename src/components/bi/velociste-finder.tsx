@@ -334,7 +334,7 @@ export function VelocisteFinder() {
             {shops.map((s, idx) => (
               <div key={s.id} style={{ display: "flex", gap: 12, padding: "12px 14px", borderTop: idx === 0 ? "none" : "1px solid var(--bi-line)" }}>
                 {/* Pastille générée (initiale) — visuel léger, zéro requête */}
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--bi-ink)", color: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 17, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 14, background: "var(--bi-ink)", color: "var(--bi-accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 17, fontWeight: 700, fontFamily: "var(--bi-font-mono)" }}>
                   {s.name.trim().charAt(0).toUpperCase()}
                 </div>
 
