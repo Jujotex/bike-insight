@@ -143,7 +143,11 @@ function MaintenanceTypeContent() {
       <PageHead
         title={isNew ? "Nouvel entretien" : type?.label ?? "Entretien"}
         sub={bikeName ? `Vélo : ${bikeName}` : undefined}
-        breadcrumb={["Réglages", "Entretiens", isNew ? "Nouveau" : type?.label ?? ""]}
+        breadcrumb={[
+          "Réglages",
+          { label: "Entretiens", href: `/reglages/entretiens${bikeId ? `?bike=${bikeId}` : ""}` },
+          isNew ? "Nouveau" : type?.label ?? "",
+        ]}
       />
       {!isNew && type && (
         <MaintenanceProgress

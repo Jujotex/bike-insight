@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { routes } from "@/lib/routes";
 
 interface ArchiveButtonProps {
   componentId: string;
   isArchived: boolean;
+  bikeId: string;
 }
 
-export function ArchiveButton({ componentId, isArchived }: ArchiveButtonProps) {
+export function ArchiveButton({ componentId, isArchived, bikeId }: ArchiveButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +27,11 @@ export function ArchiveButton({ componentId, isArchived }: ArchiveButtonProps) {
       })
       .eq("id", componentId);
 
-    router.push("/components");
+    // Retour vers le vélo (onglet Pièces), pas vers /components : cette
+    // route n'existe plus comme destination, elle redirige déjà vers /bikes
+    // (voir components/page.tsx) — un détour inutile depuis ici, qui a
+    // directement le bon vélo sous la main.
+    router.push(routes.bikeTab(bikeId, "pieces"));
     router.refresh();
   }
 

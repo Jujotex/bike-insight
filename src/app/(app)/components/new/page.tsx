@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EmptyState, PageHead } from "@/components/bi/ui";
 import { SkelCard } from "@/components/bi/skeleton";
 import { NewComponentForm } from "@/components/bi/new-component-form";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 
 /**
  * Ajout d'une pièce — converti en composant client (phase 2.1, lot 2).
@@ -18,6 +19,7 @@ import { useAsyncData } from "@/lib/use-async-data";
  */
 function NewComponentContent() {
   const router = useRouter();
+  const bikeId = useSearchParams().get("bike_id");
 
   const load = useCallback(async () => {
     const userId = await getCurrentUserId();
@@ -36,11 +38,17 @@ function NewComponentContent() {
 
   const { data: bikes, loading, error } = useAsyncData(load, []);
 
+  const currentBike = bikeId ? bikes?.find((b) => (b.id as string) === bikeId) : null;
+
   return (
     <div className="bi-page">
       <PageHead
         title="Ajouter une pièce"
-        breadcrumb={["Pièces", "Nouvelle"]}
+        breadcrumb={
+          currentBike
+            ? [{ label: currentBike.name as string, href: routes.bikeTab(bikeId as string, "pieces") }, "Nouvelle pièce"]
+            : [{ label: "Mes vélos", href: routes.bikes() }, "Nouvelle pièce"]
+        }
         sub="L'usure sera calculée automatiquement à partir de tes sorties Strava."
       />
       {loading && !bikes ? (

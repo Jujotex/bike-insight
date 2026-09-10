@@ -97,7 +97,11 @@ function ComponentCheckContent() {
       <div className="bi-page">
         <PageHead
           title="Contrôle"
-          breadcrumb={["Composants", component.name, "Contrôle"]}
+          breadcrumb={[
+            { label: component.bike_name ?? "Vélo", href: routes.bikeTab(component.bike_id, "pieces") },
+            { label: component.name, href: routes.component(component.id) },
+            "Contrôle",
+          ]}
           sub=""
         />
         <EmptyState

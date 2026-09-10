@@ -98,7 +98,7 @@ function ComponentActions({
   if (status === "archived") {
     return (
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <ArchiveButton componentId={id} isArchived={true} />
+        <ArchiveButton componentId={id} isArchived={true} bikeId={bikeId} />
         <DeleteButton componentId={id} componentName={componentName} bikeId={bikeId} />
       </div>
     );
@@ -384,7 +384,10 @@ function ComponentDetailContent() {
         <OfflineBanner cachedAt={cachedAt} />
         <PageHead
           title={comp.name as string}
-          breadcrumb={["Composants", comp.name as string]}
+          breadcrumb={[
+            { label: (bike?.name as string | undefined) ?? "Vélo", href: routes.bikeTab(comp.bike_id as string, "pieces") },
+            comp.name as string,
+          ]}
           sub={(CATEGORY_LABELS[comp.category as string] ?? String(comp.category)) + " · installé le " + installedDate}
           actions={
             <ComponentActions

@@ -8,6 +8,7 @@ import { EditComponentForm } from "@/components/bi/edit-component-form";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
+import { routes } from "@/lib/routes";
 
 /**
  * Modification d'une pièce — converti en composant client (phase 2.1, lot 2).
@@ -55,6 +56,7 @@ function EditComponentContent() {
       installed_at: comp.installed_at as string | null,
       installed_km: comp.installed_km as number | null,
       km_max: comp.km_max as number | null,
+      bike_id: comp.bike_id as string,
       bike_name: (bike?.name as string | null) ?? null,
     };
   }, [id, router]);
@@ -88,7 +90,11 @@ function EditComponentContent() {
     <div className="bi-page">
       <PageHead
         title="Modifier le composant"
-        breadcrumb={["Composants", component.name, "Modifier"]}
+        breadcrumb={[
+          { label: component.bike_name ?? "Vélo", href: routes.bikeTab(component.bike_id, "pieces") },
+          { label: component.name, href: routes.component(id) },
+          "Modifier",
+        ]}
         sub="Les km d&apos;usure seront recalculés automatiquement."
       />
       <EditComponentForm component={component} />

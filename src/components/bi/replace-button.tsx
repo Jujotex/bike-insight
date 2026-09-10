@@ -99,7 +99,7 @@ export function ReplaceButton({
       if (newComp?.id) {
         router.push(routes.component(newComp.id));
       } else {
-        router.push(`/bikes`);
+        router.push(routes.bikeTab(bikeId, "pieces"));
       }
       router.refresh();
       return;

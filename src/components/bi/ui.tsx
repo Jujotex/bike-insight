@@ -530,6 +530,8 @@ export function PrimaryBtn({
 }
 
 // ── Page header (web) ─────────────────────────────────────────
+export type BreadcrumbSegment = string | { label: string; href?: string };
+
 export function PageHead({
   title,
   sub,
@@ -538,7 +540,7 @@ export function PageHead({
 }: {
   title: string;
   sub?: string;
-  breadcrumb?: string[];
+  breadcrumb?: BreadcrumbSegment[];
   actions?: React.ReactNode;
 }) {
   return (
@@ -554,32 +556,35 @@ export function PageHead({
             marginBottom: 10,
           }}
         >
-          {breadcrumb.map((b, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && (
-                <svg
-                  width="9"
-                  height="9"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M9 6l6 6-6 6" />
-                </svg>
-              )}
-              <span
-                style={{
-                  color:
-                    i === breadcrumb.length - 1
-                      ? "var(--bi-ink)"
-                      : "var(--bi-muted)",
-                }}
-              >
-                {b}
-              </span>
-            </React.Fragment>
-          ))}
+          {breadcrumb.map((seg, i) => {
+            const { label, href } = typeof seg === "string" ? { label: seg, href: undefined } : seg;
+            const isLast = i === breadcrumb.length - 1;
+            return (
+              <React.Fragment key={i}>
+                {i > 0 && (
+                  <svg
+                    width="9"
+                    height="9"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                )}
+                {href && !isLast ? (
+                  <Link href={href} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>
+                    {label}
+                  </Link>
+                ) : (
+                  <span style={{ color: isLast ? "var(--bi-ink)" : "var(--bi-muted)" }}>
+                    {label}
+                  </span>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
       <div
