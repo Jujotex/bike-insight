@@ -651,6 +651,38 @@ export async function getCostData(
   const activityChart = weekly.map(v => Math.round(v))
   const totalKm90d = activityChart.reduce((s, v) => s + v, 0)
 
+  // ── Dépenses par mois (12 derniers mois) ──────────────────────
+  // Remplace l'activité en km comme second graphique de la page Coût :
+  // un rythme de pédalage a sa place sur Historique, pas ici — une page
+  // qui s'appelle Coût mérite un graphique d'argent, pas de distance.
+  const MONTHS = 12
+  const now = new Date()
+  const monthLabels: string[] = []
+  const monthIdxByKey = new Map<string, number>()
+  for (let i = MONTHS - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    monthIdxByKey.set(`${d.getFullYear()}-${d.getMonth()}`, monthLabels.length)
+    monthLabels.push(d.toLocaleDateString('fr-FR', { month: 'short' }))
+  }
+  const spendByMonth = new Array(MONTHS).fill(0)
+  for (const l of logs) {
+    // `logs` (maintQ) n'est filtré ni par action ni par maintenance_type —
+    // il contient aussi les lignes de remplacement (déjà comptées via
+    // `repl` juste après), qui n'ont pas de maintenance_type. Sans cette
+    // garde — la même que `servicingTotal` plus haut — chaque
+    // remplacement serait compté deux fois.
+    if (!l.maintenance_type || !l.cost || !l.performed_at) continue
+    const d = new Date(l.performed_at as string)
+    const idx = monthIdxByKey.get(`${d.getFullYear()}-${d.getMonth()}`)
+    if (idx !== undefined) spendByMonth[idx] += l.cost as number
+  }
+  for (const r of repl) {
+    if (!r.cost || !r.performed_at) continue
+    const d = new Date(r.performed_at as string)
+    const idx = monthIdxByKey.get(`${d.getFullYear()}-${d.getMonth()}`)
+    if (idx !== undefined) spendByMonth[idx] += r.cost as number
+  }
+
   return {
     kpis: {
       spendTotal: Math.round(spendTotal),
@@ -663,6 +695,10 @@ export async function getCostData(
     activity: {
       chart: activityChart,
       total: totalKm90d,
+    },
+    spendByMonth: {
+      chart: spendByMonth.map(v => Math.round(v)),
+      labels: monthLabels,
     },
     projection: {
       total12m: Math.round(projected12m),

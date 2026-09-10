@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bars,
@@ -50,6 +50,7 @@ export default function CostPage() {
   }, [router]);
 
   const { data, loading, error, cachedAt } = useAsyncData(load, [], "cout:flotte");
+  const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
 
   if (loading && !data) {
     return (
@@ -76,7 +77,12 @@ export default function CostPage() {
 
   if (!data) return null; // redirection vers /login en cours
 
-  const { kpis, byBike, breakdown, activity, projection, insights, hasData, allBikes } = data;
+  const { kpis, byBike, breakdown, spendByMonth, projection, insights, hasData, allBikes } = data;
+  const lastNonZeroMonth = (() => {
+    for (let i = spendByMonth.chart.length - 1; i >= 0; i--) if (spendByMonth.chart[i] > 0) return i;
+    return spendByMonth.chart.length - 1;
+  })();
+  const activeMonth = hoveredMonth ?? lastNonZeroMonth;
 
   return (
     <div className="bi-page" style={{ opacity: loading ? 0.6 : 1, transition: "opacity 120ms" }}>
@@ -123,6 +129,39 @@ export default function CostPage() {
               </div>
             </div>
 
+            {/* Dépenses par mois — le graphique que cette page n'avait pas :
+                un total statique dit combien, pas si ça s'aggrave ou
+                s'améliore. Remplace l'ancienne carte "Activité" en km, qui
+                répondait à une question d'Historique, pas de Coût. */}
+            {spendByMonth.chart.some(v => v > 0) && (
+              <BiCard pad={0}>
+                <CardHead
+                  title="Dépenses par mois"
+                  sub="Sur les 12 derniers mois"
+                  right={
+                    <>
+                      <div style={{ fontSize: 12, color: "var(--bi-muted)", textTransform: "capitalize" }}>{spendByMonth.labels[activeMonth]}</div>
+                      <Metric value={fmtNum(spendByMonth.chart[activeMonth])} unit="€" size="sm" align="right" />
+                    </>
+                  }
+                />
+                <div style={{ padding: "20px 22px" }}>
+                  <Bars
+                    values={spendByMonth.chart}
+                    height={110}
+                    gap={6}
+                    hovered={hoveredMonth}
+                    onHover={setHoveredMonth}
+                  />
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    {spendByMonth.labels.map((label, i) => (
+                      <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, color: "var(--bi-muted)", textTransform: "capitalize" }}>{label.charAt(0)}</div>
+                    ))}
+                  </div>
+                </div>
+              </BiCard>
+            )}
+
             {/* Par vélo — la comparaison qu'une page mono-vélo ne pouvait pas
                 montrer. Chaque ligne ouvre l'onglet Coût du vélo concerné. */}
             {byBike.length > 1 && (
@@ -142,52 +181,34 @@ export default function CostPage() {
               </BiCard>
             )}
 
-            {/* Activité 3 mois + Où part ton argent — côte à côte */}
-            {(breakdown.length > 0 || activity.total > 0) && (
-              <div className={activity.total > 0 && breakdown.length > 0 ? "bi-grid-2" : undefined}>
-                {/* Où part ton argent */}
-                {breakdown.length > 0 && (
-                  <BiCard pad={0}>
-                    <CardHead title="Où part ton argent" sub={"Répartition de tes dépenses d'entretien"} />
-                    <div style={{ padding: "20px 22px" }}>
-                      <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
-                        {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
-                          <div key={key} style={{ width: `${pct}%`, background: categoryColor(key) }} />
-                        ))}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {breakdown.map(({ key, pct, items }) => (
-                          <div key={key}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 999, background: categoryColor(key), flexShrink: 0 }} />
-                              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{categoryLabel(key)}</span>
-                              <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
-                            </div>
-                            {items.length > 0 && (
-                              <div style={{ marginLeft: 18, marginTop: 4, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
-                                {items.map((it) => it.label).join(" · ")}
-                              </div>
-                            )}
+            {/* Où part ton argent */}
+            {breakdown.length > 0 && (
+              <BiCard pad={0}>
+                <CardHead title="Où part ton argent" sub={"Répartition de tes dépenses d'entretien"} />
+                <div style={{ padding: "20px 22px" }}>
+                  <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", gap: 2, marginBottom: 16 }}>
+                    {breakdown.filter(b => b.pct > 0).map(({ key, pct }) => (
+                      <div key={key} style={{ width: `${pct}%`, background: categoryColor(key) }} />
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    {breakdown.map(({ key, pct, items }) => (
+                      <div key={key}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 999, background: categoryColor(key), flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{categoryLabel(key)}</span>
+                          <Mono style={{ fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{pct}%</Mono>
+                        </div>
+                        {items.length > 0 && (
+                          <div style={{ marginLeft: 18, marginTop: 4, fontSize: 12, color: "var(--bi-muted)", lineHeight: 1.5 }}>
+                            {items.map((it) => it.label).join(" · ")}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    </div>
-                  </BiCard>
-                )}
-                {/* Activité · 3 mois */}
-                {activity.total > 0 && (
-                  <BiCard>
-                    <BiLabel>Activité · 3 mois</BiLabel>
-                    <div style={{ marginTop: 10 }}>
-                      <Metric value={fmtNum(activity.total)} unit="km" />
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>sur les 3 derniers mois</div>
-                    <div style={{ marginTop: 14 }}>
-                      <Bars values={activity.chart} height={60} gap={3} />
-                    </div>
-                  </BiCard>
-                )}
-              </div>
+                    ))}
+                  </div>
+                </div>
+              </BiCard>
             )}
 
             {/* Ce qui t'attend — projection */}
