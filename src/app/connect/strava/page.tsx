@@ -148,7 +148,7 @@ function StepSuccess() {
           <div style={{ background: "var(--bi-card)", borderRadius: 14, border: "1px solid var(--bi-line)", overflow: "hidden" }}>
             {bikes.map((b, i) => (
               <div key={b.id} style={{ padding: "14px 18px", borderTop: i > 0 ? "1px solid rgba(14,14,16,0.04)" : "none", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "#F0EFEA", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--bi-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="17" r="3" /><circle cx="19" cy="17" r="3" /><path d="M12 7l-3 10h6l-3-10zM12 7V4h3" /></svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>

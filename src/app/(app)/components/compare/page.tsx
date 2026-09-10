@@ -343,7 +343,7 @@ function CompareContent() {
             );
           })}
         </div>
-        <div style={{ textAlign: "center", fontSize: 11.5, color: "var(--bi-muted)", marginTop: -8, marginBottom: 22 }}>
+        <div style={{ textAlign: "center", fontSize: 11, color: "var(--bi-muted)", marginTop: -8, marginBottom: 22 }}>
           Touche une carte pour choisir — le bouton en bas s&apos;adapte à ton choix.
         </div>
 

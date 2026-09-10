@@ -387,7 +387,7 @@ function BikeDetailContent() {
                         <div style={{ width: 5, height: 34, background: color, borderRadius: 2, flexShrink: 0 }} />
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600 }}>{getComponentType(c.name as string)}</div>
-                          <div style={{ fontSize: 11.5, color: "var(--bi-muted)", marginTop: 2 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
+                          <div style={{ fontSize: 11, color: "var(--bi-muted)", marginTop: 2 }}>{c.brand ?? CATEGORY_LABELS[c.category as string] ?? "—"}</div>
                         </div>
                       </div>
                       <div className="bi-comp-col-installed" style={{ textAlign: "right" }}>

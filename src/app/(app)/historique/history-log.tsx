@@ -18,7 +18,10 @@ export type HistoryItem = {
 
 // Couleur cyclique par vélo — juste de quoi distinguer les étiquettes dans
 // un journal qui mélange plusieurs vélos, pas une palette à mémoriser.
-const BIKE_TAG_COLORS = ["var(--bi-ink)", "var(--bi-muted)", "var(--bi-accent-ink)", "#6B6B72"];
+// Les deux dernières empruntent aux tokens de catégorie (décoratifs,
+// cycliques par nature) plutôt que d'inventer une couleur : au-delà de
+// deux vélos, --bi-ink/--bi-muted seuls ne suffisent plus à distinguer.
+const BIKE_TAG_COLORS = ["var(--bi-ink)", "var(--bi-muted)", "var(--bi-cat-transmission)", "var(--bi-cat-roues)"];
 function bikeTagColor(bikeId: string, order: string[]): string {
   const idx = order.indexOf(bikeId);
   return BIKE_TAG_COLORS[idx % BIKE_TAG_COLORS.length] ?? "var(--bi-muted)";
