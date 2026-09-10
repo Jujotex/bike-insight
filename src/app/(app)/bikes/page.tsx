@@ -13,7 +13,14 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { useAsyncData } from "@/lib/use-async-data";
 import { routes } from "@/lib/routes";
 import { loadBikesData } from "./bikes-data";
+import { getComponentType } from "@/lib/components-catalog";
 import Link from "next/link";
+
+const STATUS_COLORS: Record<string, string> = {
+  ok: "var(--bi-ok)",
+  warn: "var(--bi-warn)",
+  bad: "var(--bi-bad)",
+};
 
 export default function BikesPage() {
   const router = useRouter();
@@ -73,6 +80,7 @@ export default function BikesPage() {
     bikeList,
     bikeStats,
     statusCounts,
+    worstComponentByBike,
     configuredBikeIds,
     activeBikeId,
     stravaConnected,
@@ -138,6 +146,8 @@ export default function BikesPage() {
               const isActive = b.id === activeBikeId;
               const badCount = statusCounts.get(b.id as string)?.bad ?? 0;
               const warnCount = statusCounts.get(b.id as string)?.warn ?? 0;
+              const worst = worstComponentByBike.get(b.id as string) ?? null;
+              const otherIssues = badCount + warnCount - 1;
               const isStrava = !!(b.strava_gear_id as string | null);
               const isConfigured = configuredBikeIds.has(b.id as string);
 
@@ -244,29 +254,31 @@ export default function BikesPage() {
                         {(b.brand as string | null) ? `${b.brand}${(b.model as string | null) ? ` · ${b.model}` : ""}` : ((b.model as string | null) ?? "Vélo")}
                       </div>
 
-                      {/* Status strip */}
-                      <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        {/* Un compteur nu (« 2 ») se lisait moins bien que « Tout OK » :
-                            l'état qui demande une action était le moins lisible des deux.
-                            Chaque état est donc un badge nommé, sur fond teinté. */}
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                          {badCount > 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-bad-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-bad)" }}>
-                              <Dot color="var(--bi-bad)" size={6} />{badCount} à remplacer
+                      {/* Status strip — la pièce la plus urgente, nommée, plutôt
+                          qu'un compteur nu (« 2 à remplacer ») qui forçait à
+                          ouvrir la carte pour savoir laquelle. Un vélo sans
+                          pièce déclarée n'affiche jamais « à jour » — le vert
+                          n'est pas l'état d'une donnée absente. */}
+                      <div style={{ marginTop: 14, padding: "10px 12px", background: "var(--bi-bg)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                        {worst ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+                            <Dot color={STATUS_COLORS[worst.status] ?? "var(--bi-muted)"} size={7} />
+                            <span style={{ fontSize: 12, fontWeight: 600, color: STATUS_COLORS[worst.status] ?? "var(--bi-ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {getComponentType(worst.name)} à {Math.round(worst.wearPct)}%
                             </span>
-                          )}
-                          {warnCount > 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-warn-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-warn)" }}>
-                              <Dot color="var(--bi-warn)" size={6} />{warnCount} à surveiller
-                            </span>
-                          )}
-                          {badCount === 0 && warnCount === 0 && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--bi-ok-soft)", fontSize: 11, fontWeight: 600, color: "var(--bi-ok)" }}>
-                              <Dot color="var(--bi-ok)" size={6} />Tout OK
-                            </span>
-                          )}
-                        </div>
-                        <Mono style={{ fontSize: 11, color: "var(--bi-muted)" }}>
+                            {otherIssues > 0 && (
+                              <span style={{ fontSize: 11, color: "var(--bi-muted)", flexShrink: 0 }}>+{otherIssues}</span>
+                            )}
+                          </div>
+                        ) : isConfigured ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                            <Dot color="var(--bi-ok)" size={7} />
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-muted)" }}>Tout est à jour</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-muted)" }}>Non configuré</span>
+                        )}
+                        <Mono style={{ fontSize: 11, color: "var(--bi-muted)", flexShrink: 0 }}>
                           {stats.rides} sortie{stats.rides !== 1 ? "s" : ""}
                         </Mono>
                       </div>

@@ -25,6 +25,8 @@ export type BikesData = {
   bikeStats: Map<string, BikeRideStats>
   /** Compteurs de pièces en alerte, par vélo. */
   statusCounts: Map<string, { bad: number; warn: number }>
+  /** Pièce la plus usée (hors état "ok"), par vélo — pour l'alerte de carte. */
+  worstComponentByBike: Map<string, { name: string; category: string; wearPct: number; status: string }>
   /** Vélos ayant au moins une pièce déclarée. */
   configuredBikeIds: Set<string>
   /** Vélo utilisé le plus récemment. */
@@ -55,9 +57,11 @@ export async function loadBikesData(
     // `maybeSingle` et non `single` : un profil absent est un cas normal, que
     // `single` transformerait en erreur et donc, désormais, en échec de page.
     supabase.from('profiles').select('strava_athlete_id').eq('id', userId).maybeSingle(),
+    // `component_stats` (vue), pas `components` : c'est elle qui expose
+    // `wear_pct` déjà calculé — comme sur la fiche vélo et Coût.
     supabase
-      .from('components')
-      .select('bike_id, status')
+      .from('component_stats')
+      .select('bike_id, status, name, category, wear_pct')
       .eq('user_id', userId)
       .eq('is_active', true),
     // Dépense d'entretien réelle (remplacements + entretiens) — tous vélos.
@@ -94,6 +98,21 @@ export async function loadBikesData(
     statusCounts.set(bid, cur)
   }
 
+  // Pire pièce par vélo (usure décroissante) — même logique que le Hub
+  // (Aperçu), calculée ici pour toute la flotte en un seul passage sur les
+  // lignes déjà chargées pour les compteurs ci-dessus.
+  const worstComponentByBike = new Map<string, { name: string; category: string; wearPct: number; status: string }>()
+  for (const c of configuredBikes ?? []) {
+    const status = c.status as string
+    if (status === 'ok') continue
+    const bid = c.bike_id as string
+    const wearPct = (c.wear_pct as number) ?? 0
+    const cur = worstComponentByBike.get(bid)
+    if (!cur || wearPct > cur.wearPct) {
+      worstComponentByBike.set(bid, { name: c.name as string, category: c.category as string, wearPct, status })
+    }
+  }
+
   const bikeList = (bikes ?? []) as BikeRow[]
 
   // Sorties à vie + dernière sortie par vélo (cohérent avec les km à vie).
@@ -124,6 +143,7 @@ export async function loadBikesData(
     bikeList,
     bikeStats,
     statusCounts,
+    worstComponentByBike,
     configuredBikeIds,
     activeBikeId,
     stravaConnected: !!profile?.strava_athlete_id,
