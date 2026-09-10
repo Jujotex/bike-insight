@@ -87,7 +87,7 @@ export function MaintenanceSettingsClient({
             </div>
           </div>
           <Link
-            href={`/reglages/entretiens/new?bike=${bikeId}`}
+            href={routes.maintenanceType("new", bikeId)}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "var(--bi-ink)", color: "var(--bi-bg)", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>

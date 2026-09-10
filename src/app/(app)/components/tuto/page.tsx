@@ -113,7 +113,7 @@ function TutoContent() {
         {/* Barre de retour + fil d'ariane */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
           <div className="bi-tuto-crumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--bi-muted)" }}>
-            <Link href="/bikes" style={{ color: "var(--bi-muted)", textDecoration: "none" }}>Composants</Link>
+            <Link href={routes.bikeTab(comp.bike_id as string, "pieces")} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{bike?.name ?? "Vélo"}</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
             <Link href={routes.component(id)} style={{ color: "var(--bi-muted)", textDecoration: "none" }}>{comp.name as string}</Link>
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
