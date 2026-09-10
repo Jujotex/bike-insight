@@ -25,7 +25,8 @@ export const routes = {
   dashboard: () => '/dashboard',
   bikes: () => '/bikes',
   cost: () => '/cout',
-  history: (bikeId?: string) => (bikeId ? `/historique?bike=${bikeId}` : '/historique'),
+  /** Historique — vue flotte. Pour l'historique d'UN vélo, voir `bikeTab(id, 'historique')`. */
+  history: () => '/historique',
   account: () => '/account',
   onboarding: (bikeId?: string) => (bikeId ? `/onboarding?bike_id=${bikeId}` : '/onboarding'),
 

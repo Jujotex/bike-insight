@@ -56,10 +56,15 @@ function Dot({ status, active }: { status: BikePickerStatus; active: boolean }) 
  * composant client : une prop fonction fait échouer le rendu (erreur 500).
  * Les URLs sont donc assemblées ici.
  *
- * Il n'y a délibérément PAS d'option « tous les vélos » : un vélo est
- * toujours sélectionné, sur toutes les pages. Un agrégat tous-vélos mêlerait
- * des chiffres qui ne se comparent pas (usure, coût, échéances d'entretien
- * dépendent du vélo). Les pages serveur résolvent un vélo par défaut.
+ * Il n'y a délibérément PAS d'option « tous les vélos » ici : un vélo est
+ * toujours sélectionné. Un agrégat tous-vélos mêlerait des chiffres qui ne
+ * se comparent pas d'un vélo à l'autre — usure, échéances d'entretien,
+ * repère « où tu te situes » (coût/km, km/an). C'est pour ça que ce
+ * sélecteur ne vit plus que sur le dashboard : Coût et Historique globaux
+ * (`cout/page.tsx`, `historique/page.tsx`) ont depuis leur propre vue
+ * flotte sans sélecteur — l'argent dépensé et le journal d'événements,
+ * eux, s'additionnent proprement entre vélos. Le mono-vélo y reste
+ * disponible, mais dans le Hub de chaque vélo (`bikes/detail`), pas ici.
  */
 export function BikePicker({
   bikes,
