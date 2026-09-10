@@ -409,10 +409,15 @@ export async function getCostData(
   const bikeList = bikes ?? []
   const logs = maintLogs ?? []
   // Remplacements filtrés par vélo (le bike_id est sur le composant joint).
+  // Un remplacement dont la pièce jointe a depuis été supprimée n'a plus de
+  // vélo identifiable — l'exclure aussi en mode flotte, sinon le total de
+  // flotte compte une dépense qu'aucun total par vélo ne peut retrouver
+  // (repérable au nom générique "Pièce remplacée" dans l'historique).
   const repl = (replacements ?? []).filter(r => {
-    if (!effectiveBikeId) return true
     const c = Array.isArray(r.components) ? r.components[0] : r.components
-    return (c as { bike_id?: string | null } | null)?.bike_id === effectiveBikeId
+    const bid = (c as { bike_id?: string | null } | null)?.bike_id
+    if (!bid) return false
+    return !effectiveBikeId || bid === effectiveBikeId
   })
   const acts = activities ?? []
 
