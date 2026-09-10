@@ -25,7 +25,7 @@ export function HubTabs({ bikeId, active }: { bikeId: string; active: HubTab }) 
       style={{
         position: "relative",
         display: "flex",
-        gap: 4,
+        gap: 6,
         overflowX: "auto",
         marginTop: 18,
         paddingTop: 16,
@@ -40,9 +40,9 @@ export function HubTabs({ bikeId, active }: { bikeId: string; active: HubTab }) 
             href={routes.bikeTab(bikeId, t.id)}
             style={{
               flexShrink: 0,
-              padding: "8px 14px",
+              padding: "10px 16px",
               borderRadius: 999,
-              fontSize: 12.5,
+              fontSize: 14,
               fontWeight: isActive ? 700 : 600,
               textDecoration: "none",
               whiteSpace: "nowrap",
