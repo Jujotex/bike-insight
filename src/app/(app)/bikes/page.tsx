@@ -283,15 +283,18 @@ export default function BikesPage() {
                         </Mono>
                       </div>
 
-                      {/* Badge non configuré */}
+                      {/* Badge non configuré — bouton et non Link : la carte entière
+                          est déjà un <a> (routes.bike), et un <a> dans un <a> est un
+                          HTML invalide qui casse l'hydratation React. */}
                       {!isConfigured && (
-                        <Link
-                          href={routes.onboarding(b.id)}
-                          style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.25)", textDecoration: "none" }}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push(routes.onboarding(b.id)); }}
+                          style={{ marginTop: 10, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", borderRadius: 10, background: "var(--bi-accent-soft)", border: "1px solid rgba(199,255,63,0.25)", cursor: "pointer", fontFamily: "inherit" }}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bi-ok)" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bi-ok)" }}>Configurer le matériel</span>
-                        </Link>
+                        </button>
                       )}
 
                       {/* Footer */}

@@ -134,6 +134,15 @@ body {
    Remplace les `marginBottom: 14` posés carte par carte. */
 .bi-stack { display: grid; gap: 14px; }
 
+/* Défilement horizontal sans barre visible — la bande d'onglets du Hub
+   (5 onglets ne tiennent pas sur un écran mobile) reste scrollable au
+   doigt/trackpad, seule la barre de défilement du navigateur est masquée. */
+.bi-scroll-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.bi-scroll-x::-webkit-scrollbar { display: none; }
+
 /* Liste de lignes dans une carte `pad={0}` : filet entre les lignes,
    jamais au-dessus de la première (l'en-tête porte déjà son border-bottom). */
 .bi-rows > .bi-row { border-top: 1px solid var(--bi-line); }

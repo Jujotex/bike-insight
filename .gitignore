@@ -48,3 +48,7 @@ next-env.d.ts
 # Cowork / Claude internal
 .agents/
 skills-lock.json
+
+# Playwright MCP session artifacts (screenshots, snapshots) — local testing only
+.playwright-mcp/
+

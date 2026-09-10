@@ -22,6 +22,7 @@ const TABS: { id: HubTab; label: string }[] = [
 export function HubTabs({ bikeId, active }: { bikeId: string; active: HubTab }) {
   return (
     <div
+      className="bi-scroll-x"
       style={{
         position: "relative",
         display: "flex",
