@@ -241,7 +241,7 @@ export function DashboardClient({
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bi-muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
             {todayCap}{selectedBike ? ` - ${selectedBike.name as string}` : ""}
           </div>
-          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 4 }}>
+          <div className="bi-pagehead-title" style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1, marginTop: 4 }}>
             Bonjour, {userName}
           </div>
         </div>
@@ -358,54 +358,47 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* Score de forme + Chiffres 12 mois (même rangée) */}
-      <div className={hasNoComponents ? undefined : "bi-grid-2"} style={{ marginBottom: 14, alignItems: "stretch" }}>
-        {/* Score de forme */}
-        {!hasNoComponents && (
-          <BiCard pad={24}>
-            <div style={{ display: "flex", alignItems: "center", gap: 24, height: "100%" }}>
-              <div style={{ position: "relative", width: 118, height: 118, flexShrink: 0 }}>
-                <svg width="118" height="118" viewBox="0 0 118 118">
-                  <circle cx="59" cy="59" r="51" fill="none" stroke="var(--bi-line)" strokeWidth="9" />
-                  <circle
-                    cx="59" cy="59" r="51" fill="none"
-                    stroke={formeBand.color} strokeWidth="9" strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 51}
-                    strokeDashoffset={2 * Math.PI * 51 * (1 - formeScore / 100)}
-                    transform="rotate(-90 59 59)"
-                  />
-                </svg>
-                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 38, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", lineHeight: 1, color: formeBand.color }}>{formeScore}</span>
-                  <span style={{ fontSize: 10, color: "var(--bi-muted)", marginTop: 3 }}>/ 100</span>
-                </div>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Santé du vélo</div>
-                <div style={{ fontSize: 26, fontWeight: 700, color: formeBand.color, marginTop: 5, letterSpacing: -0.4 }}>{formeBand.label}</div>
+      {/* Score de forme — la jauge et les deux chiffres 12 mois vivaient dans
+          trois blocs séparés (empilés en 3 lignes sur mobile) pour une info
+          qui se lit d'un coup d'œil. Un seul BiCard, plus dense, plus
+          éditorial : la jauge domine, les deux chiffres l'accompagnent au
+          lieu de rivaliser avec elle en pleine largeur. */}
+      {!hasNoComponents && (
+        <BiCard style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <div style={{ position: "relative", width: 88, height: 88, flexShrink: 0 }}>
+              <svg width="88" height="88" viewBox="0 0 88 88">
+                <circle cx="44" cy="44" r="38" fill="none" stroke="var(--bi-line)" strokeWidth="7" />
+                <circle
+                  cx="44" cy="44" r="38" fill="none"
+                  stroke={formeBand.color} strokeWidth="7" strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 38}
+                  strokeDashoffset={2 * Math.PI * 38 * (1 - formeScore / 100)}
+                  transform="rotate(-90 44 44)"
+                />
+              </svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 26, fontWeight: 700, fontFamily: "var(--font-jetbrains-mono)", lineHeight: 1, color: formeBand.color }}>{formeScore}</span>
+                <span style={{ fontSize: 9, color: "var(--bi-muted)", marginTop: 2 }}>/ 100</span>
               </div>
             </div>
-          </BiCard>
-        )}
-
-        {/* Chiffres 12 mois */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden" }}>
-          <div style={{ background: "var(--bi-card)", padding: "22px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 8 }}>
-              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{kmFormatted}</span>
-              <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>km</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Santé du vélo</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: formeBand.color, marginTop: 4, letterSpacing: -0.3 }}>{formeBand.label}</div>
             </div>
           </div>
-          <div style={{ background: "var(--bi-card)", padding: "22px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 8 }}>
-              <span style={{ fontSize: 27, fontWeight: 600, letterSpacing: -0.6, fontFamily: "var(--font-jetbrains-mono)" }}>{rides12mSelected}</span>
-              <span style={{ fontSize: 12, color: "var(--bi-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>sorties</span>
+          <div style={{ display: "flex", gap: 24, marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--bi-line)" }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>12 mois</div>
+              <Mono style={{ display: "block", fontSize: 16, fontWeight: 700, letterSpacing: -0.3, marginTop: 4 }}>{kmFormatted} km</Mono>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bi-muted)" }}>Sorties</div>
+              <Mono style={{ display: "block", fontSize: 16, fontWeight: 700, letterSpacing: -0.3, marginTop: 4 }}>{rides12mSelected}</Mono>
             </div>
           </div>
-        </div>
-      </div>
+        </BiCard>
+      )}
 
       {/* Empty state */}
       {hasNoComponents && (
@@ -498,7 +491,13 @@ export function DashboardClient({
                         <Mono style={{ fontSize: 16, fontWeight: 700, color, letterSpacing: -0.3 }}>{Math.round(m.pct)}%</Mono>
                       </div>
                       <div style={{ fontSize: 12, color, fontWeight: 500, marginTop: 4 }}>{m.statusLabel}</div>
+                      {/* Détail tuto/atelier réservé aux entretiens dus ou à surveiller —
+                          sur un entretien à jour, l'info « comment le faire » n'est pas
+                          utile tout de suite et alourdit une carte censée rester un
+                          coup d'œil. Le Hub du vélo (onglet Entretien) garde le détail
+                          complet pour tous les états. */}
                       {(() => {
+                        if (m.state === "ok") return null;
                         const mt = findMaintenanceTuto(m.typeId);
                         if (!mt) return null;
                         return (

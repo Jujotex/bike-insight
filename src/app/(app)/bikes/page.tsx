@@ -117,19 +117,21 @@ export default function BikesPage() {
           }
         />
 
-        {/* Summary strip — chiffres à l'échelle du reste de l'app (dashboard,
-            fiche pièce) plutôt que des labels discrets de 24px. */}
-        <div className="bi-grid-4" style={{ gap: 1, background: "var(--bi-line)", borderRadius: 18, overflow: "hidden", marginBottom: 22, boxShadow: "var(--bi-shadow-card)" }}>
+        {/* Summary strip — tuiles individuelles plutôt qu'une carte divisée :
+            chaque chiffre respire dans son propre padding de rôle (20px 22px),
+            et un label court (« Dépenses » plutôt que « Dépensé en
+            entretien ») élimine le risque de retour à la ligne sur mobile. */}
+        <div className="bi-grid-4" style={{ marginBottom: 22 }}>
           {[
             ["Vélos", String(bikeList.length)],
             ["Sorties · 12 m", String(totalRides)],
             ["Distance totale", `${totalKm.toLocaleString("fr-FR")} km`],
-            ["Dépensé en entretien", `${totalCost.toLocaleString("fr-FR")} €`],
+            ["Dépenses · 12 m", `${totalCost.toLocaleString("fr-FR")} €`],
           ].map(([k, v]) => (
-            <div key={String(k)} style={{ background: "var(--bi-card)", padding: "22px 22px" }}>
+            <BiCard key={String(k)}>
               <BiLabel>{k}</BiLabel>
-              <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: -1.4, marginTop: 9, lineHeight: 1 }}>{v}</Mono>
-            </div>
+              <Mono style={{ display: "block", fontSize: 22, fontWeight: 700, letterSpacing: -0.6, marginTop: 8, lineHeight: 1 }}>{v}</Mono>
+            </BiCard>
           ))}
         </div>
 
@@ -248,8 +250,8 @@ export default function BikesPage() {
                     </div>
 
 
-                    <div style={{ padding: 18 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600 }}>{b.name as string}</div>
+                    <div style={{ padding: "20px 22px" }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2 }}>{b.name as string}</div>
                       <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
                         {(b.brand as string | null) ? `${b.brand}${(b.model as string | null) ? ` · ${b.model}` : ""}` : ((b.model as string | null) ?? "Vélo")}
                       </div>

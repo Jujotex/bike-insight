@@ -291,9 +291,9 @@ function BikeDetailContent() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", columnGap: 12, marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
               {[
-                [fmt(maintenanceSpend) + " €", "DÉPENSÉ ENTRETIEN"],
+                [fmt(maintenanceSpend) + " €", "ENTRETIEN"],
                 [String(totalRides12m), "SORTIES · 12 M"],
-                [String(avgKmPerRide) + " km", "MOY. PAR SORTIE"],
+                [String(avgKmPerRide) + " km", "MOY. / SORTIE"],
               ].map(([v, l]) => (
                 <div key={l} style={{ minWidth: 0 }}>
                   <Mono style={{ display: "block", fontSize: 20, fontWeight: 600, letterSpacing: -0.4 }}>{v}</Mono>
@@ -313,7 +313,7 @@ function BikeDetailContent() {
                 <div style={{ marginTop: 4 }}><Dot color={DECISION_TONE[decision.tone].dot} size={9} /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <BiLabel style={{ color: DECISION_TONE[decision.tone].text }}>{decision.eyebrow}</BiLabel>
-                  <div style={{ fontSize: 17, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{decision.headline}</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, marginTop: 6, lineHeight: 1.4 }}>{decision.headline}</div>
                 </div>
               </div>
               {decision.href && decision.actionLabel && (
