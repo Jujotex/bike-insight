@@ -210,12 +210,12 @@ export default function CostPage() {
                       href={u.href}
                       accent={categoryColor(u.key)}
                       title={
-                        <>
-                          {u.name}
+                        <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{u.name}</span>
                           {u.key === "entretien" && (
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", flexShrink: 0, marginLeft: 8 }}>Entretien</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: "var(--bi-bg)", border: "1px solid var(--bi-line)", color: "var(--bi-muted)", flexShrink: 0 }}>Entretien</span>
                           )}
-                        </>
+                        </span>
                       }
                       sub={u.key === "entretien" && u.weeksUntil <= 0 ? "à faire" : fmtDelay(u.weeksUntil)}
                       trailing={<Mono style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3, color: "var(--bi-ink)", flexShrink: 0 }}>{fmtNum(u.cost)} €</Mono>}

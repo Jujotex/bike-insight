@@ -271,15 +271,25 @@ export function ListRow({
             minWidth: 0,
           }}
         >
-          <span
-            style={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {title}
-          </span>
+          {/* L'ellipse ne s'applique qu'à un titre texte simple : un titre
+              composite (texte + badge, ex. la puce "Entretien" sur Coût)
+              géré comme un seul bloc tronquait le badge lui-même — le
+              badge devient un bloc visuel coupé au lieu d'un texte "…".
+              Un titre composite gère sa propre troncature interne. */}
+          {typeof title === "string" ? (
+            <span
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                minWidth: 0,
+              }}
+            >
+              {title}
+            </span>
+          ) : (
+            title
+          )}
         </div>
         {sub && (
           <div style={{ fontSize: 12, color: "var(--bi-muted)", marginTop: 2 }}>
